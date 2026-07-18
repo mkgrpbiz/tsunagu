@@ -23,17 +23,23 @@
     <div class="bg-white border border-gray-200 rounded-lg p-6">
         <p class="text-sm text-gray-500">紹介報酬（未払い合計）</p>
         <p class="text-lg font-semibold mt-1">{{ $month ? $month.'：' : '全期間：' }}¥{{ number_format($monthlyPayoutTotal) }}</p>
-        <p class="text-sm text-gray-500 mt-1">累計：¥{{ number_format($pendingPayoutTotal) }}</p>
+        @if ($month)
+            <p class="text-sm text-gray-500 mt-1">累計：¥{{ number_format($pendingPayoutTotal) }}</p>
+        @endif
     </div>
     <div class="bg-white border border-gray-200 rounded-lg p-6">
         <p class="text-sm text-gray-500">パートナー10%（未払い合計）</p>
         <p class="text-lg font-semibold mt-1">{{ $month ? $month.'：' : '全期間：' }}¥{{ number_format($monthlyReferralTotal) }}</p>
-        <p class="text-sm text-gray-500 mt-1">累計：¥{{ number_format($pendingReferralTotal) }}</p>
+        @if ($month)
+            <p class="text-sm text-gray-500 mt-1">累計：¥{{ number_format($pendingReferralTotal) }}</p>
+        @endif
     </div>
     <div class="bg-white border border-gray-200 rounded-lg p-6">
         <p class="text-sm text-gray-500">共創パートナー30%（未払い合計）</p>
         <p class="text-lg font-semibold mt-1">{{ $month ? $month.'：' : '全期間：' }}¥{{ number_format($monthlyCollaborationRewardTotal) }}</p>
-        <p class="text-sm text-gray-500 mt-1">累計：¥{{ number_format($pendingCollaborationRewardTotal) }}</p>
+        @if ($month)
+            <p class="text-sm text-gray-500 mt-1">累計：¥{{ number_format($pendingCollaborationRewardTotal) }}</p>
+        @endif
     </div>
 </div>
 
