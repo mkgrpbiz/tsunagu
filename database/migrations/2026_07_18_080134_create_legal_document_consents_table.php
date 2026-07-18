@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('agency_id')->constrained()->cascadeOnDelete();
             $table->foreignId('legal_document_id')->constrained()->restrictOnDelete();
-            $table->timestamp('consented_at');
+            $table->timestamp('consented_at')->useCurrent();
             $table->string('ip_address');
             $table->text('user_agent');
             $table->string('method')->default('web_registration');

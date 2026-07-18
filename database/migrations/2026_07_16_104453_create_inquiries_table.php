@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('email');
             $table->string('status')->default('new');
             $table->timestamp('guidance_sent_at')->nullable();
-            $table->timestamp('inquired_at');
+            $table->timestamp('inquired_at')->useCurrent();
             $table->timestamps();
         });
     }
