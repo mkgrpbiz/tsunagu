@@ -10,6 +10,7 @@
         <label for="month" class="block text-xs font-medium text-gray-700 mb-1">月で絞り込み</label>
         <div class="flex gap-2">
             <select name="month" id="month" onchange="this.form.submit()" class="rounded-md border border-gray-300 text-sm">
+                <option value="" disabled @selected(! $month)>月を選択</option>
                 @foreach ($months as $ym)
                     <option value="{{ $ym }}" @selected($month === $ym)>{{ $ym }}</option>
                 @endforeach
