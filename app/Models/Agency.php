@@ -140,11 +140,24 @@ class Agency extends Authenticatable
         return $this->legacy_code ?: sprintf('B%04d', $this->id);
     }
 
+    public static function generateUniqueLegacyCode(int $startFrom): string
+    {
+        $candidate = $startFrom;
+
+        do {
+            $code = sprintf('B%04d', $candidate);
+            $taken = self::where('legacy_code', $code)->exists();
+            $candidate++;
+        } while ($taken);
+
+        return $code;
+    }
+
     protected static function booted(): void
     {
         static::created(function (self $agency) {
             if (! $agency->legacy_code) {
-                $agency->updateQuietly(['legacy_code' => sprintf('B%04d', $agency->id)]);
+                $agency->updateQuietly(['legacy_code' => self::generateUniqueLegacyCode($agency->id)]);
             }
         });
     }
