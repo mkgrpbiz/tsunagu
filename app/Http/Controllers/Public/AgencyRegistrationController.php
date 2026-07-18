@@ -89,8 +89,7 @@ class AgencyRegistrationController extends Controller
         $referrer = null;
 
         if (filled($data['referral_code'] ?? null)) {
-            $referrerId = (int) preg_replace('/\D/', '', $data['referral_code']);
-            $referrer = Agency::find($referrerId);
+            $referrer = Agency::where('legacy_code', $data['referral_code'])->first();
 
             if (! $referrer) {
                 throw ValidationException::withMessages([

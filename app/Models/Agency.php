@@ -137,7 +137,16 @@ class Agency extends Authenticatable
 
     public function getReferralCodeAttribute(): string
     {
-        return sprintf('B%04d', $this->id);
+        return $this->legacy_code ?: sprintf('B%04d', $this->id);
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (self $agency) {
+            if (! $agency->legacy_code) {
+                $agency->updateQuietly(['legacy_code' => sprintf('B%04d', $agency->id)]);
+            }
+        });
     }
 
     public function getOrCreateOshigotoToken(): string
