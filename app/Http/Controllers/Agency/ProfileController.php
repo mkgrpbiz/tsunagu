@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agency;
 
+use App\Enums\ActivityType;
 use App\Enums\BankAccountType;
 use App\Enums\Gender;
 use App\Http\Controllers\Controller;
@@ -24,6 +25,8 @@ class ProfileController extends Controller
             'agency' => $agency,
             'genders' => Gender::cases(),
             'bankAccountTypes' => BankAccountType::cases(),
+            'activityTypes' => ActivityType::cases(),
+            'desiredActivityOptions' => Agency::DESIRED_ACTIVITY_OPTIONS,
         ]);
     }
 
@@ -47,6 +50,17 @@ class ProfileController extends Controller
             'bank_account_type' => ['nullable', Rule::enum(BankAccountType::class)],
             'bank_account_number' => ['nullable', 'string', 'max:255'],
             'bank_account_holder' => ['nullable', 'string', 'max:255'],
+            'activity_type' => ['required', Rule::enum(ActivityType::class)],
+            'company_name' => [
+                Rule::requiredIf($request->input('activity_type') === ActivityType::Corporation->value),
+                'nullable', 'string', 'max:255',
+            ],
+            'desired_activities' => ['required', 'array', 'min:1'],
+            'desired_activities.*' => ['string', Rule::in(Agency::DESIRED_ACTIVITY_OPTIONS)],
+            'current_activity' => ['required', 'string'],
+            'track_record' => ['nullable', 'string'],
+            'media_urls' => ['nullable', 'string'],
+            'self_pr' => ['nullable', 'string'],
             'current_password' => ['nullable', 'string'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);

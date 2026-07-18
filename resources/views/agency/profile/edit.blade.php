@@ -72,6 +72,68 @@
             </div>
 
             <div class="col-span-2 border-t border-gray-100 pt-4 mt-2">
+                <p class="text-sm font-medium text-gray-700 mb-3">活動情報</p>
+            </div>
+
+            <div class="col-span-2">
+                <span class="block text-sm font-medium text-gray-700 mb-1">活動区分</span>
+                <div class="flex flex-wrap gap-4">
+                    @foreach ($activityTypes as $activityType)
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="radio" name="activity_type" value="{{ $activityType->value }}" required
+                                   onchange="tsnUpdateCompanyNameField()"
+                                   @checked(old('activity_type', $agency->activity_type?->value) === $activityType->value)>
+                            {{ $activityType->label() }}
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="col-span-2 hidden" id="company_name_wrap">
+                <label for="company_name" id="company_name_label" class="block text-sm font-medium text-gray-700 mb-1">屋号名</label>
+                <input type="text" name="company_name" id="company_name" value="{{ old('company_name', $agency->company_name) }}"
+                       class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+
+            <div class="col-span-2">
+                <span class="block text-sm font-medium text-gray-700 mb-1">希望する活動内容（複数選択可）</span>
+                <div class="flex flex-wrap gap-4">
+                    @foreach ($desiredActivityOptions as $option)
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" name="desired_activities[]" value="{{ $option }}"
+                                   @checked(collect(old('desired_activities', $agency->desired_activities ?? []))->contains($option))>
+                            {{ $option }}
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="col-span-2">
+                <label for="current_activity" class="block text-sm font-medium text-gray-700 mb-1">現在の活動内容</label>
+                <textarea name="current_activity" id="current_activity" rows="3" required
+                          class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('current_activity', $agency->current_activity) }}</textarea>
+            </div>
+
+            <div class="col-span-2">
+                <label for="media_urls" class="block text-sm font-medium text-gray-700 mb-1">媒体URL（任意）</label>
+                <p class="text-xs text-gray-500 mb-1">複数ある場合は改行してください。</p>
+                <textarea name="media_urls" id="media_urls" rows="3"
+                          class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('media_urls', $agency->media_urls) }}</textarea>
+            </div>
+
+            <div class="col-span-2">
+                <label for="track_record" class="block text-sm font-medium text-gray-700 mb-1">活動実績（任意）</label>
+                <textarea name="track_record" id="track_record" rows="3"
+                          class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('track_record', $agency->track_record) }}</textarea>
+            </div>
+
+            <div class="col-span-2">
+                <label for="self_pr" class="block text-sm font-medium text-gray-700 mb-1">自己PR・TSUNAGUで取り組みたいこと（任意）</label>
+                <textarea name="self_pr" id="self_pr" rows="3"
+                          class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('self_pr', $agency->self_pr) }}</textarea>
+            </div>
+
+            <div class="col-span-2 border-t border-gray-100 pt-4 mt-2">
                 <p class="text-sm font-medium text-gray-700 mb-3">振込先情報</p>
             </div>
 
@@ -142,4 +204,30 @@
         </div>
     </form>
 </div>
+
+<script>
+function tsnUpdateCompanyNameField() {
+    var checked = document.querySelector('input[name="activity_type"]:checked');
+    var wrap = document.getElementById('company_name_wrap');
+    var label = document.getElementById('company_name_label');
+    var input = document.getElementById('company_name');
+    var value = checked ? checked.value : null;
+
+    if (value === 'sole_proprietor') {
+        wrap.classList.remove('hidden');
+        label.textContent = '屋号名（任意）';
+        input.required = false;
+    } else if (value === 'corporation') {
+        wrap.classList.remove('hidden');
+        label.textContent = '法人名';
+        input.required = true;
+    } else {
+        wrap.classList.add('hidden');
+        input.required = false;
+        input.value = '';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', tsnUpdateCompanyNameField);
+</script>
 @endsection
