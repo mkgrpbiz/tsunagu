@@ -7,6 +7,7 @@
 .og-wrap{max-width:760px;margin:0 auto;padding:2rem 1.25rem 4rem;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans",Meiryo,sans-serif;color:#111827}
 .og-wrap *{box-sizing:border-box}
 .og-header{text-align:center;margin-bottom:16px}
+.og-logo{display:block;max-width:100%;width:100%;height:auto;margin:0 auto 12px;border-radius:16px}
 .og-title{font-weight:900;font-size:20px;color:#0f172a}
 .og-sub{margin-top:6px;font-size:12.5px;color:#6b7280}
 .og-notice{margin-top:16px;padding:12px 16px;border-radius:14px;font-size:13px;line-height:1.7}
@@ -33,14 +34,15 @@
 @section('content')
 <div class="og-wrap">
     <div class="og-header">
+        <img src="{{ \Illuminate\Support\Facades\Storage::url('oshigoto/logo.png') }}" alt="おしごとナビ" class="og-logo">
         <div class="og-title">おしごとナビ｜案件一覧</div>
         <div class="og-sub">気になる案件名をタップして詳細をご確認ください。</div>
     </div>
 
     @if ($agency)
-        <div class="og-notice ok">{{ $agency->name }} 様からのご案内です。各案件の「問い合わせ」ボタンから申し込みへ進めます。</div>
+        <div class="og-notice ok">{{ $agency->name }} 様からのご案内です。各案件の「お申し込みはこちら」ボタンから申し込みへ進めます。</div>
     @else
-        <div class="og-notice ng">このページは紹介者専用リンクからご覧ください。「問い合わせ」ボタンは無効になっています。</div>
+        <div class="og-notice ng">このページは紹介者専用リンクからご覧ください。「お申し込みはこちら」ボタンは無効になっています。</div>
     @endif
 
     @forelse ($projectsByCategory as $categoryName => $projects)
@@ -58,12 +60,12 @@
                         </div>
                     @endif
 
-                    <div class="og-offer">{{ trim(str_replace('{invite_url}', '', (string) $project->recruitment_template)) }}</div>
+                    <div class="og-offer">{{ $offerTexts[$project->id] }}</div>
 
                     @if ($agency)
-                        <a href="{{ $applyUrls[$project->id] }}" class="og-apply">問い合わせ</a>
+                        <a href="{{ $applyUrls[$project->id] }}" class="og-apply">お申し込みはこちら</a>
                     @else
-                        <span class="og-apply disabled">問い合わせ（紹介リンクが必要です）</span>
+                        <span class="og-apply disabled">お申し込みはこちら（紹介リンクが必要です）</span>
                     @endif
                 </div>
             </details>

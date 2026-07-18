@@ -29,9 +29,16 @@ class OshigotoController extends Controller
             ->get();
 
         $applyUrls = [];
+        $offerTexts = [];
 
-        if ($agency) {
-            foreach ($projects as $project) {
+        foreach ($projects as $project) {
+            $offerTexts[$project->id] = trim(str_replace(
+                ['✅【お申し込みはこちら】', '{invite_url}'],
+                '',
+                (string) $project->recruitment_template
+            ));
+
+            if ($agency) {
                 $inviteLink = InviteLink::firstOrCreate(
                     ['agency_id' => $agency->id, 'project_id' => $project->id],
                     ['token' => Str::random(10)],
@@ -44,6 +51,7 @@ class OshigotoController extends Controller
         return view('public.oshigoto.index', [
             'projectsByCategory' => $projects->groupBy(fn (Project $project) => $project->category->name),
             'applyUrls' => $applyUrls,
+            'offerTexts' => $offerTexts,
             'agency' => $agency,
             'ref' => $ref,
         ]);
