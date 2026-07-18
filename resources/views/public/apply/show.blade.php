@@ -32,14 +32,11 @@
             </div>
 
         @else
-            <div class="bg-white border border-gray-200 rounded-lg overflow-hidden mb-4">
-                @if ($project->image_path)
+            @if ($project->image_path)
+                <div class="bg-white border border-gray-200 rounded-lg overflow-hidden mb-4">
                     <img src="{{ \Illuminate\Support\Facades\Storage::url($project->image_path) }}" alt="" class="w-full h-auto object-contain bg-gray-50">
-                @endif
-                <div class="p-5">
-                    <h1 class="text-lg font-semibold">{{ $project->name }}</h1>
                 </div>
-            </div>
+            @endif
 
             <div id="loading" class="bg-white border border-gray-200 rounded-lg p-6 text-center text-sm text-gray-500">
                 読み込み中です...
