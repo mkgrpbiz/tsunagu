@@ -13,6 +13,7 @@ class CollaborationPartnerController extends Controller
     {
         return view('admin.collaboration_partners.index', [
             'agencies' => Agency::withCount(['projects' => fn ($query) => $query->where('status', ProjectStatus::Published)])
+                ->with('referredBy')
                 ->where('is_collaboration_partner', true)
                 ->orderByDesc('collaboration_partner_at')
                 ->get(),
