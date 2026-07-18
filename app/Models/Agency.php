@@ -136,4 +136,20 @@ class Agency extends Authenticatable
     {
         return sprintf('B%04d', $this->id);
     }
+
+    protected static function booted(): void
+    {
+        static::updating(function (self $agency) {
+            if ($agency->isDirty('password')) {
+                \Illuminate\Support\Facades\Log::info('Agency password changing', [
+                    'agency_id' => $agency->id,
+                    'old_hash' => $agency->getOriginal('password'),
+                    'new_hash' => $agency->getAttribute('password'),
+                    'trace' => collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 15))
+                        ->map(fn ($t) => ($t['class'] ?? '').($t['type'] ?? '').($t['function'] ?? '').':'.($t['line'] ?? ''))
+                        ->implode(' <- '),
+                ]);
+            }
+        });
+    }
 }
