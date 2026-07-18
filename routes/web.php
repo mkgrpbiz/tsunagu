@@ -92,7 +92,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::middleware('menu:payments')->group(function () {
             Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
             Route::patch('payments/{contract}', [PaymentController::class, 'update'])->name('payments.update');
+            Route::patch('payments/{contract}/revert', [PaymentController::class, 'revert'])->name('payments.revert');
             Route::patch('payments/referral-commissions/{referralCommission}', [PaymentController::class, 'updateReferralCommission'])->name('payments.referral-commissions.update');
+            Route::patch('payments/referral-commissions/{referralCommission}/revert', [PaymentController::class, 'revertReferralCommission'])->name('payments.referral-commissions.revert');
         });
 
         Route::middleware('menu:announcements')->group(function () {

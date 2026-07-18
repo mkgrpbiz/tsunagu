@@ -63,6 +63,16 @@ class PaymentController extends Controller
         return redirect()->route('admin.payments.index')->with('status', '支払済みにしました。');
     }
 
+    public function revert(Contract $contract): RedirectResponse
+    {
+        $contract->update([
+            'payment_status' => PaymentStatus::Unpaid,
+            'paid_at' => null,
+        ]);
+
+        return redirect()->route('admin.payments.index')->with('status', '未払いに戻しました。');
+    }
+
     public function updateReferralCommission(ReferralCommission $referralCommission): RedirectResponse
     {
         $referralCommission->update([
@@ -71,5 +81,15 @@ class PaymentController extends Controller
         ]);
 
         return redirect()->route('admin.payments.index')->with('status', '紹介報酬を支払済みにしました。');
+    }
+
+    public function revertReferralCommission(ReferralCommission $referralCommission): RedirectResponse
+    {
+        $referralCommission->update([
+            'payment_status' => PaymentStatus::Unpaid,
+            'paid_at' => null,
+        ]);
+
+        return redirect()->route('admin.payments.index')->with('status', '紹介報酬を未払いに戻しました。');
     }
 }

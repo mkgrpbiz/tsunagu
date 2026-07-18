@@ -81,6 +81,12 @@
                                     @method('PATCH')
                                     <button type="submit" class="text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md px-3 py-1.5">支払済みにする</button>
                                 </form>
+                            @else
+                                <form method="POST" action="{{ route('admin.payments.revert', $contract) }}" onsubmit="return confirm('未払いに戻しますか？');">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md px-3 py-1.5">未払いに戻す</button>
+                                </form>
                             @endif
                         </td>
                     </tr>
@@ -139,6 +145,12 @@
                                     @csrf
                                     @method('PATCH')
                                     <button type="submit" class="text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md px-3 py-1.5">支払済みにする</button>
+                                </form>
+                            @else
+                                <form method="POST" action="{{ route('admin.payments.referral-commissions.revert', $commission) }}" onsubmit="return confirm('未払いに戻しますか？');">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md px-3 py-1.5">未払いに戻す</button>
                                 </form>
                             @endif
                         </td>
