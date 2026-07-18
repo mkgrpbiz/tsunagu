@@ -25,7 +25,7 @@ class ProjectController extends Controller
         $inviteData = $projects->mapWithKeys(function (Project $project) use ($agency) {
             $inviteLink = InviteLink::firstOrCreate(
                 ['agency_id' => $agency->id, 'project_id' => $project->id],
-                ['token' => Str::random(32)],
+                ['token' => Str::random(10)],
             );
 
             $inviteUrl = url('/apply/'.$inviteLink->token);
