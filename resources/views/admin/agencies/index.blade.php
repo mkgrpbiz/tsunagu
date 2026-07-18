@@ -58,7 +58,7 @@
                     </td>
                     <td class="px-4 py-3 text-gray-600">{{ $agency->name_kana }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $agency->referral_code }}</td>
-                    <td class="px-4 py-3 text-gray-600">{{ $agency->referredBy?->name ?: '—' }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ $agency->referredBy?->referral_code ?: '—' }}</td>
                     <td class="px-4 py-3">
                         <span class="text-xs font-medium border rounded-full px-2 py-1 {{ $agency->status->color() }}">{{ $agency->status->label() }}</span>
                     </td>
