@@ -27,6 +27,15 @@
         @error('status')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
+    <div class="col-span-2">
+        <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <input type="checkbox" name="oshigoto_listed" value="1" @checked(old('oshigoto_listed', $project->oshigoto_listed))>
+            おしごとナビに掲載する
+        </label>
+        <p class="text-xs text-gray-500 mt-1">ONにすると、下の「集客画像」「募集文テンプレ」の内容がおしごとナビ（全案件まとめページ）にそのまま表示されます。</p>
+        @error('oshigoto_listed')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+    </div>
+
     <div>
         <label for="client_name" class="block text-sm font-medium text-gray-700 mb-1">取引先名</label>
         <input type="text" name="client_name" id="client_name" value="{{ old('client_name', $project->client_name) }}"

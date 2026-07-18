@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'description',
     'image_path',
     'status',
+    'oshigoto_listed',
     'client_name',
     'referrer_agency_id',
     'tsunagu_unit_price',
@@ -28,6 +29,7 @@ class Project extends Model
     {
         return [
             'status' => ProjectStatus::class,
+            'oshigoto_listed' => 'boolean',
         ];
     }
 

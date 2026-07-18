@@ -37,6 +37,15 @@
 @section('content')
 <div class="mk-cases" id="mkCases">
     <div class="mk-wrap">
+        <div class="box" style="margin-bottom:20px">
+            <p class="box-title">✅ おしごとナビ（全案件まとめ紹介リンク）</p>
+            <div class="muted">掲載中の全案件を1ページにまとめたページです。個別の招待リンクの代わりにこちらをシェアできます。</div>
+            <input type="text" readonly value="{{ $oshigotoUrl }}">
+            <button type="button" class="copy copy-link" onclick="copyToClipboard({{ Illuminate\Support\Js::from($oshigotoUrl) }})">
+                リンクをコピー
+            </button>
+        </div>
+
         @forelse ($projectsByCategory as $categoryName => $projects)
             <div class="mk-cat">
                 <div class="mk-cat-title">{{ $categoryName }}</div>

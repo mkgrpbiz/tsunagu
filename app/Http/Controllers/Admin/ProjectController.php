@@ -132,12 +132,13 @@ class ProjectController extends Controller
 
     private function validated(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'category_id' => ['required', 'exists:categories,id'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'max:4096'],
             'status' => ['required', Rule::enum(ProjectStatus::class)],
+            'oshigoto_listed' => ['nullable', 'boolean'],
             'client_name' => ['nullable', 'string', 'max:255'],
             'referrer_agency_id' => ['nullable', 'exists:agencies,id'],
             'tsunagu_unit_price' => ['required', 'integer', 'min:0'],
@@ -146,5 +147,9 @@ class ProjectController extends Controller
             'recruitment_template' => ['nullable', 'string'],
             'line_auto_message' => ['nullable', 'string'],
         ]);
+
+        $data['oshigoto_listed'] = $request->boolean('oshigoto_listed');
+
+        return $data;
     }
 }

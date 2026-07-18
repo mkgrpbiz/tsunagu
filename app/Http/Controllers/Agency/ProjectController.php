@@ -39,6 +39,7 @@ class ProjectController extends Controller
         return view('agency.projects.index', [
             'projectsByCategory' => $projects->groupBy(fn (Project $project) => $project->category->name),
             'inviteData' => $inviteData,
+            'oshigotoUrl' => url('/oshigoto?ref='.$agency->referral_code),
         ]);
     }
 }
