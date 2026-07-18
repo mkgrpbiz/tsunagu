@@ -1,0 +1,1 @@
+window.copyToClipboard=function(e){let t=document.createElement(`textarea`);t.value=e,t.style.position=`fixed`,t.style.left=`-9999px`,document.body.appendChild(t),t.focus(),t.select(),document.execCommand(`copy`),document.body.removeChild(t),alert(`コピーしました`)};
