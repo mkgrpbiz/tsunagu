@@ -5,7 +5,9 @@ namespace App\Models;
 use App\Enums\ActivityType;
 use App\Enums\AgencyStatus;
 use App\Enums\BankAccountType;
+use App\Enums\CollaborationRewardStatus;
 use App\Enums\Gender;
+use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -153,6 +155,33 @@ class Agency extends Authenticatable
         } while ($taken);
 
         return $code;
+    }
+
+    public function totalPendingPayout(): int
+    {
+        $contractsTotal = $this->contracts()
+            ->where('payment_status', PaymentStatus::Unpaid)
+            ->sum('agency_reward_amount');
+
+        $referralTotal = $this->referralCommissions()
+            ->where('payment_status', PaymentStatus::Unpaid)
+            ->sum('amount');
+
+        $clientNames = $this->projects()->whereNotNull('client_name')->distinct()->pluck('client_name');
+
+        $collaborationTotal = CollaborationReward::whereIn('client_name', $clientNames)
+            ->where('status', CollaborationRewardStatus::Approved)
+            ->sum('reward_amount');
+
+        return (int) ($contractsTotal + $referralTotal + $collaborationTotal);
+    }
+
+    public function hasBankInfoRegistered(): bool
+    {
+        return filled($this->bank_name)
+            && filled($this->bank_branch_name)
+            && filled($this->bank_account_number)
+            && filled($this->bank_account_holder);
     }
 
     protected static function booted(): void

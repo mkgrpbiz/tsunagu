@@ -47,6 +47,11 @@
             document.getElementById('agency-nav-mobile').classList.toggle('hidden');
         });
         </script>
+        @if ($showBankNotice ?? false)
+            <div class="bg-amber-50 border-b border-amber-200 text-amber-800 text-sm px-4 py-3 text-center">
+                支払予定の報酬があります。<a href="{{ route('agency.profile.edit') }}" class="underline font-medium">プロフィール</a>より振込先情報を登録してください。
+            </div>
+        @endif
         <main class="flex-1">
             <div class="max-w-6xl mx-auto px-4 py-8">
                 @if (session('status'))
