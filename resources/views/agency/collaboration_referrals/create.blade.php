@@ -19,7 +19,7 @@
 
         <div>
             <h2 class="text-sm font-semibold text-gray-700 mb-3">紹介者情報</h2>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">紹介者名</label>
                     <input type="text" value="{{ $agency->name }}" readonly disabled

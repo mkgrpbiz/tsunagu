@@ -26,7 +26,7 @@
 
             <div>
                 <h2 class="text-sm font-semibold text-gray-700 mb-3">基本情報</h2>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="name" class="block text-sm font-medium text-gray-700 mb-1">名前</label>
                         <input type="text" name="name" id="name" value="{{ old('name') }}" required
@@ -72,7 +72,7 @@
                            class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mt-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                     <div>
                         <label for="password" class="block text-sm font-medium text-gray-700 mb-1">パスワード</label>
                         <input type="password" name="password" id="password" required minlength="8"

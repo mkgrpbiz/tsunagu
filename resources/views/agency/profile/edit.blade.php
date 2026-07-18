@@ -24,7 +24,7 @@
         @csrf
         @method('PUT')
 
-        <div class="grid grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-700 mb-1">名前</label>
                 <input type="text" name="name" id="name" value="{{ old('name', $agency->name) }}" required
