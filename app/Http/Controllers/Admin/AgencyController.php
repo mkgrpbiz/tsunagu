@@ -24,6 +24,7 @@ class AgencyController extends Controller
         $statusCounts = Agency::selectRaw('status, count(*) as count')->groupBy('status')->pluck('count', 'status');
 
         $agencies = Agency::withCount(['inquiries', 'referrals'])
+            ->with('referredBy')
             ->when($status !== 'all', fn ($query) => $query->where('status', $status))
             ->orderByDesc('created_at')
             ->get();
