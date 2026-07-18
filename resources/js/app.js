@@ -1,3 +1,7 @@
+import { initBankAutocomplete } from './bank-autocomplete';
+
+document.addEventListener('DOMContentLoaded', initBankAutocomplete);
+
 window.copyToClipboard = function (text) {
     const textarea = document.createElement('textarea');
     textarea.value = text;

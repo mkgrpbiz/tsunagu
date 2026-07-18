@@ -77,14 +77,16 @@
 
             <div>
                 <label for="bank_name" class="block text-sm font-medium text-gray-700 mb-1">銀行名</label>
-                <input type="text" name="bank_name" id="bank_name" value="{{ old('bank_name', $agency->bank_name) }}"
+                <input type="text" name="bank_name" id="bank_name" value="{{ old('bank_name', $agency->bank_name) }}" autocomplete="off"
                        class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <input type="hidden" name="bank_code" id="bank_code" value="{{ old('bank_code', $agency->bank_code) }}">
             </div>
 
             <div>
                 <label for="bank_branch_name" class="block text-sm font-medium text-gray-700 mb-1">支店名</label>
-                <input type="text" name="bank_branch_name" id="bank_branch_name" value="{{ old('bank_branch_name', $agency->bank_branch_name) }}"
+                <input type="text" name="bank_branch_name" id="bank_branch_name" value="{{ old('bank_branch_name', $agency->bank_branch_name) }}" autocomplete="off"
                        class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <input type="hidden" name="bank_branch_code" id="bank_branch_code" value="{{ old('bank_branch_code', $agency->bank_branch_code) }}">
             </div>
 
             <div>
