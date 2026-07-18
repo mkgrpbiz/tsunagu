@@ -4,10 +4,10 @@
 
 @push('styles')
 <style>
-.og-wrap{max-width:760px;margin:0 auto;padding:.375rem 1.25rem 4rem;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans",Meiryo,sans-serif;color:#111827}
+.og-wrap{max-width:760px;margin:0 auto;padding:0 1.25rem 4rem;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans",Meiryo,sans-serif;color:#111827}
 .og-wrap *{box-sizing:border-box}
 .og-header{text-align:center;margin-bottom:16px}
-.og-logo{display:block;max-width:100%;width:100%;height:auto;margin:0 auto 2px;border-radius:16px}
+.og-logo{display:block;max-width:100%;width:100%;height:auto;margin:0 auto;border-radius:16px}
 .og-title{font-weight:900;font-size:20px;color:#0f172a}
 .og-sub{margin-top:6px;font-size:12.5px;color:#6b7280}
 .og-notice{margin-top:16px;padding:12px 16px;border-radius:14px;font-size:13px;line-height:1.7}
