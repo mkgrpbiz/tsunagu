@@ -34,11 +34,10 @@
         @else
             <div class="bg-white border border-gray-200 rounded-lg overflow-hidden mb-4">
                 @if ($project->image_path)
-                    <img src="{{ \Illuminate\Support\Facades\Storage::url($project->image_path) }}" alt="" class="h-40 w-full object-cover">
+                    <img src="{{ \Illuminate\Support\Facades\Storage::url($project->image_path) }}" alt="" class="w-full h-auto object-contain bg-gray-50">
                 @endif
                 <div class="p-5">
                     <h1 class="text-lg font-semibold">{{ $project->name }}</h1>
-                    <p class="text-sm text-gray-600 mt-2">{{ $project->description }}</p>
                 </div>
             </div>
 
