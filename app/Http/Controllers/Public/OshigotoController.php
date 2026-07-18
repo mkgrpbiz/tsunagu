@@ -18,8 +18,7 @@ class OshigotoController extends Controller
         $agency = null;
 
         if (filled($ref)) {
-            $agencyId = (int) preg_replace('/\D/', '', $ref);
-            $agency = Agency::find($agencyId);
+            $agency = Agency::where('oshigoto_token', $ref)->first();
         }
 
         $projects = Project::where('oshigoto_listed', true)

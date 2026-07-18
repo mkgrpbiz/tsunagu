@@ -23,8 +23,10 @@
 .mk-cases .box p{margin:0;font-size:14px;line-height:1.75;white-space:pre-line}
 .mk-cases .muted{margin-top:8px;color:#6b7280;font-size:12px;line-height:1.6}
 .mk-cases input[readonly]{border:1px solid #e5e7eb;border-radius:12px;padding:12px;font-size:13px;background:#f9fafb;color:#374151;width:100%}
-.mk-cases button.copy{border:none;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer;background:#111827;color:#fff;width:100%;margin-top:8px}
+.mk-cases button.copy,.mk-cases a.copy{border:none;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer;background:#111827;color:#fff;width:100%;margin-top:8px;display:block;text-align:center;text-decoration:none;box-sizing:border-box}
 .mk-cases button.copy.copy-link{background:#2563eb}
+.mk-cases .copy-row{display:flex;gap:8px}
+.mk-cases .copy-row .copy{width:50%;margin-top:8px}
 .mk-cases pre{background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:12px;font-size:13px;line-height:1.75;white-space:pre-wrap;word-break:break-word;margin:10px 0 0}
 .mk-cases .mk-cat{background:transparent;border:none;border-left:4px solid #ea580c;padding:8px 12px;margin:28px 0 10px}
 .mk-cases .mk-cat:first-of-type{margin-top:8px}
@@ -41,9 +43,14 @@
             <p class="box-title">✅ おしごとナビ（全案件まとめ紹介リンク）</p>
             <div class="muted">掲載中の全案件を1ページにまとめたページです。個別の招待リンクの代わりにこちらをシェアできます。</div>
             <input type="text" readonly value="{{ $oshigotoUrl }}">
-            <button type="button" class="copy copy-link" onclick="copyToClipboard({{ Illuminate\Support\Js::from($oshigotoUrl) }})">
-                リンクをコピー
-            </button>
+            <div class="copy-row">
+                <button type="button" class="copy copy-link" onclick="copyToClipboard({{ Illuminate\Support\Js::from($oshigotoUrl) }})">
+                    リンクをコピー
+                </button>
+                <a href="{{ $oshigotoUrl }}" target="_blank" rel="noopener" class="copy">
+                    ページを確認
+                </a>
+            </div>
         </div>
 
         @forelse ($projectsByCategory as $categoryName => $projects)
