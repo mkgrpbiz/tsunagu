@@ -74,12 +74,12 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                     <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">パスワード</label>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1 whitespace-nowrap">パスワード</label>
                         <input type="password" name="password" id="password" required minlength="8"
                                class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">パスワード（確認）</label>
+                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1 whitespace-nowrap">パスワード（確認）</label>
                         <input type="password" name="password_confirmation" id="password_confirmation" required minlength="8"
                                class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     </div>

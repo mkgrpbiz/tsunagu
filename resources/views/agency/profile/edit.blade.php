@@ -115,19 +115,19 @@
             </div>
 
             <div class="col-span-2">
-                <label for="current_password" class="block text-sm font-medium text-gray-700 mb-1">現在のパスワード</label>
+                <label for="current_password" class="block text-sm font-medium text-gray-700 mb-1 whitespace-nowrap">現在のパスワード</label>
                 <input type="password" name="current_password" id="current_password"
                        class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
 
             <div>
-                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">新しいパスワード</label>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-1 whitespace-nowrap">新しいパスワード</label>
                 <input type="password" name="password" id="password"
                        class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
 
             <div>
-                <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">新しいパスワード（確認）</label>
+                <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1 whitespace-nowrap">新しいパスワード（確認）</label>
                 <input type="password" name="password_confirmation" id="password_confirmation"
                        class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
