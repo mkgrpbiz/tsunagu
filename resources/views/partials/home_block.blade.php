@@ -66,7 +66,7 @@
         <div class="cta-card">
             @if ($block->title)<div class="cta-title">{{ $block->title }}</div>@endif
             @if ($block->body)<div class="cta-body">{{ $block->body }}</div>@endif
-            <a href="{{ route('agency.collaboration-referrals.create') }}" class="cta-link">【共創先紹介フォーム】</a>
+            <a href="{{ route('agency.collaboration-referrals.create') }}" class="cta-link">{{ $block->button_text ?: '共創先紹介フォーム' }}</a>
         </div>
     @endif
 

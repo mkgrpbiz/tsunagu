@@ -56,7 +56,7 @@
     <label for="button_text" class="block text-sm font-medium text-gray-700 mb-1">ボタン文言</label>
     <input type="text" name="button_text" id="button_text" value="{{ old('button_text', $block->button_text) }}"
            class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-    <p class="text-xs text-gray-500 mt-1">「CTA」ブロックのみ使用します（例: 詳しくはこちら）。</p>
+    <p class="text-xs text-gray-500 mt-1">「CTA」「共創パートナー紹介」ブロックのみ使用します（例: 詳しくはこちら）。</p>
     @error('button_text')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
 </div>
 
