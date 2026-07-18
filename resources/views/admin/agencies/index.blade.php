@@ -36,6 +36,8 @@
                 <th class="px-4 py-3 font-medium">会社名</th>
                 <th class="px-4 py-3 font-medium">名前</th>
                 <th class="px-4 py-3 font-medium">フリガナ</th>
+                <th class="px-4 py-3 font-medium">本人コード</th>
+                <th class="px-4 py-3 font-medium">紹介コード</th>
                 <th class="px-4 py-3 font-medium">審査ステータス</th>
                 <th class="px-4 py-3 font-medium">登録申請日時</th>
                 <th class="px-4 py-3 font-medium">承認日時</th>
@@ -55,6 +57,8 @@
                         @endif
                     </td>
                     <td class="px-4 py-3 text-gray-600">{{ $agency->name_kana }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ $agency->legacy_code ?: '—' }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ $agency->legacy_referral_code ?: '—' }}</td>
                     <td class="px-4 py-3">
                         <span class="text-xs font-medium border rounded-full px-2 py-1 {{ $agency->status->color() }}">{{ $agency->status->label() }}</span>
                     </td>
@@ -74,7 +78,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9" class="px-4 py-6 text-center text-gray-400">パートナーがありません。</td>
+                    <td colspan="11" class="px-4 py-6 text-center text-gray-400">パートナーがありません。</td>
                 </tr>
             @endforelse
         </tbody>

@@ -17,6 +17,8 @@ use Illuminate\Notifications\Notifiable;
 
 #[Fillable([
     'referred_by_agency_id',
+    'legacy_code',
+    'legacy_referral_code',
     'oshigoto_token',
     'name',
     'name_kana',
