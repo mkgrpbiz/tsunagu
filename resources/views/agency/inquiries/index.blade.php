@@ -43,8 +43,8 @@
 </div>
 
 <h2 class="text-sm font-semibold text-gray-700 mb-3">案件別実績{{ $month ? '（'.$month.'）' : '' }}</h2>
-<div class="bg-white border border-gray-200 rounded-lg overflow-hidden mb-8">
-    <table class="w-full text-sm">
+<div class="bg-white border border-gray-200 rounded-lg overflow-x-auto mb-8">
+    <table class="w-full text-sm min-w-max">
         <thead class="bg-gray-50 text-gray-500 text-left">
             <tr>
                 <th class="px-4 py-2 font-medium">案件名</th>
@@ -67,8 +67,8 @@
 </div>
 
 <h2 class="text-sm font-semibold text-gray-700 mb-3">問い合わせ一覧{{ $month ? '（'.$month.'）' : '' }}</h2>
-<div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-    <table class="w-full text-sm">
+<div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
+    <table class="w-full text-sm min-w-max">
         <thead class="bg-gray-50 text-gray-500 text-left">
             <tr>
                 <th class="px-4 py-3 font-medium">問い合わせ日時</th>

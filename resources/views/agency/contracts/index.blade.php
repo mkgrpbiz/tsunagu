@@ -38,8 +38,8 @@
 </div>
 
 <h2 class="text-sm font-semibold text-gray-700 mb-3">紹介報酬{{ $month ? '（'.$month.'）' : '' }}</h2>
-<div class="bg-white border border-gray-200 rounded-lg overflow-hidden mb-8">
-    <table class="w-full text-sm">
+<div class="bg-white border border-gray-200 rounded-lg overflow-x-auto mb-8">
+    <table class="w-full text-sm min-w-max">
         <thead class="bg-gray-50 text-gray-500 text-left">
             <tr>
                 <th class="px-4 py-3 font-medium">案件名</th>
@@ -74,8 +74,8 @@
 </div>
 
 <h2 class="text-sm font-semibold text-gray-700 mb-3">パートナー10%{{ $month ? '（'.$month.'）' : '' }}</h2>
-<div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-    <table class="w-full text-sm">
+<div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
+    <table class="w-full text-sm min-w-max">
         <thead class="bg-gray-50 text-gray-500 text-left">
             <tr>
                 <th class="px-4 py-3 font-medium">紹介先パートナー</th>
@@ -108,8 +108,8 @@
 </div>
 
 <h2 class="text-sm font-semibold text-gray-700 mb-3 mt-8">共創パートナー30%{{ $month ? '（'.$month.'）' : '' }}</h2>
-<div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-    <table class="w-full text-sm">
+<div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
+    <table class="w-full text-sm min-w-max">
         <thead class="bg-gray-50 text-gray-500 text-left">
             <tr>
                 <th class="px-4 py-3 font-medium">取引先名</th>
