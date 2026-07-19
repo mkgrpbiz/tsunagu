@@ -38,12 +38,8 @@
                 </div>
             @endif
 
-            <div id="loading" class="bg-white border border-gray-200 rounded-lg p-6 text-center text-sm text-gray-500">
-                読み込み中です...
-            </div>
-
             <form id="apply-form" method="POST" action="{{ route('apply.store', $inviteLink) }}"
-                  class="bg-white border border-gray-200 rounded-lg p-6 space-y-4 hidden">
+                  class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
                 @csrf
                 <input type="hidden" name="line_uid" id="line_uid">
                 <input type="hidden" name="line_display_name" id="line_display_name">
@@ -52,12 +48,6 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">案件名</label>
                     <input type="text" value="{{ $project->name }}" disabled
-                           class="w-full rounded-md border border-gray-300 bg-gray-50 text-gray-500 shadow-sm">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">LINE名</label>
-                    <input type="text" id="line_name_display" value="" disabled
                            class="w-full rounded-md border border-gray-300 bg-gray-50 text-gray-500 shadow-sm">
                 </div>
 
@@ -77,13 +67,6 @@
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
                     <input type="email" name="email" id="email" required
                            class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                </div>
-
-                <div id="line-login-prompt" class="border border-blue-200 bg-blue-50 rounded-md p-3 text-xs text-blue-800 space-y-2 hidden">
-                    <p>LINEとの連携が完了していません。下のボタンからログインしてください。</p>
-                    <button type="button" id="line-login-button" class="w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-md py-2">
-                        LINEでログイン
-                    </button>
                 </div>
 
                 @if (! $liffId)
@@ -106,7 +89,7 @@
                     </div>
                 @endif
 
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md py-2">
+                <button type="submit" id="apply-submit-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md py-2">
                     案内を受け取る
                 </button>
             </form>
@@ -117,39 +100,65 @@
         @if ($liffId)
             <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
             <script>
-                function tsnShowForm() {
-                    document.getElementById('loading').classList.add('hidden');
-                    document.getElementById('apply-form').classList.remove('hidden');
+                var TSN_STORAGE_KEY = 'tsn_apply_form_{{ $inviteLink->token }}';
+
+                function tsnFillFieldsFromStorage() {
+                    var saved = sessionStorage.getItem(TSN_STORAGE_KEY);
+                    if (!saved) return false;
+                    sessionStorage.removeItem(TSN_STORAGE_KEY);
+                    var data = JSON.parse(saved);
+                    document.getElementById('name').value = data.name || '';
+                    document.getElementById('name_kana').value = data.name_kana || '';
+                    document.getElementById('email').value = data.email || '';
+                    return true;
                 }
 
-                document.getElementById('line-login-button').addEventListener('click', function () {
-                    var from = encodeURIComponent(window.location.pathname);
-                    window.location.href = 'https://liff.line.me/' + @json($liffId) + '?from=' + from;
+                function tsnSetSubmitting(isSubmitting) {
+                    var button = document.getElementById('apply-submit-button');
+                    button.disabled = isSubmitting;
+                    button.textContent = isSubmitting ? '送信中です...' : '案内を受け取る';
+                }
+
+                var resumingSubmit = tsnFillFieldsFromStorage();
+                var liffReady = liff.init({ liffId: @json($liffId) });
+                liffReady.catch((error) => console.error(error));
+
+                document.getElementById('apply-form').addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    tsnSetSubmitting(true);
+
+                    liffReady
+                        .then(() => {
+                            if (!liff.isLoggedIn()) {
+                                sessionStorage.setItem(TSN_STORAGE_KEY, JSON.stringify({
+                                    name: document.getElementById('name').value,
+                                    name_kana: document.getElementById('name_kana').value,
+                                    email: document.getElementById('email').value,
+                                }));
+                                var from = encodeURIComponent(window.location.pathname);
+                                window.location.href = 'https://liff.line.me/' + @json($liffId) + '?from=' + from;
+                                return null;
+                            }
+                            return Promise.all([liff.getProfile(), liff.getFriendship()]);
+                        })
+                        .then((results) => {
+                            if (!results) return;
+                            const [profile, friendship] = results;
+                            document.getElementById('line_uid').value = profile.userId;
+                            document.getElementById('line_display_name').value = profile.displayName;
+                            document.getElementById('is_friend').value = (friendship && friendship.friendFlag) ? '1' : '0';
+                            document.getElementById('apply-form').submit();
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                            tsnSetSubmitting(false);
+                            alert('LINEとの連携に失敗しました。時間をおいて再度お試しください。');
+                        });
                 });
 
-                liff.init({ liffId: @json($liffId) })
-                    .then(() => {
-                        if (!liff.isLoggedIn()) {
-                            document.getElementById('line-login-prompt').classList.remove('hidden');
-                            tsnShowForm();
-                            return null;
-                        }
-                        return Promise.all([liff.getProfile(), liff.getFriendship()]);
-                    })
-                    .then((results) => {
-                        if (!results) return;
-                        const [profile, friendship] = results;
-                        document.getElementById('line_uid').value = profile.userId;
-                        document.getElementById('line_display_name').value = profile.displayName;
-                        document.getElementById('line_name_display').value = profile.displayName;
-                        document.getElementById('is_friend').value = (friendship && friendship.friendFlag) ? '1' : '0';
-                        tsnShowForm();
-                    })
-                    .catch((error) => {
-                        console.error(error);
-                        document.getElementById('line-login-prompt').classList.remove('hidden');
-                        tsnShowForm();
-                    });
+                if (resumingSubmit) {
+                    document.getElementById('apply-form').requestSubmit();
+                }
             </script>
         @else
             <script>
@@ -160,7 +169,6 @@
 
                     document.getElementById('line_uid').value = devUid.value;
                     document.getElementById('line_display_name').value = devName.value;
-                    document.getElementById('line_name_display').value = devName.value;
                     document.getElementById('is_friend').value = devFriend.checked ? '1' : '0';
 
                     document.getElementById('apply-form').addEventListener('submit', () => {
@@ -168,9 +176,6 @@
                         document.getElementById('line_display_name').value = devName.value;
                         document.getElementById('is_friend').value = devFriend.checked ? '1' : '0';
                     });
-
-                    document.getElementById('loading').classList.add('hidden');
-                    document.getElementById('apply-form').classList.remove('hidden');
                 });
             </script>
         @endif
