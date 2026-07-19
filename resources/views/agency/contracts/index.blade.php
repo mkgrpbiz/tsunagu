@@ -7,7 +7,7 @@
 
 <div class="bg-blue-50 border border-blue-100 rounded-lg p-6 mb-6 text-sm text-gray-700 leading-relaxed">
     <p class="font-semibold mb-1">お支払いについて</p>
-    <p>TSUNAGU着金確認後、月末で締めて翌月5日にお振込み</p>
+    <p>TSUNAGU着金確認後、月末で締めて翌月5日にお振込みいたします。</p>
     <p>※金額1,000円未満の場合、翌月に繰り越されます。</p>
 </div>
 
