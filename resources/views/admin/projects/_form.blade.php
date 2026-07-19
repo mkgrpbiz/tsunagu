@@ -66,6 +66,14 @@
     </div>
 
     <div class="col-span-2">
+        <label for="legacy_names" class="block text-sm font-medium text-gray-700 mb-1">旧データ用案件名（任意）</label>
+        <p class="text-xs text-gray-500 mb-1">過去のスプレッドシート等で使われていた別名がある場合、1行に1つずつ入力してください。問い合わせデータのインポート時に、この案件名と合わせてどちらでも本案件に紐づけられます。</p>
+        <textarea name="legacy_names" id="legacy_names" rows="3"
+                  class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('legacy_names', $project->legacy_names) }}</textarea>
+        @error('legacy_names')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+    </div>
+
+    <div class="col-span-2">
         <label for="description" class="block text-sm font-medium text-gray-700 mb-1">案件概要</label>
         <textarea name="description" id="description" rows="3"
                   class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description', $project->description) }}</textarea>

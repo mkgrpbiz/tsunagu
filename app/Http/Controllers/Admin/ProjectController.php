@@ -161,6 +161,7 @@ class ProjectController extends Controller
         $data = $request->validate([
             'category_id' => ['required', 'exists:categories,id'],
             'name' => ['required', 'string', 'max:255'],
+            'legacy_names' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'max:4096'],
             'status' => ['required', Rule::enum(ProjectStatus::class)],

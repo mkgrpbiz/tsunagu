@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'category_id',
     'sort_order',
     'name',
+    'legacy_names',
     'description',
     'image_path',
     'status',
@@ -52,5 +53,24 @@ class Project extends Model
     public function inquiries(): HasMany
     {
         return $this->hasMany(Inquiry::class);
+    }
+
+    public function legacyNamesList(): array
+    {
+        return collect(explode("\n", (string) $this->legacy_names))
+            ->map(fn (string $line) => trim($line))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    public static function findByAnyName(string $name): ?self
+    {
+        $name = trim($name);
+
+        return static::where('name', $name)->first()
+            ?? static::whereNotNull('legacy_names')
+                ->get()
+                ->first(fn (self $project) => in_array($name, $project->legacyNamesList(), true));
     }
 }
