@@ -108,14 +108,6 @@
         @if ($liffId)
             <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
             <script>
-                function tsnLog(message) {
-                    try {
-                        navigator.sendBeacon('{{ route('debug-log') }}', new Blob([JSON.stringify({ message: message })], { type: 'application/json' }));
-                    } catch (e) {}
-                }
-
-                tsnLog('page load. url=' + window.location.href);
-
                 function tsnFillFieldsFromQuery() {
                     var params = new URLSearchParams(window.location.search);
                     if (!params.has('tsn_resume')) return false;
@@ -132,21 +124,15 @@
                 }
 
                 var resumingSubmit = tsnFillFieldsFromQuery();
-                tsnLog('resumingSubmit=' + resumingSubmit);
-
                 var liffReady = liff.init({ liffId: @json($liffId) });
-                liffReady
-                    .then(() => tsnLog('liff.init OK. isLoggedIn=' + liff.isLoggedIn() + ' isInClient=' + liff.isInClient()))
-                    .catch((error) => tsnLog('liff.init FAILED: ' + (error && error.message)));
+                liffReady.catch((error) => console.error(error));
 
                 document.getElementById('apply-form').addEventListener('submit', function (e) {
                     e.preventDefault();
-                    tsnLog('submit handler fired. resumingSubmit=' + resumingSubmit);
                     tsnSetSubmitting(true);
 
                     liffReady
                         .then(() => {
-                            tsnLog('inside submit: isLoggedIn=' + liff.isLoggedIn());
                             if (!liff.isLoggedIn()) {
                                 var resumeParams = new URLSearchParams();
                                 resumeParams.set('tsn_resume', '1');
@@ -154,32 +140,27 @@
                                 resumeParams.set('name_kana', document.getElementById('name_kana').value);
                                 resumeParams.set('email', document.getElementById('email').value);
                                 var from = encodeURIComponent(window.location.pathname + '?' + resumeParams.toString());
-                                tsnLog('redirecting to liff.line.me, from=' + from);
                                 window.location.href = 'https://liff.line.me/' + @json($liffId) + '?from=' + from;
                                 return null;
                             }
-                            tsnLog('already logged in, fetching profile/friendship');
                             return Promise.all([liff.getProfile(), liff.getFriendship()]);
                         })
                         .then((results) => {
                             if (!results) return;
                             const [profile, friendship] = results;
-                            tsnLog('got profile userId=' + profile.userId + ' friendFlag=' + (friendship && friendship.friendFlag));
                             document.getElementById('line_uid').value = profile.userId;
                             document.getElementById('line_display_name').value = profile.displayName;
                             document.getElementById('is_friend').value = (friendship && friendship.friendFlag) ? '1' : '0';
-                            tsnLog('submitting form to server now');
                             document.getElementById('apply-form').submit();
                         })
                         .catch((error) => {
-                            tsnLog('submit flow FAILED: ' + (error && error.message ? error.message : JSON.stringify(error)));
+                            console.error(error);
                             tsnSetSubmitting(false);
                             alert('LINEとの連携に失敗しました。時間をおいて再度お試しください。');
                         });
                 });
 
                 if (resumingSubmit) {
-                    tsnLog('auto requestSubmit after resume');
                     document.getElementById('apply-form').requestSubmit();
                 }
             </script>
