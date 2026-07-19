@@ -242,9 +242,9 @@ document.addEventListener('DOMContentLoaded', tsnUpdateCompanyNameField);
 
             modalTitle.textContent = source.dataset.title;
             modalBody.textContent = source.textContent;
-            modalPanel.scrollTop = 0;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            modalPanel.scrollTop = 0;
 
             var checkbox = document.querySelector('[data-agree-checkbox="' + type + '"]');
             checkbox.disabled = false;
