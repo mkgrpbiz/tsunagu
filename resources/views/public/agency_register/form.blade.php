@@ -185,7 +185,7 @@
             @endforeach
 
             <div id="legal-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 p-4">
-                <div class="bg-white rounded-lg max-w-lg w-full max-h-[80vh] overflow-y-auto p-6">
+                <div id="legal-modal-panel" class="bg-white rounded-lg max-w-lg w-full max-h-[80vh] overflow-y-auto p-6">
                     <h3 id="legal-modal-title" class="font-semibold text-lg mb-4"></h3>
                     <div id="legal-modal-body" class="text-sm text-gray-700 leading-relaxed" style="white-space: pre-line"></div>
                     <button type="button" id="legal-modal-close" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md py-2">閉じる</button>
@@ -231,6 +231,7 @@ document.addEventListener('DOMContentLoaded', tsnUpdateCompanyNameField);
 
 (function () {
     var modal = document.getElementById('legal-modal');
+    var modalPanel = document.getElementById('legal-modal-panel');
     var modalTitle = document.getElementById('legal-modal-title');
     var modalBody = document.getElementById('legal-modal-body');
 
@@ -241,6 +242,7 @@ document.addEventListener('DOMContentLoaded', tsnUpdateCompanyNameField);
 
             modalTitle.textContent = source.dataset.title;
             modalBody.textContent = source.textContent;
+            modalPanel.scrollTop = 0;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
