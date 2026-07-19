@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -13,8 +14,22 @@ class CategoryController extends Controller
     public function index(): View
     {
         return view('admin.categories.index', [
-            'categories' => Category::withCount('projects')->orderBy('name')->get(),
+            'categories' => Category::withCount('projects')->orderBy('sort_order')->get(),
         ]);
+    }
+
+    public function reorder(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'order' => ['required', 'array'],
+            'order.*' => ['integer', 'exists:categories,id'],
+        ]);
+
+        foreach (array_values($data['order']) as $index => $id) {
+            Category::where('id', $id)->update(['sort_order' => $index + 1]);
+        }
+
+        return response()->json(['status' => 'ok']);
     }
 
     public function create(): View
@@ -24,7 +39,10 @@ class CategoryController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        Category::create($this->validated($request));
+        $data = $this->validated($request);
+        $data['sort_order'] = Category::max('sort_order') + 1;
+
+        Category::create($data);
 
         return redirect()->route('admin.categories.index')->with('status', 'カテゴリーを作成しました。');
     }

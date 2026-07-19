@@ -21,10 +21,13 @@ class OshigotoController extends Controller
             $agency = Agency::where('oshigoto_token', $ref)->first();
         }
 
-        $projects = Project::where('oshigoto_listed', true)
+        $projects = Project::query()
+            ->select('projects.*')
+            ->join('categories', 'categories.id', '=', 'projects.category_id')
             ->with('category')
-            ->orderBy('category_id')
-            ->orderBy('id')
+            ->where('projects.oshigoto_listed', true)
+            ->orderBy('categories.sort_order')
+            ->orderBy('projects.sort_order')
             ->get();
 
         $applyUrls = [];

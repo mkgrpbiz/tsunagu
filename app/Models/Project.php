@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'category_id',
+    'sort_order',
     'name',
     'description',
     'image_path',

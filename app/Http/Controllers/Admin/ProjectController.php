@@ -8,6 +8,7 @@ use App\Models\Agency;
 use App\Models\Announcement;
 use App\Models\Category;
 use App\Models\Project;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -29,10 +30,14 @@ class ProjectController extends Controller
             ->groupBy('category_id')
             ->pluck('count', 'category_id');
 
-        $projects = Project::with(['category', 'referrerAgency'])
-            ->when($status !== 'all', fn ($query) => $query->where('status', $status))
-            ->when($categoryId !== 'all', fn ($query) => $query->where('category_id', $categoryId))
-            ->latest()
+        $projects = Project::query()
+            ->select('projects.*')
+            ->join('categories', 'categories.id', '=', 'projects.category_id')
+            ->with(['category', 'referrerAgency'])
+            ->when($status !== 'all', fn ($query) => $query->where('projects.status', $status))
+            ->when($categoryId !== 'all', fn ($query) => $query->where('projects.category_id', $categoryId))
+            ->orderBy('categories.sort_order')
+            ->orderBy('projects.sort_order')
             ->get();
 
         return view('admin.projects.index', [
@@ -40,9 +45,10 @@ class ProjectController extends Controller
             'status' => $status,
             'statusCounts' => $statusCounts,
             'totalCount' => Project::count(),
-            'categories' => Category::orderBy('name')->get(),
+            'categories' => Category::orderBy('sort_order')->get(),
             'categoryId' => $categoryId,
             'categoryCounts' => $categoryCounts,
+            'canReorder' => $status === 'all' && $categoryId !== 'all',
         ]);
     }
 
@@ -50,15 +56,30 @@ class ProjectController extends Controller
     {
         return view('admin.projects.create', [
             'project' => new Project,
-            'categories' => Category::orderBy('name')->get(),
+            'categories' => Category::orderBy('sort_order')->get(),
             'statuses' => ProjectStatus::cases(),
             'agencies' => Agency::where('is_collaboration_partner', true)->orderBy('name')->get(),
         ]);
     }
 
+    public function reorder(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'order' => ['required', 'array'],
+            'order.*' => ['integer', 'exists:projects,id'],
+        ]);
+
+        foreach (array_values($data['order']) as $index => $id) {
+            Project::where('id', $id)->update(['sort_order' => $index + 1]);
+        }
+
+        return response()->json(['status' => 'ok']);
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validated($request);
+        $data['sort_order'] = Project::where('category_id', $data['category_id'])->max('sort_order') + 1;
 
         if ($request->hasFile('image')) {
             $data['image_path'] = $request->file('image')->store('projects', 'public');
@@ -83,7 +104,7 @@ class ProjectController extends Controller
 
         return view('admin.projects.edit', [
             'project' => $project,
-            'categories' => Category::orderBy('name')->get(),
+            'categories' => Category::orderBy('sort_order')->get(),
             'statuses' => ProjectStatus::cases(),
             'agencies' => $agencies,
         ]);
@@ -92,6 +113,10 @@ class ProjectController extends Controller
     public function update(Request $request, Project $project): RedirectResponse
     {
         $data = $this->validated($request);
+
+        if ($data['category_id'] != $project->category_id) {
+            $data['sort_order'] = Project::where('category_id', $data['category_id'])->max('sort_order') + 1;
+        }
 
         if ($request->hasFile('image')) {
             if ($project->image_path) {
@@ -110,6 +135,7 @@ class ProjectController extends Controller
         $new = $project->replicate();
         $new->name = $project->name.'（コピー）';
         $new->status = ProjectStatus::Paused;
+        $new->sort_order = Project::where('category_id', $project->category_id)->max('sort_order') + 1;
         $new->save();
 
         return redirect()->route('admin.projects.edit', $new)->with('status', '案件を複製しました。');

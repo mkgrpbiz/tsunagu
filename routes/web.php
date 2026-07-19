@@ -61,10 +61,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         Route::middleware('menu:categories')->group(function () {
+            Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
             Route::resource('categories', CategoryController::class)->except('show');
         });
 
         Route::middleware('menu:projects')->group(function () {
+            Route::post('projects/reorder', [ProjectController::class, 'reorder'])->name('projects.reorder');
             Route::post('projects/{project}/duplicate', [ProjectController::class, 'duplicate'])->name('projects.duplicate');
             Route::resource('projects', ProjectController::class)->except('show');
         });

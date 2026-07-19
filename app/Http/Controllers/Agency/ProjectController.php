@@ -16,10 +16,13 @@ class ProjectController extends Controller
     {
         $agency = Auth::guard('agency')->user();
 
-        $projects = Project::with('category')
-            ->where('status', ProjectStatus::Published)
-            ->orderBy('category_id')
-            ->latest()
+        $projects = Project::query()
+            ->select('projects.*')
+            ->join('categories', 'categories.id', '=', 'projects.category_id')
+            ->with('category')
+            ->where('projects.status', ProjectStatus::Published)
+            ->orderBy('categories.sort_order')
+            ->orderBy('projects.sort_order')
             ->get();
 
         $inviteData = $projects->mapWithKeys(function (Project $project) use ($agency) {

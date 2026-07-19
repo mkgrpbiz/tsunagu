@@ -2,6 +2,15 @@
 
 @section('title', '案件一覧')
 
+@push('styles')
+<style>
+.proj-row.dragging{opacity:.4}
+.proj-row.drag-over td{border-top:2px dashed #2563eb}
+.proj-handle{cursor:grab;color:#9ca3af;user-select:none}
+.proj-handle:active{cursor:grabbing}
+</style>
+@endpush
+
 @section('content')
 <div class="flex items-center justify-between mb-5">
     <h1 class="text-2xl font-bold text-gray-800">案件一覧</h1>
@@ -45,10 +54,19 @@
     @endforeach
 </div>
 
+@if ($canReorder)
+    <p class="text-sm text-gray-500 mb-3">ドラッグ＆ドロップで並び替えできます。</p>
+@else
+    <p class="text-sm text-gray-400 mb-3">並び替えは「すべてのカテゴリー」以外かつステータス「すべて」の表示中のみ可能です。</p>
+@endif
+
 <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
     <table class="w-full text-sm">
         <thead class="bg-gray-50 text-gray-500 text-left">
             <tr>
+                @if ($canReorder)
+                    <th class="px-4 py-3 font-medium w-10"></th>
+                @endif
                 <th class="px-4 py-3 font-medium">案件名</th>
                 <th class="px-4 py-3 font-medium">ステータス</th>
                 <th class="px-4 py-3 font-medium">カテゴリー</th>
@@ -59,9 +77,12 @@
                 <th class="px-4 py-3 font-medium w-36 text-center">操作</th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100">
+        <tbody class="divide-y divide-gray-100" id="proj-list">
             @forelse ($projects as $project)
-                <tr class="hover:bg-gray-50">
+                <tr class="hover:bg-gray-50 @if ($canReorder) proj-row @endif" @if ($canReorder) draggable="true" data-id="{{ $project->id }}" @endif>
+                    @if ($canReorder)
+                        <td class="px-4 py-3"><span class="proj-handle">⠿</span></td>
+                    @endif
                     <td class="px-4 py-3 font-medium">
                         <a href="{{ route('admin.projects.edit', $project) }}" class="text-blue-600 hover:text-blue-800 hover:underline">{{ $project->name }}</a>
                     </td>
@@ -96,10 +117,59 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="px-4 py-8 text-center text-gray-400">案件がありません。</td>
+                    <td colspan="{{ $canReorder ? 9 : 8 }}" class="px-4 py-8 text-center text-gray-400">案件がありません。</td>
                 </tr>
             @endforelse
         </tbody>
     </table>
 </div>
+
+@if ($canReorder)
+    <script>
+    (function () {
+        const list = document.getElementById('proj-list');
+        if (!list) return;
+
+        let dragging = null;
+
+        list.addEventListener('dragstart', (e) => {
+            const row = e.target.closest('.proj-row');
+            if (!row) return;
+            dragging = row;
+            row.classList.add('dragging');
+        });
+
+        list.addEventListener('dragend', () => {
+            if (dragging) dragging.classList.remove('dragging');
+            list.querySelectorAll('.drag-over').forEach((el) => el.classList.remove('drag-over'));
+            dragging = null;
+            saveOrder();
+        });
+
+        list.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const row = e.target.closest('.proj-row');
+            if (!row || row === dragging) return;
+            list.querySelectorAll('.drag-over').forEach((el) => el.classList.remove('drag-over'));
+            row.classList.add('drag-over');
+
+            const rect = row.getBoundingClientRect();
+            const before = (e.clientY - rect.top) < rect.height / 2;
+            list.insertBefore(dragging, before ? row : row.nextSibling);
+        });
+
+        function saveOrder() {
+            const order = Array.from(list.querySelectorAll('.proj-row')).map((el) => el.dataset.id);
+            fetch(@json(route('admin.projects.reorder')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': @json(csrf_token()),
+                },
+                body: JSON.stringify({ order }),
+            });
+        }
+    })();
+    </script>
+@endif
 @endsection
