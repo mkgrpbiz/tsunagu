@@ -110,9 +110,25 @@
         @if ($liffId)
             <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
             <script>
+                function tsnDebugLog(text) {
+                    var el = document.getElementById('loading');
+                    var line = document.createElement('div');
+                    line.textContent = text;
+                    line.style.textAlign = 'left';
+                    line.style.wordBreak = 'break-all';
+                    el.appendChild(line);
+                }
+
+                tsnDebugLog('現在のURL: ' + window.location.href);
+                tsnDebugLog('liffId: ' + @json($liffId));
+
                 liff.init({ liffId: @json($liffId) })
                     .then(() => {
+                        tsnDebugLog('liff.init 成功');
+                        tsnDebugLog('isLoggedIn: ' + liff.isLoggedIn());
+                        tsnDebugLog('isInClient: ' + liff.isInClient());
                         if (!liff.isLoggedIn()) {
+                            tsnDebugLog('未ログインのため liff.login を実行します');
                             liff.login({ redirectUri: window.location.href });
                             return;
                         }
@@ -120,6 +136,7 @@
                     })
                     .then((results) => {
                         if (!results) return;
+                        tsnDebugLog('プロフィール取得成功');
                         const [profile, friendship] = results;
                         document.getElementById('line_uid').value = profile.userId;
                         document.getElementById('line_display_name').value = profile.displayName;
@@ -129,7 +146,7 @@
                         document.getElementById('apply-form').classList.remove('hidden');
                     })
                     .catch((error) => {
-                        document.getElementById('loading').textContent = 'LINEとの連携に失敗しました。時間をおいて再度お試しください。';
+                        tsnDebugLog('エラー発生: ' + (error && error.message ? error.message : JSON.stringify(error)));
                         console.error(error);
                     });
             </script>
