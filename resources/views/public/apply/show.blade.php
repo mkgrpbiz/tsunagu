@@ -129,7 +129,7 @@
                         tsnDebugLog('isInClient: ' + liff.isInClient());
                         if (!liff.isLoggedIn()) {
                             tsnDebugLog('未ログインのため liff.login を実行します');
-                            liff.login({ redirectUri: window.location.href });
+                            liff.login();
                             return;
                         }
                         return Promise.all([liff.getProfile(), liff.getFriendship()]);
