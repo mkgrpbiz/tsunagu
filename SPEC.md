@@ -1,6 +1,6 @@
-# TSUNAGU 仕様まとめ（2026-07-18時点）
+# TSUNAGU 仕様まとめ（2026-07-19時点）
 
-パートナー（旧・代理店）が案件を紹介し、紹介報酬・共創報酬を得られる審査制のビジネスプラットフォーム。Laravel 13 + Blade + SQLite。まだGitリポジトリ化されていない（`.git`なし）。
+パートナー（旧・代理店）が案件を紹介し、紹介報酬・共創報酬を得られる審査制のビジネスプラットフォーム。Laravel 13 + Blade + SQLite（本番/STGはMySQL）。GitHub（`https://github.com/mkgrpbiz/tsunagu.git`, `main`ブランチ）で管理し、STG（`https://stg-tsunagu.mkgrp.biz`、Xserver `sv16576.xserver.jp`）へ`git pull`でデプロイ。本番ドメインは`tsunagu.mkgrp.biz`を予定（未稼働）。
 
 ## 用語
 
@@ -77,14 +77,55 @@
 - **ロゴ画像**: `HomePageContent.brand_logo_path`が実体で、ホーム・LP両方の編集画面から共通でアップロード/削除できる（同じ1枚を共有）。未設定時は「TSUNAGU Partner Network」の文字表示にフォールバック
 - 画像は`storage/app/public/brand/`に保存（`php artisan storage:link`済み）
 
+## パートナーのコード体系（`legacy_code`）
+
+- 過去のスプレッドシート運用時代のパートナーコード（`B0001`形式）を`agencies.legacy_code`（unique）に保持し、**これが正式な会員番号・紹介コードとして使われ続ける**。`Agency::getReferralCodeAttribute()`は`legacy_code ?: sprintf('B%04d', $this->id)`
+- 新規登録者には`Agency::generateUniqueLegacyCode(int $startFrom)`が衝突チェックしながら自動採番（`booted()`の`created`フックで自動実行）。過去データの穴あき番号と衝突しないよう毎回`legacy_code`テーブルを検索する
+- `legacy_referral_code`は紹介元コードの歴史的参照用（unique制約なし、ロジックには使わない）
+- 管理画面の列名は「会員番号」「紹介者」（本人コード／紹介コードという旧称からリネーム済み）。「紹介者」列には紹介元の**会員番号**を表示（名前ではない）
+- 2026-07に旧スプレッドシート（247件）から一括インポート済み。招待リンク以外の旧問い合わせデータを後日インポートする計画があり、そのため`Project.legacy_names`（複数可・改行区切り）と`Project::findByAnyName(string $name)`ヘルパーを用意済み（現行案件名と旧データ表記のどちらでも一致させるため。まだどのインポート処理からも呼ばれていない、将来のインポート作業用の下地）
+
+## パートナー銀行情報の入力（全銀検索）
+
+- BIMONI（`C:\laragon\www\bimoni`）と同じ全銀データ（`resources/js/data/banks.json`、`public/data/zengin/branches/{bank_code}.json`）とオートコンプリートJS（`resources/js/bank-autocomplete.js`）を移植
+- `agencies.bank_code` / `bank_branch_code`に選択結果を保存（銀行名・支店名の文字列自体は別カラムのまま）
+
+## 案件・カテゴリーの並び替え
+
+- `categories.sort_order` / `projects.sort_order`（いずれもunsigned int、既存データは元の表示順で自動採番済み）
+- 管理画面の一覧はネイティブJS（外部ライブラリなし）のドラッグ＆ドロップで並び替え可能。カテゴリーは常時、案件は「特定カテゴリーを選択」かつステータス「すべて」表示時のみ（`Admin\ProjectController::index()`の`$canReorder`）
+- この並び順はパートナー向け案件一覧（`Agency\ProjectController`）・公開おしごとナビ（`Public\OshigotoController`）の表示順にもそのまま反映される（`categories.sort_order`→`projects.sort_order`の順でJOIN・ORDER BY）
+
+## 着金紐付け（`admin/deposit-links`）
+
+- 検索欄（名前・フリガナ・LINE名）単独で検索可能。カテゴリー・案件名は絞り込み専用のオプション項目（以前は「カテゴリー→案件→検索」の3段階が必須だったのを解消）
+
+## パートナー着金・支払いページ（`agency/contracts`）
+
+- 3セクション: 紹介報酬（自分の着金、1行=1件）／パートナー10%（紹介先パートナー×支払予定日ごとに件数・合計額を集計した行）／共創パートナー30%（取引先ごとに案件数・着金数・合計額を集計、**承認済みのもののみ**表示）
+- ページ上部に支払いサイクルの案内文（月末締め翌月5日払い、¥1,000未満は繰り越し）
+- 「繰り越し報酬」表示は**累計（全期間）の未払い合計が¥1,000未満の場合、その全額**（`Agency::totalPendingPayout()`が0円になるまで自然に繰り越り続ける仕組みで、繰り越し専用のDBカラムは無い）
+
+## 支払い管理（`admin/payments`）と繰り越し予定
+
+- 4ブロック構成: 紹介報酬（`Contract`）／パートナー10%（`ReferralCommission`）／共創パートナー30%（`CollaborationReward`、承認済みのみ）／繰り越し予定
+- `CollaborationReward`にも`payment_status`/`payment_due_date`/`paid_at`を追加し、他の2種と同じ支払済み/未払いの管理ができるようになった（承認待ち/承認の`status`とは独立したカラム）
+- **パートナーの累計未払い合計（3種合算、`Agency::totalPendingPayout()`）が¥1,000未満の場合、そのパートナーの未払い分は上3ブロックの支払対象一覧から除外され「繰り越し予定」に回る**（支払済み済みの記録は除外されず、取り消しも従来通り可能）
+- `Agency::carryOverSummary(int $threshold = 1000)`が繰り越し対象パートナー一覧と合計額を返す（支払い管理・ダッシュボードの両方から呼ばれる共通ロジック）
+- ダッシュボードにも「繰り越し予定合計」カードあり（「利益」カードの隣、月フィルタに関係なく常に現在の状態を表示）
+- **運用インパクトの注意**: 2026-07-19時点で契約同意（3文書）を提出済みのパートナーは244件中1件のみ。本番公開後、既存パートナーの大多数は次回ログイン時に案件一覧・紹介機能が使えなくなり「追加情報のご入力」への誘導が発生する（審査制導入時の意図通りだが、影響範囲は大きい）
+
 ## 開発環境の注意点
 
 - Laragonのnode/npmはPATHに無いため、ビルド時は`export PATH="/c/laragon/bin/nodejs/node-v22:$PATH"`が必要
 - Windows上のcurlで日本語を直接argvに渡すと文字化けする（Shift-JIS系に化ける）。日本語を含むPOSTテストは`http_build_query()`で事前にURLエンコードしたASCII文字列を`--data`で渡すか、PHPスクリプトファイル経由でDB操作すること
 - PowerShellの`Get-Content`/`Set-Content`はPHP/Bladeファイルの読み書きに使わない
+- `public/build`（Viteのビルド成果物）はSTGにnode/npmが無いため`.gitignore`から外してGit管理している。**Blade側でTailwindクラスを新規追加・変更した際は`npm run build`を忘れずに実行してからコミットすること**（2026-07-19に一度、複数画面分のビルド忘れが発覚し再ビルドで修正した）
+- ローカルでのHTTPテスト（`php artisan serve`）は、ログイン直後に間を置かず次のリクエストを送るとSQLiteセッションの書き込みが間に合わず401/302になることがある（`sleep(1)`程度の間隔を空けると安定する）
 
 ## 未着手・今後の検討事項
 
-- Gitリポジトリ化されていない（`git init`未実施）
-- mkgrp.bizのサブドメインへのデプロイ方法は未検討（BIMONIはSTG自動デプロイ・本番は確認ありのGitベースのフローを使っている）
+- mkgrp.bizの本番ドメイン（`tsunagu.mkgrp.biz`）への切り替え・デプロイ方法は未検討（BIMONIはSTG自動デプロイ・本番は確認ありのGitベースのフローを使っている）
 - `legal_documents`のシーダー内容はプレースホルダーテキストのため、本番公開前に実際の利用規約・プライバシーポリシー・パートナー業務委託契約書の文言に差し替えが必要
+- 旧問い合わせデータのインポート（`Project.legacy_names`を使う想定）は未着手
+- 共創報酬（`CollaborationReward`）は`client_name`の文字列一致でパートナーに紐付いており、同じ取引先名を別パートナーが別案件で使うと報酬が二重計上される可能性がある（既存の設計、今回のスコープ外）
