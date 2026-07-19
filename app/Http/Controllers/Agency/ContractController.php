@@ -99,6 +99,7 @@ class ContractController extends Controller
                 'projectCount' => $matching->pluck('inquiry.project.id')->unique()->count(),
                 'depositCount' => $matching->count(),
                 'rewardAmount' => $reward->reward_amount,
+                'paymentDueDate' => $reward->month->copy()->addMonthNoOverflow()->day(5),
             ];
         })->values();
 

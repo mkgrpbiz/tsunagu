@@ -113,6 +113,7 @@
                 <th class="px-4 py-3 font-medium">案件数</th>
                 <th class="px-4 py-3 font-medium">着金数</th>
                 <th class="px-4 py-3 font-medium">紹介報酬30%</th>
+                <th class="px-4 py-3 font-medium">支払予定日</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
@@ -122,10 +123,11 @@
                     <td class="px-4 py-3">{{ $row['projectCount'] }}</td>
                     <td class="px-4 py-3">{{ $row['depositCount'] }}</td>
                     <td class="px-4 py-3">¥{{ number_format($row['rewardAmount']) }}</td>
+                    <td class="px-4 py-3">{{ $row['paymentDueDate']->format('Y-m-d') }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="4" class="px-4 py-6 text-center text-gray-400">共創報酬はまだありません。</td>
+                    <td colspan="5" class="px-4 py-6 text-center text-gray-400">共創報酬はまだありません。</td>
                 </tr>
             @endforelse
         </tbody>
