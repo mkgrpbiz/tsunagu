@@ -47,6 +47,11 @@
             document.getElementById('agency-nav-mobile').classList.toggle('hidden');
         });
         </script>
+        @if ($showConsentNotice ?? false)
+            <div class="bg-amber-50 border-b border-amber-200 text-amber-800 text-sm px-4 py-3 text-center">
+                契約書類へのご同意が完了していません。<a href="{{ route('agency.additional-info.edit') }}" class="underline font-medium">追加情報のご入力</a>より、ご同意をお願いします。
+            </div>
+        @endif
         @if ($showBankNotice ?? false)
             <div class="bg-amber-50 border-b border-amber-200 text-amber-800 text-sm px-4 py-3 text-center">
                 支払予定の報酬があります。<a href="{{ route('agency.profile.edit') }}" class="underline font-medium">プロフィール</a>より振込先情報を登録してください。

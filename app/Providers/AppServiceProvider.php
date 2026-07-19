@@ -28,7 +28,10 @@ class AppServiceProvider extends ServiceProvider
                 && $agency->totalPendingPayout() > 0
                 && ! $agency->hasBankInfoRegistered();
 
+            $showConsentNotice = $agency && ! $agency->hasSubmittedAllConsents();
+
             $view->with('showBankNotice', $showBankNotice);
+            $view->with('showConsentNotice', $showConsentNotice);
         });
     }
 }
