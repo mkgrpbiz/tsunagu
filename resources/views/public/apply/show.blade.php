@@ -108,8 +108,6 @@
         @if ($liffId)
             <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
             <script>
-                var TSN_STORAGE_KEY = 'tsn_apply_form_{{ $inviteLink->token }}';
-
                 function tsnLog(message) {
                     try {
                         navigator.sendBeacon('{{ route('debug-log') }}', new Blob([JSON.stringify({ message: message })], { type: 'application/json' }));
@@ -118,14 +116,12 @@
 
                 tsnLog('page load. url=' + window.location.href);
 
-                function tsnFillFieldsFromStorage() {
-                    var saved = sessionStorage.getItem(TSN_STORAGE_KEY);
-                    if (!saved) return false;
-                    sessionStorage.removeItem(TSN_STORAGE_KEY);
-                    var data = JSON.parse(saved);
-                    document.getElementById('name').value = data.name || '';
-                    document.getElementById('name_kana').value = data.name_kana || '';
-                    document.getElementById('email').value = data.email || '';
+                function tsnFillFieldsFromQuery() {
+                    var params = new URLSearchParams(window.location.search);
+                    if (!params.has('tsn_resume')) return false;
+                    document.getElementById('name').value = params.get('name') || '';
+                    document.getElementById('name_kana').value = params.get('name_kana') || '';
+                    document.getElementById('email').value = params.get('email') || '';
                     return true;
                 }
 
@@ -135,7 +131,7 @@
                     button.textContent = isSubmitting ? '送信中です...' : '案内を受け取る';
                 }
 
-                var resumingSubmit = tsnFillFieldsFromStorage();
+                var resumingSubmit = tsnFillFieldsFromQuery();
                 tsnLog('resumingSubmit=' + resumingSubmit);
 
                 var liffReady = liff.init({ liffId: @json($liffId) });
@@ -152,12 +148,12 @@
                         .then(() => {
                             tsnLog('inside submit: isLoggedIn=' + liff.isLoggedIn());
                             if (!liff.isLoggedIn()) {
-                                sessionStorage.setItem(TSN_STORAGE_KEY, JSON.stringify({
-                                    name: document.getElementById('name').value,
-                                    name_kana: document.getElementById('name_kana').value,
-                                    email: document.getElementById('email').value,
-                                }));
-                                var from = encodeURIComponent(window.location.pathname);
+                                var resumeParams = new URLSearchParams();
+                                resumeParams.set('tsn_resume', '1');
+                                resumeParams.set('name', document.getElementById('name').value);
+                                resumeParams.set('name_kana', document.getElementById('name_kana').value);
+                                resumeParams.set('email', document.getElementById('email').value);
+                                var from = encodeURIComponent(window.location.pathname + '?' + resumeParams.toString());
                                 tsnLog('redirecting to liff.line.me, from=' + from);
                                 window.location.href = 'https://liff.line.me/' + @json($liffId) + '?from=' + from;
                                 return null;
