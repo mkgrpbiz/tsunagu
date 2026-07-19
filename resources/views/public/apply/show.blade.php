@@ -38,6 +38,14 @@
                 </div>
             @endif
 
+            @if ($errors->any())
+                <div class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-4 text-sm">
+                    @foreach ($errors->all() as $error)
+                        <p>{{ $error }}</p>
+                    @endforeach
+                </div>
+            @endif
+
             <form id="apply-form" method="POST" action="{{ route('apply.store', $inviteLink) }}"
                   class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
                 @csrf
