@@ -1,4 +1,4 @@
-# TSUNAGU 仕様まとめ（2026-07-19時点）
+# TSUNAGU 仕様まとめ（2026-07-20時点）
 
 パートナー（旧・代理店）が案件を紹介し、紹介報酬・共創報酬を得られる審査制のビジネスプラットフォーム。Laravel 13 + Blade + SQLite（本番/STGはMySQL）。GitHub（`https://github.com/mkgrpbiz/tsunagu.git`, `main`ブランチ）で管理し、STG（`https://stg-tsunagu.mkgrp.biz`、Xserver `sv16576.xserver.jp`）へ`git pull`でデプロイ。本番ドメインは`tsunagu.mkgrp.biz`を予定（未稼働）。
 
@@ -114,6 +114,28 @@
 - `Agency::carryOverSummary(int $threshold = 1000)`が繰り越し対象パートナー一覧と合計額を返す（支払い管理・ダッシュボードの両方から呼ばれる共通ロジック）
 - ダッシュボードにも「繰り越し予定合計」カードあり（「利益」カードの隣、月フィルタに関係なく常に現在の状態を表示）
 - **運用インパクトの注意**: 2026-07-19時点で契約同意（3文書）を提出済みのパートナーは244件中1件のみ。本番公開後、既存パートナーの大多数は次回ログイン時に案件一覧・紹介機能が使えなくなり「追加情報のご入力」への誘導が発生する（審査制導入時の意図通りだが、影響範囲は大きい）
+
+## LINE/LIFF連携（申し込みフォーム、`public/apply/show.blade.php`）
+
+**設計方針**: LIFFログイン画面のような専用フローは作らず、通常の申し込みフォーム1枚に集約。LINEとの連携（ユーザーのLINE ID取得・友だち状態確認）は**「案内を受け取る」ボタンを押した瞬間にだけ**行う（ページを開いた時点では何もLIFF関連の処理をしない＝フォームは常に即表示）。
+
+### 送信時の流れ（`liffReady = liff.init()`は事前に非同期で開始しておく）
+
+1. ボタン押下 → `liffReady`解決を待ち、`liff.isLoggedIn()`をチェック
+2. **未ログインの場合**: 入力済みの名前・フリガナ・メールアドレスを**URLクエリパラメータ**に載せ（`tsn_resume=1&name=...`等）、`https://liff.line.me/{LIFF_ID}?from=` + そのパス全体をURLエンコードしたもの、へ`window.location.href`で遷移
+3. LINEがログイン処理後、`from`で指定した通りのURL（クエリ含む）にそのまま戻ってくる（アクセストークン等は`#`以降のフラグメントとして付与されるので、こちらのクエリパラメータ部分には影響しない）
+4. 戻り先ページで、URLクエリの`tsn_resume`を見て入力内容を復元し、`resumingSubmit=true`として`requestSubmit()`を自動発火 → 今度は`liff.isLoggedIn()`がtrueになっているので、`liff.getProfile()`/`liff.getFriendship()`を取得してから実際にサーバーへPOST
+5. **既にログイン済みの場合**（２回目の申込みや、别のLIFFセッションが生きている場合）: 上記2〜4を経由せず、その場で`getProfile()`/`getFriendship()`を取って即座に送信
+
+### ハマったポイント（時系列で得た教訓）
+
+- **`sessionStorage`は使えない**: `liff.line.me`経由でログインすると、LINEアプリの**中の**専用LIFFブラウザとして開き直される（`liff.isInClient()`が`false`→`true`に変わる）。これは別のブラウジングコンテキスト扱いになるため、`sessionStorage`は引き継がれない。入力内容は**URLクエリパラメータ**に乗せて渡すこと（`sessionStorage`ではなく）
+- **`liff.login()`の`redirectUri`は信用しない**: 素のURL（`/apply/{token}`のようなプレーンなリンクをLINEのトーク上でタップして開く形）は`isInClient: false`（LIFFの正規起動ではなく外部ブラウザ扱い）になり、この状態では`liff.login({ redirectUri: ... })`を指定しても無視されて**必ずエンドポイントURLちょうどに戻る**（LINE公式ドキュメントにも「動作は保証されない」と明記あり）。確実にログイン→元のページに戻したい場合は、SDKの`liff.login()`ではなく、**素の`window.location.href = 'https://liff.line.me/{LIFF_ID}?from=...'`遷移**を使うこと（これは`isInClient: true`の正規LIFF起動になり、`from`で指定した通りのURLに確実に戻ってくる）
+- **エンドポイントURLは実在するルートにする**: `liff.login()`はエンドポイントURLちょうどに戻ることがあるため、そのURLは「トークン必須の`/apply/{token}`」のような動的ルートではなく、パラメータ無しでも200を返す実在ルートにする必要がある（`Route::get('apply', ...)`を追加して対応。中身は「元の画面に戻ってください」という中継用の簡素な文言のみ）
+- **エンドポイントURLの着地先は対象読者に注意**: 最初トップページ（`/`）をエンドポイントURLにしていたが、`/`は元々パートナー登録LP（`/agency/register`）にリダイレクトする設定だったため、**申し込みユーザーが誤ってパートナー向けLPに着地する**事故になった。ユーザー向けの中継先は必ず専用ページ（`public.line_login_complete`ビュー）にすること
+- **「ボットリンク」設定を忘れずに**: LIFFアプリをLINE Loginチャンネルで作成した場合、そのチャンネルとMessaging APIチャンネル（公式アカウント）を**明示的に紐付けないと**`liff.getFriendship()`が`There is no login bot linked to this channel.`エラーで失敗する。LINE Developersコンソールで、LINE Loginチャンネル側の設定にある「Linked LINE Official Account（ボットリンク）」で紐付けが必要
+- **原因調査は最終的に「サーバーログに直接書く」方式が有効だった**: 実機LINEでしか再現しない不具合を都度ユーザーに言葉で説明してもらうのは非効率・不正確になりがち。`navigator.sendBeacon()`で自前の`/debug-log`エンドポイント（CSRF除外、Laravelログに書くだけ）に各ステップを送り、開発側が直接ログを`tail`する方式に切り替えたところ、一度で正確な原因（上記のボットリンク未設定）まで特定できた。同種の「外部アプリ経由でしか再現しない」不具合はこの手法を早めに使うとよい
+- **`LineWebhookController`（follow/unfollowイベント）は実際に使われている**: 友だち未追加のままフォーム送信した場合、後から友だち追加された時点で`handleFollow()`が保留中の`Inquiry`（`guidance_sent_at`が空のもの）を検知し自動で案内メッセージを送る、という実装が既にあった。一見DBフィールドの読み書きだけに見えても、メソッド全体を読まずに「未使用」と判断しないこと
 
 ## 開発環境の注意点
 
