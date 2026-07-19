@@ -31,7 +31,7 @@ class ProjectController extends Controller
                 ['token' => Str::random(10)],
             );
 
-            $inviteUrl = $inviteLink->applyUrl();
+            $inviteUrl = url('/apply/'.$inviteLink->token);
 
             return [$project->id => [
                 'url' => $inviteUrl,

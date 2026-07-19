@@ -24,16 +24,4 @@ class InviteLink extends Model
     {
         return $this->hasMany(Inquiry::class);
     }
-
-    public function applyUrl(): string
-    {
-        $path = '/apply/'.$this->token;
-        $liffId = config('services.line.liff_id');
-
-        if (blank($liffId)) {
-            return url($path);
-        }
-
-        return "https://liff.line.me/{$liffId}?from=".urlencode($path);
-    }
 }
