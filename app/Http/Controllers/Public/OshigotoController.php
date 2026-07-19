@@ -46,7 +46,7 @@ class OshigotoController extends Controller
                     ['token' => Str::random(10)],
                 );
 
-                $applyUrls[$project->id] = url('/apply/'.$inviteLink->token);
+                $applyUrls[$project->id] = $inviteLink->applyUrl();
             }
         }
 

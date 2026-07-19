@@ -31,9 +31,22 @@ use App\Http\Controllers\Public\ApplyController;
 use App\Http\Controllers\Public\LegalDocumentController as PublicLegalDocumentController;
 use App\Http\Controllers\Public\LineWebhookController;
 use App\Http\Controllers\Public\OshigotoController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/agency/register');
+Route::get('/', function (Request $request) {
+    $liffState = (string) $request->get('liff_state', '');
+
+    if ($liffState !== '') {
+        parse_str(ltrim($liffState, '?'), $params);
+
+        if (! empty($params['from'])) {
+            return redirect($params['from']);
+        }
+    }
+
+    return redirect('/agency/register');
+});
 
 Route::get('apply/{inviteLink:token}', [ApplyController::class, 'show'])->name('apply.show');
 Route::post('apply/{inviteLink:token}', [ApplyController::class, 'store'])->name('apply.store');
