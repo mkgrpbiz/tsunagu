@@ -172,9 +172,41 @@ class Agency extends Authenticatable
 
         $collaborationTotal = CollaborationReward::whereIn('client_name', $clientNames)
             ->where('status', CollaborationRewardStatus::Approved)
+            ->where('payment_status', PaymentStatus::Unpaid)
             ->sum('reward_amount');
 
         return (int) ($contractsTotal + $referralTotal + $collaborationTotal);
+    }
+
+    public static function carryOverSummary(int $threshold = 1000): array
+    {
+        $collaborationReferrerIds = CollaborationReward::where('status', CollaborationRewardStatus::Approved)
+            ->where('payment_status', PaymentStatus::Unpaid)
+            ->get()
+            ->map(fn (CollaborationReward $reward) => Project::where('client_name', $reward->client_name)
+                ->whereNotNull('referrer_agency_id')
+                ->value('referrer_agency_id'));
+
+        $agencyIdsWithUnpaid = collect()
+            ->merge(
+                Contract::where('payment_status', PaymentStatus::Unpaid)->with('inquiry')->get()->pluck('inquiry.agency_id')
+            )
+            ->merge(
+                ReferralCommission::where('payment_status', PaymentStatus::Unpaid)->pluck('referrer_agency_id')
+            )
+            ->merge($collaborationReferrerIds)
+            ->unique()->filter()->values();
+
+        $rows = static::whereIn('id', $agencyIdsWithUnpaid)->get()
+            ->map(fn (self $agency) => ['agency' => $agency, 'total' => $agency->totalPendingPayout()])
+            ->filter(fn (array $row) => $row['total'] > 0 && $row['total'] < $threshold)
+            ->sortByDesc('total')
+            ->values();
+
+        return [
+            'rows' => $rows,
+            'total' => $rows->sum('total'),
+        ];
     }
 
     public function hasBankInfoRegistered(): bool

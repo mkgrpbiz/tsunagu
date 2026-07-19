@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\CollaborationRewardStatus;
+use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\CollaborationReward;
 use App\Models\Contract;
@@ -49,6 +50,8 @@ class CollaborationRewardController extends Controller
                                 'month' => $month->toDateString(),
                                 'reward_amount' => (int) round($profit * 0.3),
                                 'status' => CollaborationRewardStatus::PendingApproval,
+                                'payment_status' => PaymentStatus::Unpaid,
+                                'payment_due_date' => $month->copy()->addMonthNoOverflow()->day(5),
                             ]);
                         }
                     }

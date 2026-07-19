@@ -57,6 +57,14 @@
     @endforeach
 </div>
 
+<div class="grid md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white border border-gray-200 rounded-lg p-5">
+        <p class="text-xs text-gray-500">繰り越し予定合計</p>
+        <p class="text-xl font-semibold mt-1">¥{{ number_format($carryOverTotal) }}</p>
+        <p class="text-xs text-gray-500 mt-1">累計未払いが¥1,000未満のパートナー分</p>
+    </div>
+</div>
+
 <div class="grid md:grid-cols-2 gap-6">
     <div class="bg-white border border-gray-200 rounded-lg p-6">
         <h2 class="text-sm font-semibold text-gray-700 mb-4">パートナー数・問い合わせ数（直近12ヶ月）</h2>

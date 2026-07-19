@@ -24,18 +24,10 @@ class ContractController extends Controller
             ->orderByDesc('deposit_date')
             ->get();
 
-        $pendingPayoutTotal = $contracts
-            ->where('payment_status', PaymentStatus::Unpaid)
-            ->sum('agency_reward_amount');
-
         $referralCommissions = ReferralCommission::where('referrer_agency_id', $agency->id)
             ->with('sourceAgency')
             ->orderByDesc('payment_due_date')
             ->get();
-
-        $pendingReferralTotal = $referralCommissions
-            ->where('payment_status', PaymentStatus::Unpaid)
-            ->sum('amount');
 
         $clientNames = Project::where('referrer_agency_id', $agency->id)
             ->whereNotNull('client_name')
@@ -46,8 +38,6 @@ class ContractController extends Controller
             ->where('status', CollaborationRewardStatus::Approved)
             ->orderByDesc('month')
             ->get();
-
-        $pendingCollaborationRewardTotal = $collaborationRewards->sum('reward_amount');
 
         $clientContracts = Contract::whereHas('inquiry.project', fn ($query) => $query->whereIn('client_name', $clientNames))
             ->with('inquiry.project')
@@ -105,11 +95,11 @@ class ContractController extends Controller
 
         $monthlyPayoutTotal = $monthContracts->where('payment_status', PaymentStatus::Unpaid)->sum('agency_reward_amount');
         $monthlyReferralTotal = $monthReferralCommissions->where('payment_status', PaymentStatus::Unpaid)->sum('amount');
-        $monthlyCollaborationRewardTotal = $monthCollaborationRewards->sum('reward_amount');
+        $monthlyCollaborationRewardTotal = $monthCollaborationRewards->where('payment_status', PaymentStatus::Unpaid)->sum('reward_amount');
         $monthlyTotal = $monthlyPayoutTotal + $monthlyReferralTotal + $monthlyCollaborationRewardTotal;
 
         // 累計未払い合計が¥1,000未満の場合、支払い対象にならず翌月以降へ繰り越される。
-        $cumulativeTotal = $pendingPayoutTotal + $pendingReferralTotal + $pendingCollaborationRewardTotal;
+        $cumulativeTotal = $agency->totalPendingPayout();
         $carryOverAmount = $cumulativeTotal < 1000 ? $cumulativeTotal : 0;
 
         return view('agency.contracts.index', [

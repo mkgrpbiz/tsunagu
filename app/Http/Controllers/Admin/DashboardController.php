@@ -75,11 +75,14 @@ class DashboardController extends Controller
             ];
         });
 
+        $carryOverTotal = Agency::carryOverSummary()['total'];
+
         return view('admin.dashboard.index', [
             'months' => $months,
             'month' => $month,
             'summary' => $summary,
             'chartData' => $chartData,
+            'carryOverTotal' => $carryOverTotal,
         ]);
     }
 

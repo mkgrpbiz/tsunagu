@@ -98,6 +98,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::patch('payments/{contract}/revert', [PaymentController::class, 'revert'])->name('payments.revert');
             Route::patch('payments/referral-commissions/{referralCommission}', [PaymentController::class, 'updateReferralCommission'])->name('payments.referral-commissions.update');
             Route::patch('payments/referral-commissions/{referralCommission}/revert', [PaymentController::class, 'revertReferralCommission'])->name('payments.referral-commissions.revert');
+            Route::patch('payments/collaboration-rewards/{collaborationReward}', [PaymentController::class, 'updateCollaborationReward'])->name('payments.collaboration-rewards.update');
+            Route::patch('payments/collaboration-rewards/{collaborationReward}/revert', [PaymentController::class, 'revertCollaborationReward'])->name('payments.collaboration-rewards.revert');
         });
 
         Route::middleware('menu:announcements')->group(function () {
