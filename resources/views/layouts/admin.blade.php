@@ -62,10 +62,13 @@
                         @endif
                     </nav>
                 </div>
-                <form method="POST" action="{{ route('admin.logout') }}">
-                    @csrf
-                    <button type="submit" class="text-sm text-gray-500 hover:text-gray-800">ログアウト</button>
-                </form>
+                <div class="flex items-center gap-4">
+                    <a href="{{ route('admin.profile.edit') }}" class="text-sm hover:text-blue-600 {{ request()->routeIs('admin.profile.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">プロフィール</a>
+                    <form method="POST" action="{{ route('admin.logout') }}">
+                        @csrf
+                        <button type="submit" class="text-sm text-gray-500 hover:text-gray-800">ログアウト</button>
+                    </form>
+                </div>
             </div>
         </header>
         <main class="flex-1">

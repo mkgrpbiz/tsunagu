@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\InquiryController;
 use App\Http\Controllers\Admin\LandingPageContentController;
 use App\Http\Controllers\Admin\LegalDocumentController as AdminLegalDocumentController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\SalesMaterialController;
 use App\Http\Controllers\Agency\AdditionalInfoController as AgencyAdditionalInfoController;
@@ -70,89 +71,94 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
         Route::redirect('/', '/admin/projects');
 
-        Route::resource('admins', AdminManagerController::class)->except('show');
-        Route::post('admins/{admin}/reset-password', [AdminManagerController::class, 'resetPassword'])->name('admins.reset-password');
+        Route::get('profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('profile', [AdminProfileController::class, 'update'])->name('profile.update');
 
-        Route::middleware('menu:dashboard')->group(function () {
-            Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        });
+        Route::middleware('admin.password_changed')->group(function () {
+            Route::resource('admins', AdminManagerController::class)->except('show');
+            Route::post('admins/{admin}/reset-password', [AdminManagerController::class, 'resetPassword'])->name('admins.reset-password');
 
-        Route::middleware('menu:categories')->group(function () {
-            Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
-            Route::resource('categories', CategoryController::class)->except('show');
-        });
+            Route::middleware('menu:dashboard')->group(function () {
+                Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+            });
 
-        Route::middleware('menu:projects')->group(function () {
-            Route::post('projects/reorder', [ProjectController::class, 'reorder'])->name('projects.reorder');
-            Route::post('projects/{project}/duplicate', [ProjectController::class, 'duplicate'])->name('projects.duplicate');
-            Route::resource('projects', ProjectController::class)->except('show');
-        });
+            Route::middleware('menu:categories')->group(function () {
+                Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
+                Route::resource('categories', CategoryController::class)->except('show');
+            });
 
-        Route::middleware('menu:agencies')->group(function () {
-            Route::patch('agencies/{agency}/status', [AgencyController::class, 'updateStatus'])->name('agencies.update-status');
-            Route::patch('agencies/{agency}/collaboration-partner', [AgencyController::class, 'toggleCollaborationPartner'])->name('agencies.toggle-collaboration-partner');
-            Route::post('agencies/{agency}/impersonate', [AgencyController::class, 'impersonate'])->name('agencies.impersonate');
-            Route::resource('agencies', AgencyController::class);
-        });
+            Route::middleware('menu:projects')->group(function () {
+                Route::post('projects/reorder', [ProjectController::class, 'reorder'])->name('projects.reorder');
+                Route::post('projects/{project}/duplicate', [ProjectController::class, 'duplicate'])->name('projects.duplicate');
+                Route::resource('projects', ProjectController::class)->except('show');
+            });
 
-        Route::middleware('menu:collaboration_partners')->group(function () {
-            Route::get('collaboration-partners', [CollaborationPartnerController::class, 'index'])->name('collaboration-partners.index');
-        });
+            Route::middleware('menu:agencies')->group(function () {
+                Route::patch('agencies/{agency}/status', [AgencyController::class, 'updateStatus'])->name('agencies.update-status');
+                Route::patch('agencies/{agency}/collaboration-partner', [AgencyController::class, 'toggleCollaborationPartner'])->name('agencies.toggle-collaboration-partner');
+                Route::post('agencies/{agency}/impersonate', [AgencyController::class, 'impersonate'])->name('agencies.impersonate');
+                Route::resource('agencies', AgencyController::class);
+            });
 
-        Route::middleware('menu:inquiries')->group(function () {
-            Route::get('inquiries', [InquiryController::class, 'index'])->name('inquiries.index');
-            Route::patch('inquiries/{inquiry}/toggle-lost', [InquiryController::class, 'toggleLost'])->name('inquiries.toggle-lost');
-        });
+            Route::middleware('menu:collaboration_partners')->group(function () {
+                Route::get('collaboration-partners', [CollaborationPartnerController::class, 'index'])->name('collaboration-partners.index');
+            });
 
-        Route::middleware('menu:deposit_links')->group(function () {
-            Route::get('deposit-links', [DepositLinkController::class, 'index'])->name('deposit-links.index');
-            Route::post('deposit-links/{inquiry}', [DepositLinkController::class, 'store'])->name('deposit-links.store');
-        });
+            Route::middleware('menu:inquiries')->group(function () {
+                Route::get('inquiries', [InquiryController::class, 'index'])->name('inquiries.index');
+                Route::patch('inquiries/{inquiry}/toggle-lost', [InquiryController::class, 'toggleLost'])->name('inquiries.toggle-lost');
+            });
 
-        Route::middleware('menu:payments')->group(function () {
-            Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
-            Route::patch('payments/{contract}', [PaymentController::class, 'update'])->name('payments.update');
-            Route::patch('payments/{contract}/revert', [PaymentController::class, 'revert'])->name('payments.revert');
-            Route::patch('payments/referral-commissions/{referralCommission}', [PaymentController::class, 'updateReferralCommission'])->name('payments.referral-commissions.update');
-            Route::patch('payments/referral-commissions/{referralCommission}/revert', [PaymentController::class, 'revertReferralCommission'])->name('payments.referral-commissions.revert');
-            Route::patch('payments/collaboration-rewards/{collaborationReward}', [PaymentController::class, 'updateCollaborationReward'])->name('payments.collaboration-rewards.update');
-            Route::patch('payments/collaboration-rewards/{collaborationReward}/revert', [PaymentController::class, 'revertCollaborationReward'])->name('payments.collaboration-rewards.revert');
-        });
+            Route::middleware('menu:deposit_links')->group(function () {
+                Route::get('deposit-links', [DepositLinkController::class, 'index'])->name('deposit-links.index');
+                Route::post('deposit-links/{inquiry}', [DepositLinkController::class, 'store'])->name('deposit-links.store');
+            });
 
-        Route::middleware('menu:announcements')->group(function () {
-            Route::resource('announcements', AnnouncementController::class)->except('show');
-        });
+            Route::middleware('menu:payments')->group(function () {
+                Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+                Route::patch('payments/{contract}', [PaymentController::class, 'update'])->name('payments.update');
+                Route::patch('payments/{contract}/revert', [PaymentController::class, 'revert'])->name('payments.revert');
+                Route::patch('payments/referral-commissions/{referralCommission}', [PaymentController::class, 'updateReferralCommission'])->name('payments.referral-commissions.update');
+                Route::patch('payments/referral-commissions/{referralCommission}/revert', [PaymentController::class, 'revertReferralCommission'])->name('payments.referral-commissions.revert');
+                Route::patch('payments/collaboration-rewards/{collaborationReward}', [PaymentController::class, 'updateCollaborationReward'])->name('payments.collaboration-rewards.update');
+                Route::patch('payments/collaboration-rewards/{collaborationReward}/revert', [PaymentController::class, 'revertCollaborationReward'])->name('payments.collaboration-rewards.revert');
+            });
 
-        Route::middleware('menu:collaboration_referrals')->group(function () {
-            Route::get('collaboration-referrals', [CollaborationReferralController::class, 'index'])->name('collaboration-referrals.index');
-            Route::patch('collaboration-referrals/{collaborationReferral}/toggle-status', [CollaborationReferralController::class, 'toggleStatus'])->name('collaboration-referrals.toggle-status');
-        });
+            Route::middleware('menu:announcements')->group(function () {
+                Route::resource('announcements', AnnouncementController::class)->except('show');
+            });
 
-        Route::middleware('menu:collaboration_rewards')->group(function () {
-            Route::get('collaboration-rewards', [CollaborationRewardController::class, 'index'])->name('collaboration-rewards.index');
-            Route::put('collaboration-rewards/{collaborationReward}', [CollaborationRewardController::class, 'update'])->name('collaboration-rewards.update');
-        });
+            Route::middleware('menu:collaboration_referrals')->group(function () {
+                Route::get('collaboration-referrals', [CollaborationReferralController::class, 'index'])->name('collaboration-referrals.index');
+                Route::patch('collaboration-referrals/{collaborationReferral}/toggle-status', [CollaborationReferralController::class, 'toggleStatus'])->name('collaboration-referrals.toggle-status');
+            });
 
-        Route::middleware('menu:home')->group(function () {
-            Route::post('home-blocks/reorder', [HomeBlockController::class, 'reorder'])->name('home-blocks.reorder');
-            Route::resource('home-blocks', HomeBlockController::class)->except('show');
+            Route::middleware('menu:collaboration_rewards')->group(function () {
+                Route::get('collaboration-rewards', [CollaborationRewardController::class, 'index'])->name('collaboration-rewards.index');
+                Route::put('collaboration-rewards/{collaborationReward}', [CollaborationRewardController::class, 'update'])->name('collaboration-rewards.update');
+            });
 
-            Route::resource('sales-materials', SalesMaterialController::class)->except('show');
+            Route::middleware('menu:home')->group(function () {
+                Route::post('home-blocks/reorder', [HomeBlockController::class, 'reorder'])->name('home-blocks.reorder');
+                Route::resource('home-blocks', HomeBlockController::class)->except('show');
 
-            Route::get('home-content', [HomePageContentController::class, 'edit'])->name('home-content.edit');
-            Route::put('home-content', [HomePageContentController::class, 'update'])->name('home-content.update');
-        });
+                Route::resource('sales-materials', SalesMaterialController::class)->except('show');
 
-        Route::middleware('menu:landing_page_content')->group(function () {
-            Route::get('landing-page-content', [LandingPageContentController::class, 'edit'])->name('landing-page-content.edit');
-            Route::put('landing-page-content', [LandingPageContentController::class, 'update'])->name('landing-page-content.update');
-        });
+                Route::get('home-content', [HomePageContentController::class, 'edit'])->name('home-content.edit');
+                Route::put('home-content', [HomePageContentController::class, 'update'])->name('home-content.update');
+            });
 
-        Route::middleware('menu:legal_documents')->group(function () {
-            Route::get('legal-documents', [AdminLegalDocumentController::class, 'index'])->name('legal-documents.index');
-            Route::get('legal-documents/{type}/edit', [AdminLegalDocumentController::class, 'edit'])->name('legal-documents.edit');
-            Route::put('legal-documents/{type}', [AdminLegalDocumentController::class, 'update'])->name('legal-documents.update');
-            Route::get('legal-documents/{type}/history', [AdminLegalDocumentController::class, 'history'])->name('legal-documents.history');
+            Route::middleware('menu:landing_page_content')->group(function () {
+                Route::get('landing-page-content', [LandingPageContentController::class, 'edit'])->name('landing-page-content.edit');
+                Route::put('landing-page-content', [LandingPageContentController::class, 'update'])->name('landing-page-content.update');
+            });
+
+            Route::middleware('menu:legal_documents')->group(function () {
+                Route::get('legal-documents', [AdminLegalDocumentController::class, 'index'])->name('legal-documents.index');
+                Route::get('legal-documents/{type}/edit', [AdminLegalDocumentController::class, 'edit'])->name('legal-documents.edit');
+                Route::put('legal-documents/{type}', [AdminLegalDocumentController::class, 'update'])->name('legal-documents.update');
+                Route::get('legal-documents/{type}/history', [AdminLegalDocumentController::class, 'history'])->name('legal-documents.history');
+            });
         });
     });
 });

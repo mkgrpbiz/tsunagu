@@ -72,6 +72,7 @@ class AdminManagerController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => 'pass1234',
+            'must_change_password' => true,
             'role' => $data['role'],
             'accessible_menus' => $data['role'] === 'operator' ? ($data['accessible_menus'] ?? []) : null,
         ]);
@@ -106,7 +107,7 @@ class AdminManagerController extends Controller
             'email' => $data['email'],
             'role' => $data['role'],
             'accessible_menus' => $data['role'] === 'operator' ? ($data['accessible_menus'] ?? []) : null,
-            ...(filled($data['password'] ?? null) ? ['password' => $data['password']] : []),
+            ...(filled($data['password'] ?? null) ? ['password' => $data['password'], 'must_change_password' => true] : []),
         ]);
 
         return redirect()->route('admin.admins.index')->with('status', '更新しました。');
@@ -129,7 +130,7 @@ class AdminManagerController extends Controller
     {
         $this->requireAdmin();
 
-        $admin->update(['password' => 'pass1234']);
+        $admin->update(['password' => 'pass1234', 'must_change_password' => true]);
 
         return back()->with('status', 'パスワードを pass1234 にリセットしました。');
     }
