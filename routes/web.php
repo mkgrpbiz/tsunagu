@@ -37,6 +37,7 @@ Route::redirect('/', '/agency/register');
 
 Route::view('line/login-complete', 'public.line_login_complete')->name('line.login-complete');
 
+Route::view('apply', 'public.line_login_complete')->name('apply.login-complete');
 Route::get('apply/{inviteLink:token}', [ApplyController::class, 'show'])->name('apply.show');
 Route::post('apply/{inviteLink:token}', [ApplyController::class, 'store'])->name('apply.store');
 
