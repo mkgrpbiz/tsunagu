@@ -25,9 +25,10 @@
 
 - 新規登録者は自動的に`AgencyStatus::Pending`（審査中）。`approved`になるまで案件一覧・パートナー紹介・共創パートナー申請は使えない。
   - ページ単位のブロック: `EnsureAgencyApproved`ミドルウェア（alias `agency.approved`）→ 403 + `agency.restricted`ビュー
-  - カード単位のブロック: `Agency\HomeController`が`$restricted`フラグを計算し、`partials/home_block.blade.php`内でグレーアウト表示（実際の紹介URL・コードはHTMLに出力しない）
+  - カード単位のブロック: `Agency\HomeController`が`$restrictedReason`（`pending_review`/`consent_required`/null）を計算し、`partials/home_block.blade.php`内でグレーアウト表示・理由別メッセージ出し分け（実際の紹介URL・コードはHTMLに出力しない）
 - 管理画面の「パートナー」詳細画面で承認/否認/利用停止/審査中へ戻す操作、`AgencyStatusHistory`に遷移履歴を記録
 - 既存パートナーは移行時に一律`approved`済み（審査中に巻き込まれない）
+- 契約同意（3文書）が未提出の代理店（既存パートナー等）は`EnsureAgencyConsentsSubmitted`ミドルウェア（alias `agency.consents_submitted`）→ `agency.additional-info.edit`へリダイレクト。ホームの2カードも同様にグレーアウト（`consent_required`理由）
 
 ### 法的文書のバージョン管理（契約管理）
 

@@ -1,7 +1,11 @@
 @php
     $salesMaterials ??= collect();
     $announcements ??= collect();
-    $restricted ??= false;
+    $restrictedReason ??= null;
+    $restrictedMessages = [
+        'pending_review' => ['審査中のため利用できません', '承認後にご利用いただけます。'],
+        'consent_required' => ['契約書類へのご同意が必要です', '追加情報のご入力よりご同意いただくとご利用いただけます。'],
+    ];
 @endphp
 
 @if ($block->type === 'text')
@@ -42,10 +46,11 @@
     </div>
 
 @elseif ($block->type === 'referral_cta')
-    @if ($restricted)
+    @if ($restrictedReason)
+        @php [$restrictedTitle, $restrictedBody] = $restrictedMessages[$restrictedReason]; @endphp
         <div class="cta-card cta-card-restricted">
-            <p class="restricted-title">審査中のため利用できません</p>
-            <p class="restricted-body">承認後にご利用いただけます。</p>
+            <p class="restricted-title">{{ $restrictedTitle }}</p>
+            <p class="restricted-body">{{ $restrictedBody }}</p>
         </div>
     @else
         <div class="cta-card">
@@ -57,10 +62,11 @@
     @endif
 
 @elseif ($block->type === 'collaboration_cta')
-    @if ($restricted)
+    @if ($restrictedReason)
+        @php [$restrictedTitle, $restrictedBody] = $restrictedMessages[$restrictedReason]; @endphp
         <div class="cta-card cta-card-restricted">
-            <p class="restricted-title">審査中のため利用できません</p>
-            <p class="restricted-body">承認後にご利用いただけます。</p>
+            <p class="restricted-title">{{ $restrictedTitle }}</p>
+            <p class="restricted-body">{{ $restrictedBody }}</p>
         </div>
     @else
         <div class="cta-card">

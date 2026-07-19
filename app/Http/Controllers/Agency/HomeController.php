@@ -17,6 +17,12 @@ class HomeController extends Controller
     {
         $agency = Auth::guard('agency')->user();
 
+        $restrictedReason = match (true) {
+            $agency->status !== AgencyStatus::Approved => 'pending_review',
+            ! $agency->hasSubmittedAllConsents() => 'consent_required',
+            default => null,
+        };
+
         return view('agency.home.index', [
             'agency' => $agency,
             'content' => HomePageContent::current(),
@@ -24,7 +30,7 @@ class HomeController extends Controller
             'announcements' => Announcement::latest()->take(10)->get(),
             'salesMaterials' => SalesMaterial::latest()->get(),
             'referralUrl' => url('/agency/register?ref='.$agency->referral_code),
-            'restricted' => $agency->status !== AgencyStatus::Approved,
+            'restrictedReason' => $restrictedReason,
         ]);
     }
 }
