@@ -79,6 +79,13 @@
                            class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
+                <div id="line-login-prompt" class="border border-blue-200 bg-blue-50 rounded-md p-3 text-xs text-blue-800 space-y-2 hidden">
+                    <p>LINEとの連携が完了していません。下のボタンからログインしてください。</p>
+                    <button type="button" id="line-login-button" class="w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-md py-2">
+                        LINEでログイン
+                    </button>
+                </div>
+
                 @if (! $liffId)
                     <div class="border border-amber-200 bg-amber-50 rounded-md p-3 text-xs text-amber-800 space-y-2">
                         <p>開発用モード（LIFF未設定のため手動入力）</p>
@@ -122,15 +129,25 @@
                 tsnDebugLog('現在のURL: ' + window.location.href);
                 tsnDebugLog('liffId: ' + @json($liffId));
 
+                function tsnShowForm() {
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('apply-form').classList.remove('hidden');
+                }
+
+                document.getElementById('line-login-button').addEventListener('click', function () {
+                    liff.login();
+                });
+
                 liff.init({ liffId: @json($liffId) })
                     .then(() => {
                         tsnDebugLog('liff.init 成功');
                         tsnDebugLog('isLoggedIn: ' + liff.isLoggedIn());
                         tsnDebugLog('isInClient: ' + liff.isInClient());
                         if (!liff.isLoggedIn()) {
-                            tsnDebugLog('未ログインのため liff.login を実行します');
-                            liff.login();
-                            return;
+                            tsnDebugLog('未ログイン状態のため、ログインボタンを表示します');
+                            document.getElementById('line-login-prompt').classList.remove('hidden');
+                            tsnShowForm();
+                            return null;
                         }
                         return Promise.all([liff.getProfile(), liff.getFriendship()]);
                     })
@@ -142,12 +159,13 @@
                         document.getElementById('line_display_name').value = profile.displayName;
                         document.getElementById('line_name_display').value = profile.displayName;
                         document.getElementById('is_friend').value = (friendship && friendship.friendFlag) ? '1' : '0';
-                        document.getElementById('loading').classList.add('hidden');
-                        document.getElementById('apply-form').classList.remove('hidden');
+                        tsnShowForm();
                     })
                     .catch((error) => {
                         tsnDebugLog('エラー発生: ' + (error && error.message ? error.message : JSON.stringify(error)));
                         console.error(error);
+                        document.getElementById('line-login-prompt').classList.remove('hidden');
+                        tsnShowForm();
                     });
             </script>
         @else
