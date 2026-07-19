@@ -43,12 +43,15 @@ class ContractController extends Controller
             ->pluck('client_name');
 
         $collaborationRewards = CollaborationReward::whereIn('client_name', $clientNames)
+            ->where('status', CollaborationRewardStatus::Approved)
             ->orderByDesc('month')
             ->get();
 
-        $pendingCollaborationRewardTotal = $collaborationRewards
-            ->where('status', CollaborationRewardStatus::Approved)
-            ->sum('reward_amount');
+        $pendingCollaborationRewardTotal = $collaborationRewards->sum('reward_amount');
+
+        $clientContracts = Contract::whereHas('inquiry.project', fn ($query) => $query->whereIn('client_name', $clientNames))
+            ->with('inquiry.project')
+            ->get();
 
         $months = $contracts->map(fn (Contract $contract) => $contract->deposit_date->format('Y-m'))->toBase()
             ->merge($referralCommissions->map(fn (ReferralCommission $commission) => $commission->payment_due_date->format('Y-m')))
@@ -70,18 +73,47 @@ class ContractController extends Controller
             fn (CollaborationReward $reward) => $reward->month->format('Y-m') === $month
         ))->values();
 
+        $referralCommissionGroups = $monthReferralCommissions
+            ->groupBy(fn (ReferralCommission $commission) => $commission->source_agency_id.'|'.$commission->payment_due_date->format('Y-m-d'))
+            ->map(function ($group) {
+                $first = $group->first();
+
+                return [
+                    'sourceAgency' => $first->sourceAgency,
+                    'count' => $group->count(),
+                    'total' => $group->sum('amount'),
+                    'paymentDueDate' => $first->payment_due_date,
+                ];
+            })
+            ->sortByDesc(fn ($row) => $row['paymentDueDate'])
+            ->values();
+
+        $collaborationRewardRows = $monthCollaborationRewards->map(function (CollaborationReward $reward) use ($clientContracts) {
+            $matching = $clientContracts->filter(
+                fn (Contract $contract) => $contract->inquiry->project->client_name === $reward->client_name
+                    && $contract->deposit_date->format('Y-m') === $reward->month->format('Y-m')
+            );
+
+            return [
+                'clientName' => $reward->client_name,
+                'projectCount' => $matching->pluck('inquiry.project.id')->unique()->count(),
+                'depositCount' => $matching->count(),
+                'rewardAmount' => $reward->reward_amount,
+            ];
+        })->values();
+
         $monthlyPayoutTotal = $monthContracts->where('payment_status', PaymentStatus::Unpaid)->sum('agency_reward_amount');
         $monthlyReferralTotal = $monthReferralCommissions->where('payment_status', PaymentStatus::Unpaid)->sum('amount');
-        $monthlyCollaborationRewardTotal = $monthCollaborationRewards->where('status', CollaborationRewardStatus::Approved)->sum('reward_amount');
+        $monthlyCollaborationRewardTotal = $monthCollaborationRewards->sum('reward_amount');
 
         return view('agency.contracts.index', [
             'contracts' => $monthContracts,
             'pendingPayoutTotal' => $pendingPayoutTotal,
             'monthlyPayoutTotal' => $monthlyPayoutTotal,
-            'referralCommissions' => $monthReferralCommissions,
+            'referralCommissionGroups' => $referralCommissionGroups,
             'pendingReferralTotal' => $pendingReferralTotal,
             'monthlyReferralTotal' => $monthlyReferralTotal,
-            'collaborationRewards' => $monthCollaborationRewards,
+            'collaborationRewardRows' => $collaborationRewardRows,
             'pendingCollaborationRewardTotal' => $pendingCollaborationRewardTotal,
             'monthlyCollaborationRewardTotal' => $monthlyCollaborationRewardTotal,
             'months' => $months,

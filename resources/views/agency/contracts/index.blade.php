@@ -50,26 +50,22 @@
         <thead class="bg-gray-50 text-gray-500 text-left">
             <tr>
                 <th class="px-4 py-3 font-medium">案件名</th>
+                <th class="px-4 py-3 font-medium">名前</th>
+                <th class="px-4 py-3 font-medium">フリガナ</th>
+                <th class="px-4 py-3 font-medium">紹介報酬</th>
                 <th class="px-4 py-3 font-medium">着金日</th>
-                <th class="px-4 py-3 font-medium">パートナー報酬</th>
                 <th class="px-4 py-3 font-medium">支払予定日</th>
-                <th class="px-4 py-3 font-medium">ステータス</th>
-                <th class="px-4 py-3 font-medium">支払日</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($contracts as $contract)
                 <tr>
                     <td class="px-4 py-3">{{ $contract->inquiry->project->name }}</td>
-                    <td class="px-4 py-3">{{ $contract->deposit_date->format('Y-m-d') }}</td>
+                    <td class="px-4 py-3">{{ $contract->inquiry->name }}</td>
+                    <td class="px-4 py-3">{{ $contract->inquiry->name_kana }}</td>
                     <td class="px-4 py-3">¥{{ number_format($contract->agency_reward_amount) }}</td>
+                    <td class="px-4 py-3">{{ $contract->deposit_date->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">{{ $contract->payment_due_date->format('Y-m-d') }}</td>
-                    <td class="px-4 py-3">
-                        <span class="{{ $contract->payment_status === \App\Enums\PaymentStatus::Paid ? 'text-green-700' : 'text-amber-700' }}">
-                            {{ $contract->payment_status->label() }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3">{{ optional($contract->paid_at)->format('Y-m-d') }}</td>
                 </tr>
             @empty
                 <tr>
@@ -86,28 +82,22 @@
         <thead class="bg-gray-50 text-gray-500 text-left">
             <tr>
                 <th class="px-4 py-3 font-medium">紹介先パートナー</th>
-                <th class="px-4 py-3 font-medium">紹介報酬額</th>
+                <th class="px-4 py-3 font-medium">着金数</th>
+                <th class="px-4 py-3 font-medium">紹介報酬10%</th>
                 <th class="px-4 py-3 font-medium">支払予定日</th>
-                <th class="px-4 py-3 font-medium">ステータス</th>
-                <th class="px-4 py-3 font-medium">支払日</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-            @forelse ($referralCommissions as $commission)
+            @forelse ($referralCommissionGroups as $group)
                 <tr>
-                    <td class="px-4 py-3">{{ $commission->sourceAgency->name }}</td>
-                    <td class="px-4 py-3">¥{{ number_format($commission->amount) }}</td>
-                    <td class="px-4 py-3">{{ $commission->payment_due_date->format('Y-m-d') }}</td>
-                    <td class="px-4 py-3">
-                        <span class="{{ $commission->payment_status === \App\Enums\PaymentStatus::Paid ? 'text-green-700' : 'text-amber-700' }}">
-                            {{ $commission->payment_status->label() }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3">{{ optional($commission->paid_at)->format('Y-m-d') }}</td>
+                    <td class="px-4 py-3">{{ $group['sourceAgency']->name }}</td>
+                    <td class="px-4 py-3">{{ $group['count'] }}</td>
+                    <td class="px-4 py-3">¥{{ number_format($group['total']) }}</td>
+                    <td class="px-4 py-3">{{ $group['paymentDueDate']->format('Y-m-d') }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5" class="px-4 py-6 text-center text-gray-400">紹介報酬はまだありません。</td>
+                    <td colspan="4" class="px-4 py-6 text-center text-gray-400">紹介報酬はまだありません。</td>
                 </tr>
             @endforelse
         </tbody>
@@ -120,22 +110,18 @@
         <thead class="bg-gray-50 text-gray-500 text-left">
             <tr>
                 <th class="px-4 py-3 font-medium">取引先名</th>
-                <th class="px-4 py-3 font-medium">月</th>
-                <th class="px-4 py-3 font-medium">報酬額</th>
-                <th class="px-4 py-3 font-medium">ステータス</th>
+                <th class="px-4 py-3 font-medium">案件数</th>
+                <th class="px-4 py-3 font-medium">着金数</th>
+                <th class="px-4 py-3 font-medium">紹介報酬30%</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-            @forelse ($collaborationRewards as $reward)
+            @forelse ($collaborationRewardRows as $row)
                 <tr>
-                    <td class="px-4 py-3">{{ $reward->client_name }}</td>
-                    <td class="px-4 py-3">{{ $reward->month->format('Y-m') }}</td>
-                    <td class="px-4 py-3">¥{{ number_format($reward->reward_amount) }}</td>
-                    <td class="px-4 py-3">
-                        <span class="{{ $reward->status === \App\Enums\CollaborationRewardStatus::Approved ? 'text-green-700' : 'text-amber-700' }}">
-                            {{ $reward->status->label() }}
-                        </span>
-                    </td>
+                    <td class="px-4 py-3">{{ $row['clientName'] }}</td>
+                    <td class="px-4 py-3">{{ $row['projectCount'] }}</td>
+                    <td class="px-4 py-3">{{ $row['depositCount'] }}</td>
+                    <td class="px-4 py-3">¥{{ number_format($row['rewardAmount']) }}</td>
                 </tr>
             @empty
                 <tr>
