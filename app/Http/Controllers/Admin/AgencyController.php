@@ -142,6 +142,14 @@ class AgencyController extends Controller
         );
     }
 
+    public function impersonate(Request $request, Agency $agency): RedirectResponse
+    {
+        Auth::guard('agency')->login($agency);
+        $request->session()->regenerate();
+
+        return redirect()->route('agency.home')->with('status', "{$agency->name} としてログインしました。");
+    }
+
     public function destroy(Agency $agency): RedirectResponse
     {
         if ($agency->inquiries()->exists()) {

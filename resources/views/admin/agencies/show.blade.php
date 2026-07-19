@@ -5,7 +5,13 @@
 @section('content')
 <div class="flex items-center justify-between mb-6">
     <h1 class="text-xl font-semibold">{{ $agency->name }}</h1>
-    <a href="{{ route('admin.agencies.index') }}" class="text-sm text-gray-500 hover:underline">一覧に戻る</a>
+    <div class="flex items-center gap-4">
+        <form method="POST" action="{{ route('admin.agencies.impersonate', $agency) }}">
+            @csrf
+            <button type="submit" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md px-3 py-1.5">パートナーとしてログイン</button>
+        </form>
+        <a href="{{ route('admin.agencies.index') }}" class="text-sm text-gray-500 hover:underline">一覧に戻る</a>
+    </div>
 </div>
 
 <div class="grid md:grid-cols-2 gap-6 mb-6">

@@ -91,6 +91,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::middleware('menu:agencies')->group(function () {
             Route::patch('agencies/{agency}/status', [AgencyController::class, 'updateStatus'])->name('agencies.update-status');
             Route::patch('agencies/{agency}/collaboration-partner', [AgencyController::class, 'toggleCollaborationPartner'])->name('agencies.toggle-collaboration-partner');
+            Route::post('agencies/{agency}/impersonate', [AgencyController::class, 'impersonate'])->name('agencies.impersonate');
             Route::resource('agencies', AgencyController::class);
         });
 
