@@ -106,17 +106,21 @@ class ContractController extends Controller
         $monthlyPayoutTotal = $monthContracts->where('payment_status', PaymentStatus::Unpaid)->sum('agency_reward_amount');
         $monthlyReferralTotal = $monthReferralCommissions->where('payment_status', PaymentStatus::Unpaid)->sum('amount');
         $monthlyCollaborationRewardTotal = $monthCollaborationRewards->sum('reward_amount');
+        $monthlyTotal = $monthlyPayoutTotal + $monthlyReferralTotal + $monthlyCollaborationRewardTotal;
+
+        // 累計未払い合計が¥1,000未満の場合、支払い対象にならず翌月以降へ繰り越される。
+        $cumulativeTotal = $pendingPayoutTotal + $pendingReferralTotal + $pendingCollaborationRewardTotal;
+        $carryOverAmount = $cumulativeTotal < 1000 ? $cumulativeTotal : 0;
 
         return view('agency.contracts.index', [
             'contracts' => $monthContracts,
-            'pendingPayoutTotal' => $pendingPayoutTotal,
             'monthlyPayoutTotal' => $monthlyPayoutTotal,
             'referralCommissionGroups' => $referralCommissionGroups,
-            'pendingReferralTotal' => $pendingReferralTotal,
             'monthlyReferralTotal' => $monthlyReferralTotal,
             'collaborationRewardRows' => $collaborationRewardRows,
-            'pendingCollaborationRewardTotal' => $pendingCollaborationRewardTotal,
             'monthlyCollaborationRewardTotal' => $monthlyCollaborationRewardTotal,
+            'monthlyTotal' => $monthlyTotal,
+            'carryOverAmount' => $carryOverAmount,
             'months' => $months,
             'month' => $month,
         ]);

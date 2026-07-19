@@ -5,6 +5,12 @@
 @section('content')
 <h1 class="text-xl font-semibold mb-6">着金・支払い</h1>
 
+<div class="bg-blue-50 border border-blue-100 rounded-lg p-6 mb-6 text-sm text-gray-700 leading-relaxed">
+    <p class="font-semibold mb-1">お支払いについて</p>
+    <p>TSUNAGU着金確認後、月末で締めて翌月5日にお振込み</p>
+    <p>※金額1,000円未満の場合、翌月に繰り越されます。</p>
+</div>
+
 <form method="GET" action="{{ route('agency.contracts.index') }}" class="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex flex-wrap gap-4 items-end">
     <div>
         <label for="month" class="block text-xs font-medium text-gray-700 mb-1">月で絞り込み</label>
@@ -20,27 +26,14 @@
     </div>
 </form>
 
-<div class="grid md:grid-cols-3 gap-6 mb-6">
-    <div class="bg-white border border-gray-200 rounded-lg p-6">
-        <p class="text-sm text-gray-500">紹介報酬（未払い合計）</p>
-        <p class="text-lg font-semibold mt-1">{{ $month ? $month.'：' : '全期間：' }}¥{{ number_format($monthlyPayoutTotal) }}</p>
-        @if ($month)
-            <p class="text-sm text-gray-500 mt-1">累計：¥{{ number_format($pendingPayoutTotal) }}</p>
-        @endif
-    </div>
-    <div class="bg-white border border-gray-200 rounded-lg p-6">
-        <p class="text-sm text-gray-500">パートナー10%（未払い合計）</p>
-        <p class="text-lg font-semibold mt-1">{{ $month ? $month.'：' : '全期間：' }}¥{{ number_format($monthlyReferralTotal) }}</p>
-        @if ($month)
-            <p class="text-sm text-gray-500 mt-1">累計：¥{{ number_format($pendingReferralTotal) }}</p>
-        @endif
-    </div>
-    <div class="bg-white border border-gray-200 rounded-lg p-6">
-        <p class="text-sm text-gray-500">共創パートナー30%（未払い合計）</p>
-        <p class="text-lg font-semibold mt-1">{{ $month ? $month.'：' : '全期間：' }}¥{{ number_format($monthlyCollaborationRewardTotal) }}</p>
-        @if ($month)
-            <p class="text-sm text-gray-500 mt-1">累計：¥{{ number_format($pendingCollaborationRewardTotal) }}</p>
-        @endif
+<div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+    <p class="text-sm text-gray-500">パートナー報酬合計</p>
+    <p class="text-lg font-semibold mt-1">{{ $month ?: '全期間' }}：¥{{ number_format($monthlyTotal) }}</p>
+    <div class="text-sm text-gray-600 mt-3 space-y-1">
+        <p>紹介報酬：¥{{ number_format($monthlyPayoutTotal) }}</p>
+        <p>パートナー10%：¥{{ number_format($monthlyReferralTotal) }}</p>
+        <p>共創パートナー30%：¥{{ number_format($monthlyCollaborationRewardTotal) }}</p>
+        <p>繰り越し報酬：¥{{ number_format($carryOverAmount) }}</p>
     </div>
 </div>
 
