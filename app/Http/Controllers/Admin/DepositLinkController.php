@@ -23,20 +23,22 @@ class DepositLinkController extends Controller
         $projectId = $request->query('project_id');
         $q = trim((string) $request->query('q'));
 
-        $projects = $categoryId
-            ? Project::where('category_id', $categoryId)->orderBy('name')->get()
-            : collect();
+        $projects = Project::when($categoryId, fn ($query) => $query->where('category_id', $categoryId))
+            ->orderBy('name')
+            ->get();
 
         $candidates = collect();
         $selectedProject = $projectId ? $projects->firstWhere('id', (int) $projectId) : null;
 
-        if ($projectId && $q !== '') {
-            $candidates = Inquiry::with(['agency', 'lineUser'])
+        if ($q !== '') {
+            $candidates = Inquiry::with(['agency', 'lineUser', 'project'])
                 ->whereDoesntHave('contract')
-                ->where('project_id', $projectId)
+                ->when($categoryId, fn ($query) => $query->whereHas('project', fn ($q2) => $q2->where('category_id', $categoryId)))
+                ->when($projectId, fn ($query) => $query->where('project_id', $projectId))
                 ->where(function ($query) use ($q) {
                     $query->where('name', 'like', "%{$q}%")
-                        ->orWhere('name_kana', 'like', "%{$q}%");
+                        ->orWhere('name_kana', 'like', "%{$q}%")
+                        ->orWhereHas('lineUser', fn ($q2) => $q2->where('display_name', 'like', "%{$q}%"));
                 })
                 ->latest('inquired_at')
                 ->get();
