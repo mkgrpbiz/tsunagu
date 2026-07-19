@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureAgencyApproved;
+use App\Http\Middleware\EnsureAgencyConsentsSubmitted;
 use App\Http\Middleware\EnsureAgencyPasswordChanged;
 use App\Http\Middleware\EnsureCanAccessMenu;
 use Illuminate\Foundation\Application;
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'agency.password_changed' => EnsureAgencyPasswordChanged::class,
             'agency.approved' => EnsureAgencyApproved::class,
+            'agency.consents_submitted' => EnsureAgencyConsentsSubmitted::class,
             'menu' => EnsureCanAccessMenu::class,
         ]);
 

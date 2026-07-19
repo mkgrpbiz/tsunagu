@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\LegalDocumentController as AdminLegalDocumentCont
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\SalesMaterialController;
+use App\Http\Controllers\Agency\AdditionalInfoController as AgencyAdditionalInfoController;
 use App\Http\Controllers\Agency\AuthController as AgencyAuthController;
 use App\Http\Controllers\Agency\CollaborationReferralController as AgencyCollaborationReferralController;
 use App\Http\Controllers\Agency\ContractController as AgencyContractController;
@@ -157,7 +158,10 @@ Route::prefix('agency')->name('agency.')->group(function () {
             Route::get('inquiries', [AgencyInquiryController::class, 'index'])->name('inquiries.index');
             Route::get('contracts', [AgencyContractController::class, 'index'])->name('contracts.index');
 
-            Route::middleware('agency.approved')->group(function () {
+            Route::get('additional-info', [AgencyAdditionalInfoController::class, 'edit'])->name('additional-info.edit');
+            Route::put('additional-info', [AgencyAdditionalInfoController::class, 'update'])->name('additional-info.update');
+
+            Route::middleware(['agency.approved', 'agency.consents_submitted'])->group(function () {
                 Route::get('projects', [AgencyProjectController::class, 'index'])->name('projects.index');
 
                 Route::get('collaboration-referrals/create', [AgencyCollaborationReferralController::class, 'create'])->name('collaboration-referrals.create');

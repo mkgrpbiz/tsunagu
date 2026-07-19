@@ -7,6 +7,7 @@ use App\Enums\AgencyStatus;
 use App\Enums\BankAccountType;
 use App\Enums\CollaborationRewardStatus;
 use App\Enums\Gender;
+use App\Enums\LegalDocumentType;
 use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -182,6 +183,16 @@ class Agency extends Authenticatable
             && filled($this->bank_branch_name)
             && filled($this->bank_account_number)
             && filled($this->bank_account_holder);
+    }
+
+    public function hasSubmittedAllConsents(): bool
+    {
+        $consentedTypes = $this->legalDocumentConsents()
+            ->join('legal_documents', 'legal_documents.id', '=', 'legal_document_consents.legal_document_id')
+            ->pluck('legal_documents.type');
+
+        return collect(LegalDocumentType::cases())
+            ->every(fn (LegalDocumentType $type) => $consentedTypes->contains($type->value));
     }
 
     protected static function booted(): void
