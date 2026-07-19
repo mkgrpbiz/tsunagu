@@ -98,6 +98,7 @@ class AdminManagerController extends Controller
             'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($admin)],
             'role' => ['required', Rule::in(['admin', 'operator'])],
             'accessible_menus' => ['nullable', 'array'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
         $admin->update([
@@ -105,6 +106,7 @@ class AdminManagerController extends Controller
             'email' => $data['email'],
             'role' => $data['role'],
             'accessible_menus' => $data['role'] === 'operator' ? ($data['accessible_menus'] ?? []) : null,
+            ...(filled($data['password'] ?? null) ? ['password' => $data['password']] : []),
         ]);
 
         return redirect()->route('admin.admins.index')->with('status', '更新しました。');

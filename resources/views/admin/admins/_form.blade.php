@@ -49,6 +49,23 @@
 
 @unless ($admin->exists)
     <p class="text-xs text-gray-500 mb-4">初期パスワードは <span class="font-mono font-semibold">pass1234</span> です。</p>
+@else
+    <div class="mb-4 border-t border-gray-100 pt-4">
+        <p class="text-sm font-medium text-gray-700 mb-2">パスワード変更（変更する場合のみ入力）</p>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">新しいパスワード</label>
+                <input type="password" name="password" id="password"
+                       class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                @error('password')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">新しいパスワード（確認）</label>
+                <input type="password" name="password_confirmation" id="password_confirmation"
+                       class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+        </div>
+    </div>
 @endunless
 
 <div class="flex gap-3">
