@@ -29,6 +29,7 @@ use App\Http\Controllers\Agency\ProjectController as AgencyProjectController;
 use App\Http\Controllers\Public\AgencyRegistrationController;
 use App\Http\Controllers\Public\ApplyController;
 use App\Http\Controllers\Public\LegalDocumentController as PublicLegalDocumentController;
+use App\Http\Controllers\Public\LineWebhookController;
 use App\Http\Controllers\Public\OshigotoController;
 use Illuminate\Support\Facades\Route;
 
@@ -38,6 +39,8 @@ Route::get('apply/{inviteLink:token}', [ApplyController::class, 'show'])->name('
 Route::post('apply/{inviteLink:token}', [ApplyController::class, 'store'])->name('apply.store');
 
 Route::get('oshigoto', [OshigotoController::class, 'index'])->name('oshigoto.index');
+
+Route::post('line/webhook', [LineWebhookController::class, 'handle'])->name('line.webhook');
 
 Route::pattern('type', 'terms|privacy|partner_agreement');
 
