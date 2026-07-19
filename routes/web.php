@@ -33,7 +33,7 @@ use App\Http\Controllers\Public\LineWebhookController;
 use App\Http\Controllers\Public\OshigotoController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/admin');
+Route::redirect('/', '/agency/register');
 
 Route::get('apply/{inviteLink:token}', [ApplyController::class, 'show'])->name('apply.show');
 Route::post('apply/{inviteLink:token}', [ApplyController::class, 'store'])->name('apply.store');
