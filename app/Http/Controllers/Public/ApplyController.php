@@ -10,6 +10,7 @@ use App\Models\InviteLink;
 use App\Models\LineUser;
 use App\Services\LineMessagingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class ApplyController extends Controller
@@ -30,6 +31,8 @@ class ApplyController extends Controller
     public function store(Request $request, InviteLink $inviteLink, LineMessagingService $lineMessaging): View
     {
         $inviteLink->load('project');
+
+        Log::info('TSN_DEBUG: apply store hit', ['input' => $request->all()]);
 
         if ($inviteLink->project->status !== ProjectStatus::Published) {
             abort(404);

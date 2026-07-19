@@ -54,6 +54,12 @@ Route::get('apply', function (\Illuminate\Http\Request $request) {
 Route::get('apply/{inviteLink:token}', [ApplyController::class, 'show'])->name('apply.show');
 Route::post('apply/{inviteLink:token}', [ApplyController::class, 'store'])->name('apply.store');
 
+Route::post('debug-log', function (\Illuminate\Http\Request $request) {
+    \Illuminate\Support\Facades\Log::info('TSN_DEBUG: '.$request->input('message'));
+
+    return response('OK');
+})->name('debug-log');
+
 Route::get('oshigoto', [OshigotoController::class, 'index'])->name('oshigoto.index');
 
 Route::post('line/webhook', [LineWebhookController::class, 'handle'])->name('line.webhook');
