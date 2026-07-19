@@ -29,6 +29,7 @@
         ['label' => '売上', 'data' => $summary['revenue'], 'unit' => '円'],
         ['label' => '支払い', 'data' => $summary['payout'], 'unit' => '円'],
         ['label' => '利益', 'data' => $summary['profit'], 'unit' => '円'],
+        ['label' => '繰り越し予定合計', 'data' => ['monthly' => $carryOverTotal, 'compare' => null], 'unit' => '円', 'note' => '累計未払いが¥1,000未満のパートナー分'],
     ];
 @endphp
 
@@ -50,19 +51,11 @@
                 </p>
             @else
                 <p class="text-xs text-gray-500 mt-1">
-                    累計: {{ $card['unit'] === '円' ? '¥'.number_format($card['data']['cumulative']) : number_format($card['data']['cumulative']).$card['unit'] }}
+                    {{ $card['note'] ?? '累計: '.($card['unit'] === '円' ? '¥'.number_format($card['data']['cumulative']) : number_format($card['data']['cumulative']).$card['unit']) }}
                 </p>
             @endif
         </div>
     @endforeach
-</div>
-
-<div class="grid md:grid-cols-4 gap-4 mb-8">
-    <div class="bg-white border border-gray-200 rounded-lg p-5">
-        <p class="text-xs text-gray-500">繰り越し予定合計</p>
-        <p class="text-xl font-semibold mt-1">¥{{ number_format($carryOverTotal) }}</p>
-        <p class="text-xs text-gray-500 mt-1">累計未払いが¥1,000未満のパートナー分</p>
-    </div>
 </div>
 
 <div class="grid md:grid-cols-2 gap-6">
