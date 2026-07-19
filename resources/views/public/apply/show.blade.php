@@ -123,7 +123,8 @@
                 }
 
                 document.getElementById('line-login-button').addEventListener('click', function () {
-                    liff.login({ redirectUri: window.location.href });
+                    var from = encodeURIComponent(window.location.pathname);
+                    window.location.href = 'https://liff.line.me/' + @json($liffId) + '?from=' + from;
                 });
 
                 liff.init({ liffId: @json($liffId) })
