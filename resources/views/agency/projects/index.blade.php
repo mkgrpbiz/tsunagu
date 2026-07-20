@@ -44,6 +44,7 @@
             <div class="muted">掲載中の全案件を1ページにまとめたページです。個別の招待リンクの代わりにこちらをシェアできます。</div>
 
             @if (\Illuminate\Support\Facades\Storage::disk('public')->exists('oshigoto/logo.png'))
+                <p class="box-title">✅ 集客画像</p>
                 <div class="mkp-photo" style="margin-bottom:10px">
                     <img src="{{ \Illuminate\Support\Facades\Storage::url('oshigoto/logo.png') }}" alt="おしごとナビ" loading="lazy">
                 </div>
