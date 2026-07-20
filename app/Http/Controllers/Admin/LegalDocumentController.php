@@ -49,6 +49,7 @@ class LegalDocumentController extends Controller
             'effective_date' => ['required', 'date'],
             'status' => ['required', Rule::enum(LegalDocumentStatus::class)],
             'change_notes' => ['nullable', 'string'],
+            'requires_reconsent' => ['nullable', 'boolean'],
         ]);
 
         if ($data['status'] === LegalDocumentStatus::Published->value) {
@@ -65,6 +66,7 @@ class LegalDocumentController extends Controller
             'status' => $data['status'],
             'effective_date' => $data['effective_date'],
             'change_notes' => $data['change_notes'] ?? null,
+            'requires_reconsent' => $request->boolean('requires_reconsent'),
             'published_at' => $data['status'] === LegalDocumentStatus::Published->value ? now() : null,
             'created_by_user_id' => Auth::id(),
         ]);

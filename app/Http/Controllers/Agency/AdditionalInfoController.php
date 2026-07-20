@@ -33,27 +33,23 @@ class AdditionalInfoController extends Controller
             'partner_agreement_agreed' => ['accepted'],
         ]);
 
-        $consentedTypes = $agency->legalDocumentConsents()
-            ->join('legal_documents', 'legal_documents.id', '=', 'legal_document_consents.legal_document_id')
-            ->pluck('legal_documents.type');
+        $consentedDocumentIds = $agency->legalDocumentConsents()->pluck('legal_document_id');
 
         foreach (LegalDocumentType::cases() as $type) {
-            if ($consentedTypes->contains($type->value)) {
+            $document = LegalDocument::currentPublished($type);
+
+            if (! $document || $consentedDocumentIds->contains($document->id)) {
                 continue;
             }
 
-            $document = LegalDocument::currentPublished($type);
-
-            if ($document) {
-                LegalDocumentConsent::create([
-                    'agency_id' => $agency->id,
-                    'legal_document_id' => $document->id,
-                    'consented_at' => now(),
-                    'ip_address' => $request->ip(),
-                    'user_agent' => (string) $request->userAgent(),
-                    'method' => 'additional_info_submission',
-                ]);
-            }
+            LegalDocumentConsent::create([
+                'agency_id' => $agency->id,
+                'legal_document_id' => $document->id,
+                'consented_at' => now(),
+                'ip_address' => $request->ip(),
+                'user_agent' => (string) $request->userAgent(),
+                'method' => 'additional_info_submission',
+            ]);
         }
 
         return redirect()->route('agency.home')->with('status', 'ご入力ありがとうございました。');

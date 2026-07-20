@@ -61,6 +61,13 @@
             @error('change_notes')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
         </div>
 
+        <div class="mb-6">
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" name="requires_reconsent" value="1" @checked(old('requires_reconsent'))>
+                この変更は既存パートナーへの再同意を必須にする（同意するまで案件一覧・紹介機能が使えなくなります）
+            </label>
+        </div>
+
         <div class="flex gap-3">
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md px-4 py-2">保存</button>
             <a href="{{ route('admin.legal-documents.index') }}" class="text-sm text-gray-500 px-4 py-2">キャンセル</a>
