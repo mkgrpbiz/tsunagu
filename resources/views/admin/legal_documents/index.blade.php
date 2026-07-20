@@ -15,7 +15,7 @@
                 <th class="px-4 py-3 font-medium">施行日</th>
                 <th class="px-4 py-3 font-medium">最終更新日時</th>
                 <th class="px-4 py-3 font-medium">更新者</th>
-                <th class="px-4 py-3 font-medium w-32"></th>
+                <th class="px-4 py-3 font-medium w-32 text-center">操作</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
@@ -40,9 +40,11 @@
                     <td class="px-4 py-3">{{ $row['latest']?->effective_date?->format('Y-m-d') ?? '—' }}</td>
                     <td class="px-4 py-3">{{ $row['latest']?->created_at?->format('Y-m-d H:i') ?? '—' }}</td>
                     <td class="px-4 py-3">{{ $row['latest']?->createdByUser?->name ?? '—' }}</td>
-                    <td class="px-4 py-3 text-right space-x-3">
-                        <a href="{{ route('admin.legal-documents.edit', $row['type']->value) }}" class="text-blue-600 hover:underline">編集</a>
-                        <a href="{{ route('admin.legal-documents.history', $row['type']->value) }}" class="text-gray-500 hover:underline">履歴</a>
+                    <td class="px-4 py-3">
+                        <div class="flex gap-1 justify-center flex-wrap">
+                            <a href="{{ route('admin.legal-documents.edit', $row['type']->value) }}" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">編集</a>
+                            <a href="{{ route('admin.legal-documents.history', $row['type']->value) }}" class="text-xs bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded">履歴</a>
+                        </div>
                     </td>
                 </tr>
             @endforeach
