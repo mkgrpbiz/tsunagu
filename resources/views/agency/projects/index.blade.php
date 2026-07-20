@@ -49,11 +49,11 @@
                     <div class="muted">掲載中の全案件を1ページにまとめたページです。個別の招待リンクの代わりにこちらをシェアできます。</div>
                 </div>
 
-                @if (\Illuminate\Support\Facades\Storage::disk('public')->exists('oshigoto/oshigoto3.png'))
+                @if (\Illuminate\Support\Facades\Storage::disk('public')->exists('oshigoto/oshigoto4.png'))
                     <div class="box">
                         <p class="box-title">✅ 集客画像</p>
                         <div class="mkp-photo">
-                            <img src="{{ \Illuminate\Support\Facades\Storage::url('oshigoto/oshigoto3.png') }}" alt="おしごとナビ" loading="lazy">
+                            <img src="{{ \Illuminate\Support\Facades\Storage::url('oshigoto/oshigoto4.png') }}" alt="おしごとナビ" loading="lazy">
                         </div>
                     </div>
                 @endif
