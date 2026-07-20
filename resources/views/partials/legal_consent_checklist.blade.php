@@ -11,7 +11,10 @@
             <span><button type="button" class="text-blue-600 hover:underline" data-legal-open="{{ $type }}">{{ \App\Enums\LegalDocumentType::from($type)->label() }}</button>に同意します</span>
         </label>
         @if ($document?->change_notes)
-            <p class="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-md px-3 py-2 mt-1 mb-2" style="white-space: pre-line">今回の変更点: {{ $document->change_notes }}</p>
+            <div class="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-md px-3 py-2 mt-1 mb-2">
+                <p class="font-semibold mb-1">今回の変更点</p>
+                <p style="white-space: pre-line">{{ $document->change_notes }}</p>
+            </div>
         @endif
     @else
         <p class="flex items-center gap-2 text-sm text-gray-500">
