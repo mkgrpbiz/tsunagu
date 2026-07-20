@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\CollaborationPartnerApplicationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\CollaborationPartnerApplication;
+use App\Models\NotificationMessageSetting;
 use App\Services\LineMessagingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -65,9 +66,15 @@ class CollaborationPartnerApplicationController extends Controller
             return;
         }
 
+        $setting = NotificationMessageSetting::forFeature(
+            NotificationMessageSetting::FEATURE_COLLABORATION_PARTNER_APPLICATION,
+            '共創パートナー申請の審査が完了し、承認となりました。担当者よりZoomでのお打ち合わせについてご連絡いたします。',
+            '共創パートナー申請の審査が完了し、今回は見送りとなりました。',
+        );
+
         $message = match ($collaborationPartnerApplication->status) {
-            CollaborationPartnerApplicationStatus::Approved => '共創パートナー申請の審査が完了し、承認となりました。担当者よりZoomでのお打ち合わせについてご連絡いたします。',
-            CollaborationPartnerApplicationStatus::Rejected => '共創パートナー申請の審査が完了し、今回は見送りとなりました。',
+            CollaborationPartnerApplicationStatus::Approved => $setting->approved_message,
+            CollaborationPartnerApplicationStatus::Rejected => $setting->rejected_message,
             default => null,
         };
 

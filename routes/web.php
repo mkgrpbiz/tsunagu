@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\HomePageContentController;
 use App\Http\Controllers\Admin\InquiryController;
 use App\Http\Controllers\Admin\LandingPageContentController;
 use App\Http\Controllers\Admin\LegalDocumentController as AdminLegalDocumentController;
+use App\Http\Controllers\Admin\NotificationMessageSettingController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\Admin\ProjectController;
@@ -27,7 +28,6 @@ use App\Http\Controllers\Agency\CollaborationReferralController as AgencyCollabo
 use App\Http\Controllers\Agency\ContractController as AgencyContractController;
 use App\Http\Controllers\Agency\HomeController as AgencyHomeController;
 use App\Http\Controllers\Agency\InquiryController as AgencyInquiryController;
-use App\Http\Controllers\Agency\LineNotificationSettingController as AgencyLineNotificationSettingController;
 use App\Http\Controllers\Agency\ProfileController as AgencyProfileController;
 use App\Http\Controllers\Agency\ProjectController as AgencyProjectController;
 use App\Http\Controllers\Public\AgencyRegistrationController;
@@ -35,6 +35,7 @@ use App\Http\Controllers\Public\ApplyController;
 use App\Http\Controllers\Public\LegalDocumentController as PublicLegalDocumentController;
 use App\Http\Controllers\Public\LineWebhookController;
 use App\Http\Controllers\Public\OshigotoController;
+use App\Models\NotificationMessageSetting;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/agency/register');
@@ -135,12 +136,26 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('collaboration-referrals', [CollaborationReferralController::class, 'index'])->name('collaboration-referrals.index');
                 Route::get('collaboration-referrals/{collaborationReferral}', [CollaborationReferralController::class, 'show'])->name('collaboration-referrals.show');
                 Route::patch('collaboration-referrals/{collaborationReferral}/status', [CollaborationReferralController::class, 'updateStatus'])->name('collaboration-referrals.update-status');
+
+                Route::get('collaboration-referrals-notification-settings', [NotificationMessageSettingController::class, 'edit'])
+                    ->name('notification-message-settings.collaboration-referrals.edit')
+                    ->defaults('feature', NotificationMessageSetting::FEATURE_COLLABORATION_REFERRAL);
+                Route::put('collaboration-referrals-notification-settings', [NotificationMessageSettingController::class, 'update'])
+                    ->name('notification-message-settings.collaboration-referrals.update')
+                    ->defaults('feature', NotificationMessageSetting::FEATURE_COLLABORATION_REFERRAL);
             });
 
             Route::middleware('menu:collaboration_partner_applications')->group(function () {
                 Route::get('collaboration-partner-applications', [AdminCollaborationPartnerApplicationController::class, 'index'])->name('collaboration-partner-applications.index');
                 Route::get('collaboration-partner-applications/{collaborationPartnerApplication}', [AdminCollaborationPartnerApplicationController::class, 'show'])->name('collaboration-partner-applications.show');
                 Route::patch('collaboration-partner-applications/{collaborationPartnerApplication}/status', [AdminCollaborationPartnerApplicationController::class, 'updateStatus'])->name('collaboration-partner-applications.update-status');
+
+                Route::get('collaboration-partner-applications-notification-settings', [NotificationMessageSettingController::class, 'edit'])
+                    ->name('notification-message-settings.collaboration-partner-applications.edit')
+                    ->defaults('feature', NotificationMessageSetting::FEATURE_COLLABORATION_PARTNER_APPLICATION);
+                Route::put('collaboration-partner-applications-notification-settings', [NotificationMessageSettingController::class, 'update'])
+                    ->name('notification-message-settings.collaboration-partner-applications.update')
+                    ->defaults('feature', NotificationMessageSetting::FEATURE_COLLABORATION_PARTNER_APPLICATION);
             });
 
             Route::middleware('menu:collaboration_rewards')->group(function () {
@@ -188,10 +203,6 @@ Route::prefix('agency')->name('agency.')->group(function () {
 
         Route::get('profile', [AgencyProfileController::class, 'edit'])->name('profile.edit');
         Route::put('profile', [AgencyProfileController::class, 'update'])->name('profile.update');
-
-        Route::get('line-notification-settings', [AgencyLineNotificationSettingController::class, 'edit'])->name('line-notification-settings.edit');
-        Route::post('line-notification-settings', [AgencyLineNotificationSettingController::class, 'update'])->name('line-notification-settings.update');
-        Route::delete('line-notification-settings', [AgencyLineNotificationSettingController::class, 'destroy'])->name('line-notification-settings.destroy');
 
         Route::middleware('agency.password_changed')->group(function () {
             Route::get('home', [AgencyHomeController::class, 'index'])->name('home');

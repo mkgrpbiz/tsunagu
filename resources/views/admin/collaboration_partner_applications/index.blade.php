@@ -3,7 +3,10 @@
 @section('title', '共創パートナー申請')
 
 @section('content')
-<h1 class="text-xl font-semibold mb-6">共創パートナー申請</h1>
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-semibold">共創パートナー申請</h1>
+    <a href="{{ route('admin.notification-message-settings.collaboration-partner-applications.edit') }}" class="text-sm text-blue-600 hover:underline">LINE通知設定</a>
+</div>
 
 @php
     $statusTabs = [

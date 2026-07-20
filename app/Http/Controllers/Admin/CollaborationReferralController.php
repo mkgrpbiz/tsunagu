@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\CollaborationReferralStatus;
 use App\Http\Controllers\Controller;
 use App\Models\CollaborationReferral;
+use App\Models\NotificationMessageSetting;
 use App\Services\LineMessagingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -63,13 +64,20 @@ class CollaborationReferralController extends Controller
             return;
         }
 
-        $message = match ($collaborationReferral->status) {
-            CollaborationReferralStatus::Approved => "共創先紹介（{$collaborationReferral->referred_name}様）の審査が完了し、承認となりました。",
-            CollaborationReferralStatus::Rejected => "共創先紹介（{$collaborationReferral->referred_name}様）の審査が完了し、今回は見送りとなりました。",
+        $setting = NotificationMessageSetting::forFeature(
+            NotificationMessageSetting::FEATURE_COLLABORATION_REFERRAL,
+            '共創先紹介（{referred_name}様）の審査が完了し、承認となりました。',
+            '共創先紹介（{referred_name}様）の審査が完了し、今回は見送りとなりました。',
+        );
+
+        $template = match ($collaborationReferral->status) {
+            CollaborationReferralStatus::Approved => $setting->approved_message,
+            CollaborationReferralStatus::Rejected => $setting->rejected_message,
             default => null,
         };
 
-        if ($message) {
+        if ($template) {
+            $message = str_replace('{referred_name}', $collaborationReferral->referred_name, $template);
             $lineMessaging->sendPush($agency->line_uid, $message);
         }
     }
