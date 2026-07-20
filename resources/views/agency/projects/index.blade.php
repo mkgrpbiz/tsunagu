@@ -43,10 +43,10 @@
             <p class="box-title">✅ おしごとナビ（全案件まとめ紹介リンク）</p>
             <div class="muted">掲載中の全案件を1ページにまとめたページです。個別の招待リンクの代わりにこちらをシェアできます。</div>
 
-            @if (\Illuminate\Support\Facades\Storage::disk('public')->exists('oshigoto/logo.png'))
+            @if (\Illuminate\Support\Facades\Storage::disk('public')->exists('oshigoto/oshigoto3.png'))
                 <p class="box-title">✅ 集客画像</p>
                 <div class="mkp-photo" style="margin-bottom:10px">
-                    <img src="{{ \Illuminate\Support\Facades\Storage::url('oshigoto/logo.png') }}" alt="おしごとナビ" loading="lazy">
+                    <img src="{{ \Illuminate\Support\Facades\Storage::url('oshigoto/oshigoto3.png') }}" alt="おしごとナビ" loading="lazy">
                 </div>
             @endif
 
