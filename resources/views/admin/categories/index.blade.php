@@ -26,7 +26,7 @@
                 <th class="px-4 py-3 font-medium w-10"></th>
                 <th class="px-4 py-3 font-medium">名称</th>
                 <th class="px-4 py-3 font-medium">案件数</th>
-                <th class="px-4 py-3 font-medium w-32"></th>
+                <th class="px-4 py-3 font-medium w-32 text-center">操作</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100" id="cat-list">
@@ -35,13 +35,15 @@
                     <td class="px-4 py-3"><span class="cat-handle">⠿</span></td>
                     <td class="px-4 py-3">{{ $category->name }}</td>
                     <td class="px-4 py-3">{{ $category->projects_count }}</td>
-                    <td class="px-4 py-3 text-right space-x-3">
-                        <a href="{{ route('admin.categories.edit', $category) }}" class="text-blue-600 hover:underline">編集</a>
-                        <form method="POST" action="{{ route('admin.categories.destroy', $category) }}" class="inline" onsubmit="return confirm('削除しますか？');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="text-red-600 hover:underline">削除</button>
-                        </form>
+                    <td class="px-4 py-3">
+                        <div class="flex gap-1 justify-center flex-wrap">
+                            <a href="{{ route('admin.categories.edit', $category) }}" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">編集</a>
+                            <form method="POST" action="{{ route('admin.categories.destroy', $category) }}" class="inline" onsubmit="return confirm('削除しますか？');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">削除</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             @empty
