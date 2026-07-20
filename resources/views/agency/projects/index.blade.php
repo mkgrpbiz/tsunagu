@@ -39,33 +39,46 @@
 @section('content')
 <div class="mk-cases" id="mkCases">
     <div class="mk-wrap">
-        <div class="box" style="margin-bottom:20px">
-            <p class="box-title">✅ おしごとナビ（全案件まとめ紹介リンク）</p>
-            <div class="muted">掲載中の全案件を1ページにまとめたページです。個別の招待リンクの代わりにこちらをシェアできます。</div>
-
-            @if (\Illuminate\Support\Facades\Storage::disk('public')->exists('oshigoto/oshigoto3.png'))
-                <p class="box-title">✅ 集客画像</p>
-                <div class="mkp-photo" style="margin-bottom:10px">
-                    <img src="{{ \Illuminate\Support\Facades\Storage::url('oshigoto/oshigoto3.png') }}" alt="おしごとナビ" loading="lazy">
+        <details class="case" style="margin-bottom:20px">
+            <summary>
+                おしごとナビ（全案件まとめ紹介リンク）
+                <span class="chev"></span>
+            </summary>
+            <div class="body">
+                <div class="box">
+                    <div class="muted">掲載中の全案件を1ページにまとめたページです。個別の招待リンクの代わりにこちらをシェアできます。</div>
                 </div>
-            @endif
 
-            <input type="text" readonly value="{{ $oshigotoUrl }}">
-            <div class="copy-row">
-                <button type="button" class="copy copy-link" onclick="copyToClipboard({{ Illuminate\Support\Js::from($oshigotoUrl) }})">
-                    リンクのみコピー
-                </button>
-                <a href="{{ $oshigotoUrl }}" target="_blank" rel="noopener" class="copy">
-                    ページを確認
-                </a>
+                @if (\Illuminate\Support\Facades\Storage::disk('public')->exists('oshigoto/oshigoto3.png'))
+                    <div class="box">
+                        <p class="box-title">✅ 集客画像</p>
+                        <div class="mkp-photo">
+                            <img src="{{ \Illuminate\Support\Facades\Storage::url('oshigoto/oshigoto3.png') }}" alt="おしごとナビ" loading="lazy">
+                        </div>
+                    </div>
+                @endif
+
+                <div class="box">
+                    <p class="box-title">✅ 招待リンク・募集文</p>
+
+                    <input type="text" readonly value="{{ $oshigotoUrl }}">
+                    <div class="copy-row">
+                        <button type="button" class="copy copy-link" onclick="copyToClipboard({{ Illuminate\Support\Js::from($oshigotoUrl) }})">
+                            リンクのみコピー
+                        </button>
+                        <a href="{{ $oshigotoUrl }}" target="_blank" rel="noopener" class="copy">
+                            ページを確認
+                        </a>
+                    </div>
+
+                    <pre>{{ $oshigotoTemplate }}</pre>
+                    <button type="button" class="copy"
+                            onclick="copyToClipboard({{ Illuminate\Support\Js::from($oshigotoTemplate) }})">
+                        募集文をコピー
+                    </button>
+                </div>
             </div>
-
-            <pre>{{ $oshigotoTemplate }}</pre>
-            <button type="button" class="copy"
-                    onclick="copyToClipboard({{ Illuminate\Support\Js::from($oshigotoTemplate) }})">
-                募集文をコピー
-            </button>
-        </div>
+        </details>
 
         @forelse ($projectsByCategory as $categoryName => $projects)
             <div class="mk-cat">
