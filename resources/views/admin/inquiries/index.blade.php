@@ -53,7 +53,7 @@
                     <td class="px-4 py-3">{{ $inquiry->project->category->name }}</td>
                     <td class="px-4 py-3">{{ $inquiry->project->name }}</td>
                     <td class="px-4 py-3">{{ $inquiry->agency->name }}</td>
-                    <td class="px-4 py-3">{{ $inquiry->lineUser->display_name }}</td>
+                    <td class="px-4 py-3">{{ $inquiry->lineUser->display_name ?? $inquiry->legacy_line_display_name }}</td>
                     <td class="px-4 py-3">{{ $inquiry->name }}</td>
                     <td class="px-4 py-3">{{ $inquiry->name_kana }}</td>
                     <td class="px-4 py-3">{{ $inquiry->email }}</td>

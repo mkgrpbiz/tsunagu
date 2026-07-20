@@ -38,6 +38,7 @@ class DepositLinkController extends Controller
                 ->where(function ($query) use ($q) {
                     $query->where('name', 'like', "%{$q}%")
                         ->orWhere('name_kana', 'like', "%{$q}%")
+                        ->orWhere('legacy_line_display_name', 'like', "%{$q}%")
                         ->orWhereHas('lineUser', fn ($q2) => $q2->where('display_name', 'like', "%{$q}%"));
                 })
                 ->latest('inquired_at')

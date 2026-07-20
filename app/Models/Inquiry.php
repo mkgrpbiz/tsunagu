@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'status',
     'guidance_sent_at',
     'inquired_at',
+    'is_legacy_import',
+    'legacy_line_display_name',
 ])]
 class Inquiry extends Model
 {
@@ -28,6 +30,7 @@ class Inquiry extends Model
             'status' => InquiryStatus::class,
             'guidance_sent_at' => 'datetime',
             'inquired_at' => 'datetime',
+            'is_legacy_import' => 'boolean',
         ];
     }
 

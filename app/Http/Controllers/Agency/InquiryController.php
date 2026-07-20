@@ -16,6 +16,7 @@ class InquiryController extends Controller
         $agency = Auth::guard('agency')->user();
 
         $inquiries = Inquiry::where('agency_id', $agency->id)
+            ->where('is_legacy_import', false)
             ->with(['project', 'lineUser', 'contract'])
             ->orderByDesc('inquired_at')
             ->get();
