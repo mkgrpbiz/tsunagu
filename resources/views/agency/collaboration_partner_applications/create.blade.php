@@ -6,12 +6,10 @@
 <h1 class="text-xl font-semibold mb-4">共創パートナー申請</h1>
 
 <div class="bg-white border border-gray-200 rounded-lg p-6 max-w-lg">
-    <p class="text-sm text-gray-700 leading-relaxed mb-2">
-        TSUNAGUでは、通常のパートナー活動に加え、共同事業や新サービスの開発など、継続的な共創を行うパートナーを募集しています。
-    </p>
-    <p class="text-sm text-gray-700 leading-relaxed mb-6">
+    <div class="rounded-md bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 text-sm leading-relaxed mb-6">
+        TSUNAGUでは、通常のパートナー活動に加え、共同事業や新サービスの開発など、継続的な共創を行うパートナーを募集しています。<br>
         現在のパートナー情報および申請内容をもとに審査を行いますので、共創内容についてご入力ください。
-    </p>
+    </div>
 
     @if ($errors->any())
         <div class="mb-4 rounded-md bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
