@@ -4,7 +4,11 @@
 
 @section('content')
 @php
-    $isHandled = $referral->status === \App\Enums\CollaborationReferralStatus::Handled;
+    $statusColor = match ($referral->status) {
+        \App\Enums\CollaborationReferralStatus::Approved => 'bg-green-50 text-green-700 border-green-200',
+        \App\Enums\CollaborationReferralStatus::Rejected => 'bg-red-50 text-red-700 border-red-200',
+        \App\Enums\CollaborationReferralStatus::Pending => 'bg-amber-50 text-amber-700 border-amber-200',
+    };
 @endphp
 
 <div class="flex items-center justify-between mb-6">
@@ -19,16 +23,22 @@
             <p class="text-sm font-semibold mt-1">紹介元パートナー: {{ $referral->agency->name }}（{{ $referral->agency->referral_code }}）</p>
         </div>
         <div class="flex items-center gap-3">
-            <span class="text-xs font-medium border rounded-full px-2 py-1 {{ $isHandled ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200' }}">
+            <span class="text-xs font-medium border rounded-full px-2 py-1 {{ $statusColor }}">
                 {{ $referral->status->label() }}
             </span>
-            <form method="POST" action="{{ route('admin.collaboration-referrals.toggle-status', $referral) }}">
-                @csrf
-                @method('PATCH')
-                <button type="submit" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">
-                    {{ $isHandled ? '未対応に戻す' : '対応済にする' }}
-                </button>
-            </form>
+            <div class="flex gap-1">
+                @foreach (\App\Enums\CollaborationReferralStatus::cases() as $statusOption)
+                    @continue($statusOption === $referral->status)
+                    <form method="POST" action="{{ route('admin.collaboration-referrals.update-status', $referral) }}">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="status" value="{{ $statusOption->value }}">
+                        <button type="submit" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">
+                            {{ $statusOption->label() }}にする
+                        </button>
+                    </form>
+                @endforeach
+            </div>
         </div>
     </div>
 

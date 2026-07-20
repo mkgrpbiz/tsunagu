@@ -8,8 +8,9 @@
 @php
     $statusTabs = [
         'all' => ['label' => 'すべて', 'color' => 'bg-gray-500'],
-        'pending' => ['label' => '未対応', 'color' => 'bg-amber-500'],
-        'handled' => ['label' => '対応済', 'color' => 'bg-green-500'],
+        'pending' => ['label' => '審査中', 'color' => 'bg-amber-500'],
+        'approved' => ['label' => '承認済', 'color' => 'bg-green-500'],
+        'rejected' => ['label' => '見送り', 'color' => 'bg-red-500'],
     ];
 @endphp
 <div class="flex border-b border-gray-200 mb-4">
@@ -38,7 +39,11 @@
         <tbody class="divide-y divide-gray-100">
             @forelse ($applications as $application)
                 @php
-                    $isHandled = $application->status === \App\Enums\CollaborationPartnerApplicationStatus::Handled;
+                    $statusColor = match ($application->status) {
+                        \App\Enums\CollaborationPartnerApplicationStatus::Approved => 'bg-green-50 text-green-700 border-green-200',
+                        \App\Enums\CollaborationPartnerApplicationStatus::Rejected => 'bg-red-50 text-red-700 border-red-200',
+                        \App\Enums\CollaborationPartnerApplicationStatus::Pending => 'bg-amber-50 text-amber-700 border-amber-200',
+                    };
                 @endphp
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-3 whitespace-nowrap">{{ $application->created_at->format('Y-m-d H:i') }}</td>
@@ -50,7 +55,7 @@
                         </div>
                     </td>
                     <td class="px-4 py-3">
-                        <span class="text-xs font-medium border rounded-full px-2 py-1 {{ $isHandled ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200' }}">
+                        <span class="text-xs font-medium border rounded-full px-2 py-1 {{ $statusColor }}">
                             {{ $application->status->label() }}
                         </span>
                     </td>

@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\CollaborationReferralStatus;
 use App\Http\Controllers\Controller;
 use App\Models\CollaborationReferral;
+use App\Services\LineMessagingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class CollaborationReferralController extends Controller
@@ -37,14 +39,38 @@ class CollaborationReferralController extends Controller
         ]);
     }
 
-    public function toggleStatus(CollaborationReferral $collaborationReferral): RedirectResponse
+    public function updateStatus(Request $request, CollaborationReferral $collaborationReferral, LineMessagingService $lineMessaging): RedirectResponse
     {
-        $collaborationReferral->update([
-            'status' => $collaborationReferral->status === CollaborationReferralStatus::Handled
-                ? CollaborationReferralStatus::Pending
-                : CollaborationReferralStatus::Handled,
+        $data = $request->validate([
+            'status' => ['required', Rule::enum(CollaborationReferralStatus::class)],
         ]);
 
+        $previousStatus = $collaborationReferral->status;
+        $collaborationReferral->update($data);
+
+        if ($previousStatus !== $collaborationReferral->status) {
+            $this->notifyAgency($collaborationReferral, $lineMessaging);
+        }
+
         return redirect()->route('admin.collaboration-referrals.show', $collaborationReferral)->with('status', 'ステータスを更新しました。');
+    }
+
+    private function notifyAgency(CollaborationReferral $collaborationReferral, LineMessagingService $lineMessaging): void
+    {
+        $agency = $collaborationReferral->agency;
+
+        if (! $agency->line_uid) {
+            return;
+        }
+
+        $message = match ($collaborationReferral->status) {
+            CollaborationReferralStatus::Approved => "共創先紹介（{$collaborationReferral->referred_name}様）の審査が完了し、承認となりました。",
+            CollaborationReferralStatus::Rejected => "共創先紹介（{$collaborationReferral->referred_name}様）の審査が完了し、今回は見送りとなりました。",
+            default => null,
+        };
+
+        if ($message) {
+            $lineMessaging->sendPush($agency->line_uid, $message);
+        }
     }
 }

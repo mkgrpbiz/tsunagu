@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\CollaborationPartnerApplicationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\CollaborationPartnerApplication;
+use App\Services\LineMessagingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class CollaborationPartnerApplicationController extends Controller
@@ -37,16 +39,40 @@ class CollaborationPartnerApplicationController extends Controller
         ]);
     }
 
-    public function toggleStatus(CollaborationPartnerApplication $collaborationPartnerApplication): RedirectResponse
+    public function updateStatus(Request $request, CollaborationPartnerApplication $collaborationPartnerApplication, LineMessagingService $lineMessaging): RedirectResponse
     {
-        $collaborationPartnerApplication->update([
-            'status' => $collaborationPartnerApplication->status === CollaborationPartnerApplicationStatus::Handled
-                ? CollaborationPartnerApplicationStatus::Pending
-                : CollaborationPartnerApplicationStatus::Handled,
+        $data = $request->validate([
+            'status' => ['required', Rule::enum(CollaborationPartnerApplicationStatus::class)],
         ]);
+
+        $previousStatus = $collaborationPartnerApplication->status;
+        $collaborationPartnerApplication->update($data);
+
+        if ($previousStatus !== $collaborationPartnerApplication->status) {
+            $this->notifyAgency($collaborationPartnerApplication, $lineMessaging);
+        }
 
         return redirect()
             ->route('admin.collaboration-partner-applications.show', $collaborationPartnerApplication)
             ->with('status', 'ステータスを更新しました。');
+    }
+
+    private function notifyAgency(CollaborationPartnerApplication $collaborationPartnerApplication, LineMessagingService $lineMessaging): void
+    {
+        $agency = $collaborationPartnerApplication->agency;
+
+        if (! $agency->line_uid) {
+            return;
+        }
+
+        $message = match ($collaborationPartnerApplication->status) {
+            CollaborationPartnerApplicationStatus::Approved => '共創パートナー申請の審査が完了し、承認となりました。担当者よりZoomでのお打ち合わせについてご連絡いたします。',
+            CollaborationPartnerApplicationStatus::Rejected => '共創パートナー申請の審査が完了し、今回は見送りとなりました。',
+            default => null,
+        };
+
+        if ($message) {
+            $lineMessaging->sendPush($agency->line_uid, $message);
+        }
     }
 }

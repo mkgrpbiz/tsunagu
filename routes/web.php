@@ -27,6 +27,7 @@ use App\Http\Controllers\Agency\CollaborationReferralController as AgencyCollabo
 use App\Http\Controllers\Agency\ContractController as AgencyContractController;
 use App\Http\Controllers\Agency\HomeController as AgencyHomeController;
 use App\Http\Controllers\Agency\InquiryController as AgencyInquiryController;
+use App\Http\Controllers\Agency\LineNotificationSettingController as AgencyLineNotificationSettingController;
 use App\Http\Controllers\Agency\ProfileController as AgencyProfileController;
 use App\Http\Controllers\Agency\ProjectController as AgencyProjectController;
 use App\Http\Controllers\Public\AgencyRegistrationController;
@@ -133,13 +134,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::middleware('menu:collaboration_referrals')->group(function () {
                 Route::get('collaboration-referrals', [CollaborationReferralController::class, 'index'])->name('collaboration-referrals.index');
                 Route::get('collaboration-referrals/{collaborationReferral}', [CollaborationReferralController::class, 'show'])->name('collaboration-referrals.show');
-                Route::patch('collaboration-referrals/{collaborationReferral}/toggle-status', [CollaborationReferralController::class, 'toggleStatus'])->name('collaboration-referrals.toggle-status');
+                Route::patch('collaboration-referrals/{collaborationReferral}/status', [CollaborationReferralController::class, 'updateStatus'])->name('collaboration-referrals.update-status');
             });
 
             Route::middleware('menu:collaboration_partner_applications')->group(function () {
                 Route::get('collaboration-partner-applications', [AdminCollaborationPartnerApplicationController::class, 'index'])->name('collaboration-partner-applications.index');
                 Route::get('collaboration-partner-applications/{collaborationPartnerApplication}', [AdminCollaborationPartnerApplicationController::class, 'show'])->name('collaboration-partner-applications.show');
-                Route::patch('collaboration-partner-applications/{collaborationPartnerApplication}/toggle-status', [AdminCollaborationPartnerApplicationController::class, 'toggleStatus'])->name('collaboration-partner-applications.toggle-status');
+                Route::patch('collaboration-partner-applications/{collaborationPartnerApplication}/status', [AdminCollaborationPartnerApplicationController::class, 'updateStatus'])->name('collaboration-partner-applications.update-status');
             });
 
             Route::middleware('menu:collaboration_rewards')->group(function () {
@@ -187,6 +188,10 @@ Route::prefix('agency')->name('agency.')->group(function () {
 
         Route::get('profile', [AgencyProfileController::class, 'edit'])->name('profile.edit');
         Route::put('profile', [AgencyProfileController::class, 'update'])->name('profile.update');
+
+        Route::get('line-notification-settings', [AgencyLineNotificationSettingController::class, 'edit'])->name('line-notification-settings.edit');
+        Route::post('line-notification-settings', [AgencyLineNotificationSettingController::class, 'update'])->name('line-notification-settings.update');
+        Route::delete('line-notification-settings', [AgencyLineNotificationSettingController::class, 'destroy'])->name('line-notification-settings.destroy');
 
         Route::middleware('agency.password_changed')->group(function () {
             Route::get('home', [AgencyHomeController::class, 'index'])->name('home');

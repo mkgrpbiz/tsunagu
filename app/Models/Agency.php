@@ -22,6 +22,8 @@ use Illuminate\Notifications\Notifiable;
     'referred_by_agency_id',
     'legacy_code',
     'legacy_referral_code',
+    'line_uid',
+    'line_display_name',
     'oshigoto_token',
     'name',
     'name_kana',
