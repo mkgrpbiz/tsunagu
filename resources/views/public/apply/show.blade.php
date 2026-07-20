@@ -115,6 +115,18 @@
                 function tsnFillFieldsFromQuery() {
                     var params = new URLSearchParams(window.location.search);
                     if (!params.has('tsn_resume')) return false;
+
+                    var nonce = params.get('tsn_nonce');
+                    var usedKey = nonce ? ('tsn_used_nonce_' + nonce) : null;
+
+                    if (usedKey && localStorage.getItem(usedKey)) {
+                        return false;
+                    }
+
+                    if (usedKey) {
+                        localStorage.setItem(usedKey, '1');
+                    }
+
                     document.getElementById('name').value = params.get('name') || '';
                     document.getElementById('name_kana').value = params.get('name_kana') || '';
                     document.getElementById('email').value = params.get('email') || '';
@@ -140,6 +152,7 @@
                             if (!liff.isLoggedIn()) {
                                 var resumeParams = new URLSearchParams();
                                 resumeParams.set('tsn_resume', '1');
+                                resumeParams.set('tsn_nonce', Date.now().toString(36) + Math.random().toString(36).slice(2));
                                 resumeParams.set('name', document.getElementById('name').value);
                                 resumeParams.set('name_kana', document.getElementById('name_kana').value);
                                 resumeParams.set('email', document.getElementById('email').value);
