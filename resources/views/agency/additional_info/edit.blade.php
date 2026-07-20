@@ -5,13 +5,15 @@
 @section('content')
 <h1 class="text-xl font-semibold mb-4">追加情報のご入力</h1>
 
-<div class="mb-6 rounded-md bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
-    @if ($isReconsent)
-        契約書類の内容が更新されました。お手数ですが、変更部分をご確認のうえ再度ご同意をお願いします。ご同意いただくまで、案件一覧・紹介機能はご利用いただけません。
-    @else
+@if ($isReconsent)
+    <div class="mb-6 rounded-md bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 text-sm" style="white-space: pre-line">契約書類を更新しました。
+引き続きTSUNAGUをご利用いただくため、変更内容をご確認のうえ、ご同意をお願いいたします。
+ご同意いただくまで、案件一覧・紹介機能はご利用いただけません。</div>
+@else
+    <div class="mb-6 rounded-md bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
         サービスのご利用にあたり、契約書類へのご同意をお願いします。ご同意いただくまで、案件一覧・紹介機能はご利用いただけません。
-    @endif
-</div>
+    </div>
+@endif
 
 @if ($errors->any())
     <div class="mb-6 rounded-md bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
