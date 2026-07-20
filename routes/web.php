@@ -136,6 +136,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::middleware('menu:collaboration_rewards')->group(function () {
                 Route::get('collaboration-rewards', [CollaborationRewardController::class, 'index'])->name('collaboration-rewards.index');
+                Route::get('collaboration-rewards/{clientName}', [CollaborationRewardController::class, 'show'])->name('collaboration-rewards.show');
                 Route::put('collaboration-rewards/{collaborationReward}', [CollaborationRewardController::class, 'update'])->name('collaboration-rewards.update');
             });
 

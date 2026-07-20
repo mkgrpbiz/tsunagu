@@ -16,91 +16,24 @@ use Illuminate\View\View;
 
 class CollaborationRewardController extends Controller
 {
-    public function index(Request $request): View
+    public function index(): View
     {
         $clientNames = Project::whereNotNull('client_name')->distinct()->pluck('client_name')->sort()->values();
 
-        $clients = $clientNames->map(function ($clientName) {
-            $referrer = Project::where('client_name', $clientName)
-                ->whereNotNull('referrer_agency_id')
-                ->with('referrerAgency')
-                ->first()?->referrerAgency;
-
-            $contracts = Contract::whereHas('inquiry.project', fn ($query) => $query->where('client_name', $clientName))
-                ->get();
-
-            $monthly = $contracts
-                ->groupBy(fn (Contract $contract) => $contract->deposit_date->format('Y-m'))
-                ->map(function ($group, $ym) use ($clientName, $referrer) {
-                    $revenue = $group->sum('deposit_amount');
-                    $agencyRewardTotal = $group->sum('agency_reward_amount');
-                    $profit = $revenue - $agencyRewardTotal;
-                    $month = Carbon::parse($ym.'-01');
-
-                    $reward = null;
-
-                    if ($referrer) {
-                        $reward = CollaborationReward::where('client_name', $clientName)
-                            ->whereDate('month', $month->toDateString())
-                            ->first();
-
-                        if (! $reward) {
-                            $reward = CollaborationReward::create([
-                                'client_name' => $clientName,
-                                'month' => $month->toDateString(),
-                                'reward_amount' => (int) round($profit * 0.3),
-                                'status' => CollaborationRewardStatus::PendingApproval,
-                                'payment_status' => PaymentStatus::Unpaid,
-                                'payment_due_date' => $month->copy()->addMonthNoOverflow()->day(5),
-                            ]);
-                        }
-                    }
-
-                    return [
-                        'month' => $month,
-                        'revenue' => $revenue,
-                        'agency_reward_total' => $agencyRewardTotal,
-                        'profit' => $profit,
-                        'reward' => $reward,
-                    ];
-                })
-                ->sortByDesc(fn ($row) => $row['month']->format('Y-m'))
-                ->values();
-
-            return [
-                'client_name' => $clientName,
-                'referrer' => $referrer,
-                'monthly' => $monthly,
-                'totals' => [
-                    'revenue' => $monthly->sum('revenue'),
-                    'agency_reward_total' => $monthly->sum('agency_reward_total'),
-                    'profit' => $monthly->sum('profit'),
-                    'reward_amount' => $referrer ? $monthly->sum(fn ($row) => $row['reward']->reward_amount ?? 0) : null,
-                ],
-            ];
-        });
-
-        $clients = $clients->sortByDesc(fn ($client) => $client['referrer'] !== null)->values();
-
-        $months = $clients
-            ->flatMap(fn ($client) => $client['monthly']->map(fn ($row) => $row['month']->format('Y-m')))
-            ->unique()->sortDesc()->values();
-
-        $month = $request->query('month', $months->first());
-        $month = $month === 'all' ? null : $month;
-
-        if ($month) {
-            $clients = $clients->map(function ($client) use ($month) {
-                $client['monthly'] = $client['monthly']->filter(fn ($row) => $row['month']->format('Y-m') === $month)->values();
-
-                return $client;
-            });
-        }
+        $clients = $clientNames
+            ->map(fn ($clientName) => $this->buildClientSummary($clientName))
+            ->sortByDesc(fn ($client) => $client['totals']['revenue'])
+            ->values();
 
         return view('admin.collaboration_rewards.index', [
             'clients' => $clients,
-            'months' => $months,
-            'month' => $month,
+        ]);
+    }
+
+    public function show(string $clientName): View
+    {
+        return view('admin.collaboration_rewards.show', [
+            'client' => $this->buildClientSummary($clientName),
         ]);
     }
 
@@ -113,6 +46,78 @@ class CollaborationRewardController extends Controller
 
         $collaborationReward->update($data);
 
-        return redirect()->route('admin.collaboration-rewards.index')->with('status', '共創報酬を更新しました。');
+        return redirect()
+            ->route('admin.collaboration-rewards.show', $collaborationReward->client_name)
+            ->with('status', '共創報酬を更新しました。');
+    }
+
+    private function buildClientSummary(string $clientName): array
+    {
+        $referrer = Project::where('client_name', $clientName)
+            ->whereNotNull('referrer_agency_id')
+            ->with('referrerAgency')
+            ->first()?->referrerAgency;
+
+        $contracts = Contract::whereHas('inquiry.project', fn ($query) => $query->where('client_name', $clientName))
+            ->get();
+
+        $monthly = $contracts
+            ->groupBy(fn (Contract $contract) => $contract->deposit_date->format('Y-m'))
+            ->map(function ($group, $ym) use ($clientName, $referrer) {
+                $revenue = $group->sum('deposit_amount');
+                $agencyRewardTotal = $group->sum('agency_reward_amount');
+                $profit = $revenue - $agencyRewardTotal;
+                $month = Carbon::parse($ym.'-01');
+
+                $reward = null;
+
+                if ($referrer) {
+                    $reward = CollaborationReward::where('client_name', $clientName)
+                        ->whereDate('month', $month->toDateString())
+                        ->first();
+
+                    if (! $reward) {
+                        $reward = CollaborationReward::create([
+                            'client_name' => $clientName,
+                            'month' => $month->toDateString(),
+                            'reward_amount' => (int) round($profit * 0.3),
+                            'status' => CollaborationRewardStatus::PendingApproval,
+                            'payment_status' => PaymentStatus::Unpaid,
+                            'payment_due_date' => $month->copy()->addMonthNoOverflow()->day(5),
+                        ]);
+                    }
+                }
+
+                return [
+                    'month' => $month,
+                    'revenue' => $revenue,
+                    'agency_reward_total' => $agencyRewardTotal,
+                    'profit' => $profit,
+                    'reward' => $reward,
+                ];
+            })
+            ->sortByDesc(fn ($row) => $row['month']->format('Y-m'))
+            ->values();
+
+        $rewards = $monthly->pluck('reward')->filter();
+
+        $statusSummary = match (true) {
+            $rewards->isEmpty() => null,
+            $rewards->contains(fn (CollaborationReward $r) => $r->status === CollaborationRewardStatus::PendingApproval) => CollaborationRewardStatus::PendingApproval,
+            default => CollaborationRewardStatus::Approved,
+        };
+
+        return [
+            'client_name' => $clientName,
+            'referrer' => $referrer,
+            'monthly' => $monthly,
+            'status_summary' => $statusSummary,
+            'totals' => [
+                'revenue' => $monthly->sum('revenue'),
+                'agency_reward_total' => $monthly->sum('agency_reward_total'),
+                'profit' => $monthly->sum('profit'),
+                'reward_amount' => $referrer ? $monthly->sum(fn ($row) => $row['reward']->reward_amount ?? 0) : null,
+            ],
+        ];
     }
 }
