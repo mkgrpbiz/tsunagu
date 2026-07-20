@@ -32,6 +32,7 @@ class AdminManagerController extends Controller
             'payments' => '支払い',
             'announcements' => 'お知らせ',
             'collaboration_referrals' => '共創紹介',
+            'collaboration_partner_applications' => '共創パートナー申請',
             'collaboration_rewards' => '共創報酬管理',
             'legal_documents' => '契約管理',
             'home' => 'ホーム',

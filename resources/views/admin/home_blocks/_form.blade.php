@@ -11,6 +11,7 @@
         'cta' => 'CTA（ボタン付き）',
         'referral_cta' => 'パートナー紹介',
         'collaboration_cta' => '共創パートナー紹介',
+        'collaboration_partner_application_cta' => '共創パートナー申請',
         'sales_materials' => '営業素材（位置のみ）',
         'announcements' => 'お知らせ（位置のみ）',
     ];
@@ -46,7 +47,7 @@
     <textarea name="body" id="body" rows="4"
               class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('body', $block->body) }}</textarea>
     <p class="text-xs text-gray-500 mt-1">
-        テキスト・CTA・パートナー紹介・共創パートナー紹介ブロックではそのまま本文として（説明文として）表示されます。<br>
+        テキスト・CTA・パートナー紹介・共創パートナー紹介・共創パートナー申請ブロックではそのまま本文として（説明文として）表示されます。<br>
         「メリット一覧」ブロックでは<strong>1行に1項目</strong>、<code>タイトル|説明</code>の形式で入力してください（例: 紹介導線を収益化|既にお持ちのSNS・コミュニティ・人脈などを活かして収益化できます。）。
     </p>
     @error('body')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
@@ -56,7 +57,7 @@
     <label for="button_text" class="block text-sm font-medium text-gray-700 mb-1">ボタン文言</label>
     <input type="text" name="button_text" id="button_text" value="{{ old('button_text', $block->button_text) }}"
            class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-    <p class="text-xs text-gray-500 mt-1">「CTA」「共創パートナー紹介」ブロックのみ使用します（例: 詳しくはこちら）。</p>
+    <p class="text-xs text-gray-500 mt-1">「CTA」「共創パートナー紹介」「共創パートナー申請」ブロックのみ使用します（例: 詳しくはこちら）。</p>
     @error('button_text')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
 </div>
 

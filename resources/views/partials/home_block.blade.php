@@ -76,6 +76,21 @@
         </div>
     @endif
 
+@elseif ($block->type === 'collaboration_partner_application_cta')
+    @if ($restrictedReason)
+        @php [$restrictedTitle, $restrictedBody] = $restrictedMessages[$restrictedReason]; @endphp
+        <div class="cta-card cta-card-restricted">
+            <p class="restricted-title">{{ $restrictedTitle }}</p>
+            <p class="restricted-body">{{ $restrictedBody }}</p>
+        </div>
+    @else
+        <div class="cta-card">
+            @if ($block->title)<div class="cta-title">{{ $block->title }}</div>@endif
+            @if ($block->body)<div class="cta-body">{{ $block->body }}</div>@endif
+            <a href="{{ route('agency.collaboration-partner-applications.create') }}" class="cta-link">{{ $block->button_text ?: '共創パートナー申請フォーム' }}</a>
+        </div>
+    @endif
+
 @elseif ($block->type === 'sales_materials')
     <div class="materials-title">{{ $block->title ?: '営業素材' }}</div>
     @forelse ($salesMaterials as $material)

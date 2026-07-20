@@ -25,6 +25,7 @@
             '問い合わせ管理' => [
                 'inquiries' => ['label' => '問い合わせ一覧', 'route' => 'admin.inquiries.index', 'active' => 'admin.inquiries.*'],
                 'collaboration_referrals' => ['label' => '共創パートナー紹介', 'route' => 'admin.collaboration-referrals.index', 'active' => 'admin.collaboration-referrals.*'],
+                'collaboration_partner_applications' => ['label' => '共創パートナー申請', 'route' => 'admin.collaboration-partner-applications.index', 'active' => 'admin.collaboration-partner-applications.*'],
             ],
             '報酬・支払管理' => [
                 'deposit_links' => ['label' => '着金紐付け', 'route' => 'admin.deposit-links.index', 'active' => 'admin.deposit-links.*'],
