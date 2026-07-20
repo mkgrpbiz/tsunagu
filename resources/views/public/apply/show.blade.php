@@ -38,6 +38,10 @@
                 </div>
             @endif
 
+            @if ($offerText)
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 text-sm leading-relaxed whitespace-pre-line">{{ $offerText }}</div>
+            @endif
+
             @if ($errors->any())
                 <div class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-4 text-sm">
                     @foreach ($errors->all() as $error)

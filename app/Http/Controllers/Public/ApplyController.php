@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
 use App\Models\InviteLink;
 use App\Models\LineUser;
+use App\Models\Project;
 use App\Services\LineMessagingService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -24,6 +25,7 @@ class ApplyController extends Controller
             'liffId' => config('services.line.liff_id'),
             'officialAccountId' => config('services.line.official_account_id'),
             'result' => $inviteLink->project->status === ProjectStatus::Published ? null : 'unavailable',
+            'offerText' => $this->offerText($inviteLink->project),
         ]);
     }
 
@@ -85,6 +87,16 @@ class ApplyController extends Controller
             'liffId' => config('services.line.liff_id'),
             'officialAccountId' => config('services.line.official_account_id'),
             'result' => $result,
+            'offerText' => $this->offerText($inviteLink->project),
         ]);
+    }
+
+    private function offerText(Project $project): string
+    {
+        return trim(str_replace(
+            ['✅【お申し込みはこちら】', '{invite_url}'],
+            '',
+            (string) $project->recruitment_template
+        ));
     }
 }
