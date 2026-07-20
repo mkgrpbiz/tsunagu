@@ -169,14 +169,19 @@ class ProjectController extends Controller
             'oshigoto_listed' => ['nullable', 'boolean'],
             'client_name' => ['nullable', 'string', 'max:255'],
             'referrer_agency_id' => ['nullable', 'exists:agencies,id'],
-            'tsunagu_unit_price' => ['required', 'integer', 'min:0'],
-            'agency_unit_price' => ['required', 'integer', 'min:0'],
+            'tsunagu_price_mode' => ['required', 'in:fixed,variable'],
+            'agency_price_mode' => ['required', 'in:fixed,variable'],
+            'tsunagu_unit_price' => ['nullable', 'required_if:tsunagu_price_mode,fixed', 'integer', 'min:0'],
+            'agency_unit_price' => ['nullable', 'required_if:agency_price_mode,fixed', 'integer', 'min:0'],
             'payment_timing' => ['nullable', 'string', 'max:255'],
             'recruitment_template' => ['nullable', 'string'],
             'line_auto_message' => ['nullable', 'string'],
         ]);
 
         $data['oshigoto_listed'] = $request->boolean('oshigoto_listed');
+        $data['tsunagu_unit_price'] = $data['tsunagu_price_mode'] === 'fixed' ? $data['tsunagu_unit_price'] : null;
+        $data['agency_unit_price'] = $data['agency_price_mode'] === 'fixed' ? $data['agency_unit_price'] : null;
+        unset($data['tsunagu_price_mode'], $data['agency_price_mode']);
 
         return $data;
     }

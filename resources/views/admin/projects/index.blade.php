@@ -99,8 +99,8 @@
                     <td class="px-4 py-3 text-gray-600">{{ $project->category->name }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $project->client_name ?: '—' }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $project->referrerAgency->name ?? '—' }}</td>
-                    <td class="px-4 py-3 text-right">¥{{ number_format($project->tsunagu_unit_price) }}</td>
-                    <td class="px-4 py-3 text-right">¥{{ number_format($project->agency_unit_price) }}</td>
+                    <td class="px-4 py-3 text-right">{{ $project->tsunagu_unit_price !== null ? '¥'.number_format($project->tsunagu_unit_price) : '変動' }}</td>
+                    <td class="px-4 py-3 text-right">{{ $project->agency_unit_price !== null ? '¥'.number_format($project->agency_unit_price) : '変動' }}</td>
                     <td class="px-4 py-3">
                         <div class="flex gap-1 justify-center flex-wrap">
                             <form method="POST" action="{{ route('admin.projects.duplicate', $project) }}" class="inline">

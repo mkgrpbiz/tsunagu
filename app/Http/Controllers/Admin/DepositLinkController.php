@@ -65,7 +65,11 @@ class DepositLinkController extends Controller
         $data = $request->validate([
             'deposit_date' => ['required', 'date'],
             'deposit_amount' => ['required', 'integer', 'min:0'],
-            'agency_reward_amount' => ['nullable', 'integer', 'min:0'],
+            'agency_reward_amount' => [
+                $inquiry->project->agency_unit_price === null ? 'required' : 'nullable',
+                'integer',
+                'min:0',
+            ],
         ]);
 
         $depositDate = Carbon::parse($data['deposit_date']);

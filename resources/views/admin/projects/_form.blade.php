@@ -74,13 +74,6 @@
     </div>
 
     <div class="col-span-2">
-        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">案件概要</label>
-        <textarea name="description" id="description" rows="3"
-                  class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description', $project->description) }}</textarea>
-        @error('description')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-    </div>
-
-    <div class="col-span-2">
         <label for="image" class="block text-sm font-medium text-gray-700 mb-1">集客画像</label>
         @if ($project->image_path)
             <img src="{{ \Illuminate\Support\Facades\Storage::url($project->image_path) }}" alt="" class="h-24 mb-2 rounded-md border border-gray-200">
@@ -90,18 +83,52 @@
         @error('image')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
+    @php
+        $tsunaguMode = old('tsunagu_price_mode', $project->tsunagu_unit_price === null ? 'variable' : 'fixed');
+        $agencyMode = old('agency_price_mode', $project->agency_unit_price === null ? 'variable' : 'fixed');
+    @endphp
+
     <div>
-        <label for="tsunagu_unit_price" class="block text-sm font-medium text-gray-700 mb-1">TSUNAGU単価（円）</label>
-        <input type="number" name="tsunagu_unit_price" id="tsunagu_unit_price" value="{{ old('tsunagu_unit_price', $project->tsunagu_unit_price) }}" required min="0"
+        <label class="block text-sm font-medium text-gray-700 mb-1">TSUNAGU単価</label>
+        <div class="flex items-center gap-4 mb-2 text-sm">
+            <label class="flex items-center gap-1.5">
+                <input type="radio" name="tsunagu_price_mode" value="fixed" class="price-mode-radio" data-target="tsunagu_unit_price" @checked($tsunaguMode === 'fixed')>
+                金額
+            </label>
+            <label class="flex items-center gap-1.5">
+                <input type="radio" name="tsunagu_price_mode" value="variable" class="price-mode-radio" data-target="tsunagu_unit_price" @checked($tsunaguMode === 'variable')>
+                変動
+            </label>
+        </div>
+        <input type="number" name="tsunagu_unit_price" id="tsunagu_unit_price" value="{{ old('tsunagu_unit_price', $project->tsunagu_unit_price) }}" min="0"
+               placeholder="円"
                class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
         @error('tsunagu_unit_price')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
     <div>
-        <label for="agency_unit_price" class="block text-sm font-medium text-gray-700 mb-1">パートナー単価（円）</label>
-        <input type="number" name="agency_unit_price" id="agency_unit_price" value="{{ old('agency_unit_price', $project->agency_unit_price) }}" required min="0"
+        <label class="block text-sm font-medium text-gray-700 mb-1">パートナー単価</label>
+        <div class="flex items-center gap-4 mb-2 text-sm">
+            <label class="flex items-center gap-1.5">
+                <input type="radio" name="agency_price_mode" value="fixed" class="price-mode-radio" data-target="agency_unit_price" @checked($agencyMode === 'fixed')>
+                金額
+            </label>
+            <label class="flex items-center gap-1.5">
+                <input type="radio" name="agency_price_mode" value="variable" class="price-mode-radio" data-target="agency_unit_price" @checked($agencyMode === 'variable')>
+                変動
+            </label>
+        </div>
+        <input type="number" name="agency_unit_price" id="agency_unit_price" value="{{ old('agency_unit_price', $project->agency_unit_price) }}" min="0"
+               placeholder="円"
                class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
         @error('agency_unit_price')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+    </div>
+
+    <div class="col-span-2">
+        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">紹介報酬</label>
+        <textarea name="description" id="description" rows="3"
+                  class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description', $project->description) }}</textarea>
+        @error('description')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
     <div class="col-span-2">
@@ -144,4 +171,23 @@ function tsnFilterReferrerAgencyOptions(query) {
         option.hidden = q !== '' && option.textContent.indexOf(q) === -1;
     });
 }
+
+function tsnApplyPriceMode(radio) {
+    var input = document.getElementById(radio.dataset.target);
+    var isVariable = radio.value === 'variable';
+    input.disabled = isVariable;
+    input.classList.toggle('bg-gray-100', isVariable);
+    if (isVariable) {
+        input.value = '';
+    }
+}
+
+document.querySelectorAll('.price-mode-radio').forEach(function (radio) {
+    if (radio.checked) {
+        tsnApplyPriceMode(radio);
+    }
+    radio.addEventListener('change', function () {
+        tsnApplyPriceMode(radio);
+    });
+});
 </script>
