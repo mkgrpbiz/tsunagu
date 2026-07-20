@@ -44,6 +44,7 @@
             'cta' => 'CTA',
             'referral_cta' => 'パートナー紹介',
             'collaboration_cta' => '共創パートナー紹介',
+            'collaboration_partner_application_cta' => '共創パートナー申請',
             'sales_materials' => '営業素材（位置）',
             'announcements' => 'お知らせ（位置）',
         ];
