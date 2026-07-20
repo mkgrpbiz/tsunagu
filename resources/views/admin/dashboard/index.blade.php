@@ -77,6 +77,7 @@
                 ['key' => 'revenue', 'label' => '売上', 'color' => '#2563eb'],
                 ['key' => 'profit', 'label' => '利益', 'color' => '#16a34a'],
             ],
+            'unit' => '¥',
         ])
     </div>
 </div>

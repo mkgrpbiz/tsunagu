@@ -1,18 +1,24 @@
 @php
+    $unit = $unit ?? '';
+    $tickCount = 4;
+
+    $pointList = collect($points)->values();
+    $n = $pointList->count();
+
+    $max = collect($series)->flatMap(fn ($s) => $pointList->pluck($s['key']))->push(1)->max();
+    $formatTick = fn ($value) => $unit.number_format((int) round($value));
+    $maxLabelWidth = strlen($formatTick($max));
+
     $width = 640;
     $height = 240;
-    $padLeft = 36;
+    $padLeft = max(36, 14 + $maxLabelWidth * 6);
     $padRight = 16;
     $padTop = 16;
     $padBottom = 46;
     $plotWidth = $width - $padLeft - $padRight;
     $plotHeight = $height - $padTop - $padBottom;
 
-    $pointList = collect($points)->values();
-    $n = $pointList->count();
     $stepX = $n > 1 ? $plotWidth / ($n - 1) : 0;
-
-    $max = collect($series)->flatMap(fn ($s) => $pointList->pluck($s['key']))->push(1)->max();
 
     $toXY = function (int $index, $value) use ($padLeft, $stepX, $height, $padBottom, $plotHeight, $max) {
         $x = $padLeft + $stepX * $index;
@@ -23,6 +29,15 @@
 @endphp
 
 <svg viewBox="0 0 {{ $width }} {{ $height }}" class="w-full h-auto">
+    @for ($tick = 0; $tick <= $tickCount; $tick++)
+        @php
+            $tickValue = $max * $tick / $tickCount;
+            $tickY = $height - $padBottom - ($plotHeight * $tick / $tickCount);
+        @endphp
+        <line x1="{{ $padLeft }}" y1="{{ $tickY }}" x2="{{ $width - $padRight }}" y2="{{ $tickY }}" stroke="#f1f5f9" stroke-width="1" />
+        <text x="{{ $padLeft - 6 }}" y="{{ $tickY }}" font-size="9" fill="#9ca3af" text-anchor="end" dominant-baseline="middle">{{ $formatTick($tickValue) }}</text>
+    @endfor
+
     <line x1="{{ $padLeft }}" y1="{{ $padTop }}" x2="{{ $padLeft }}" y2="{{ $height - $padBottom }}" stroke="#e5e7eb" stroke-width="1" />
     <line x1="{{ $padLeft }}" y1="{{ $height - $padBottom }}" x2="{{ $width - $padRight }}" y2="{{ $height - $padBottom }}" stroke="#e5e7eb" stroke-width="1" />
 
