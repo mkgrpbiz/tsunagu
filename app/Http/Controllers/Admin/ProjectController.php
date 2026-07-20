@@ -36,6 +36,7 @@ class ProjectController extends Controller
             ->with(['category', 'referrerAgency'])
             ->when($status !== 'all', fn ($query) => $query->where('projects.status', $status))
             ->when($categoryId !== 'all', fn ($query) => $query->where('projects.category_id', $categoryId))
+            ->orderByRaw("CASE projects.status WHEN 'published' THEN 1 WHEN 'paused' THEN 2 WHEN 'closed' THEN 3 ELSE 4 END")
             ->orderBy('categories.sort_order')
             ->orderBy('projects.sort_order')
             ->get();
