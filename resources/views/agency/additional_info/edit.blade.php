@@ -6,7 +6,11 @@
 <h1 class="text-xl font-semibold mb-4">追加情報のご入力</h1>
 
 <div class="mb-6 rounded-md bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
-    サービスのご利用にあたり、契約書類へのご同意をお願いします。ご同意いただくまで、案件一覧・紹介機能はご利用いただけません。
+    @if ($isReconsent)
+        契約書類の内容が更新されました。お手数ですが、変更部分をご確認のうえ再度ご同意をお願いします。ご同意いただくまで、案件一覧・紹介機能はご利用いただけません。
+    @else
+        サービスのご利用にあたり、契約書類へのご同意をお願いします。ご同意いただくまで、案件一覧・紹介機能はご利用いただけません。
+    @endif
 </div>
 
 @if ($errors->any())
@@ -23,7 +27,7 @@
         @method('PUT')
 
         <div class="space-y-2">
-            @include('partials.legal_consent_checklist', ['legalDocuments' => $legalDocuments])
+            @include('partials.legal_consent_checklist', ['legalDocuments' => $legalDocuments, 'typesNeedingConsent' => $typesNeedingConsent])
         </div>
 
         <div class="mt-6">

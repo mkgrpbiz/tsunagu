@@ -1,16 +1,25 @@
+@php
+    $typesNeedingConsent = $typesNeedingConsent ?? collect(array_keys($legalDocuments->toArray()));
+@endphp
+
 <p class="text-xs text-gray-500 mb-2">各文書名をクリックして内容をご確認いただくと、同意のチェックができるようになります。</p>
-<label class="flex items-start gap-2 text-sm">
-    <input type="checkbox" name="terms_agreed" value="1" required disabled data-agree-checkbox="terms" class="mt-0.5">
-    <span><button type="button" class="text-blue-600 hover:underline" data-legal-open="terms">利用規約</button>に同意します</span>
-</label>
-<label class="flex items-start gap-2 text-sm">
-    <input type="checkbox" name="privacy_agreed" value="1" required disabled data-agree-checkbox="privacy" class="mt-0.5">
-    <span><button type="button" class="text-blue-600 hover:underline" data-legal-open="privacy">プライバシーポリシー</button>に同意します</span>
-</label>
-<label class="flex items-start gap-2 text-sm">
-    <input type="checkbox" name="partner_agreement_agreed" value="1" required disabled data-agree-checkbox="partner_agreement" class="mt-0.5">
-    <span><button type="button" class="text-blue-600 hover:underline" data-legal-open="partner_agreement">パートナー業務委託契約書</button>に同意します</span>
-</label>
+
+@foreach ($legalDocuments as $type => $document)
+    @if ($typesNeedingConsent->contains($type))
+        <label class="flex items-start gap-2 text-sm">
+            <input type="checkbox" name="{{ $type }}_agreed" value="1" required disabled data-agree-checkbox="{{ $type }}" class="mt-0.5">
+            <span><button type="button" class="text-blue-600 hover:underline" data-legal-open="{{ $type }}">{{ \App\Enums\LegalDocumentType::from($type)->label() }}</button>に同意します</span>
+        </label>
+        @if ($document?->change_notes)
+            <p class="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-md px-3 py-2 mt-1 mb-2" style="white-space: pre-line">今回の変更点: {{ $document->change_notes }}</p>
+        @endif
+    @else
+        <p class="flex items-center gap-2 text-sm text-gray-500">
+            <span class="text-xs font-medium border rounded-full px-2 py-0.5 bg-green-50 text-green-700 border-green-200">済</span>
+            {{ \App\Enums\LegalDocumentType::from($type)->label() }}
+        </p>
+    @endif
+@endforeach
 
 @foreach ($legalDocuments as $type => $document)
     <div class="hidden" id="legal-content-{{ $type }}" data-title="{{ $document?->title }}">{{ $document?->body }}</div>

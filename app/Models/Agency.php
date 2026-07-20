@@ -219,24 +219,28 @@ class Agency extends Authenticatable
 
     public function hasSubmittedAllConsents(): bool
     {
+        return collect(LegalDocumentType::cases())->every(fn (LegalDocumentType $type) => ! $this->needsConsentFor($type));
+    }
+
+    public function needsConsentFor(LegalDocumentType $type): bool
+    {
+        $current = LegalDocument::currentPublished($type);
+
+        if (! $current) {
+            return false;
+        }
+
         $consentedDocumentIds = $this->legalDocumentConsents()->pluck('legal_document_id');
+
+        if ($current->requires_reconsent) {
+            return ! $consentedDocumentIds->contains($current->id);
+        }
+
         $consentedTypes = $this->legalDocumentConsents()
             ->join('legal_documents', 'legal_documents.id', '=', 'legal_document_consents.legal_document_id')
             ->pluck('legal_documents.type');
 
-        return collect(LegalDocumentType::cases())->every(function (LegalDocumentType $type) use ($consentedDocumentIds, $consentedTypes) {
-            $current = LegalDocument::currentPublished($type);
-
-            if (! $current) {
-                return $consentedTypes->contains($type->value);
-            }
-
-            if ($current->requires_reconsent) {
-                return $consentedDocumentIds->contains($current->id);
-            }
-
-            return $consentedTypes->contains($type->value);
-        });
+        return ! $consentedTypes->contains($type->value);
     }
 
     protected static function booted(): void

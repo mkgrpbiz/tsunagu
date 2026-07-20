@@ -16,9 +16,17 @@ class AdditionalInfoController extends Controller
 {
     public function edit(): View
     {
+        /** @var Agency $agency */
+        $agency = Auth::guard('agency')->user();
+
         return view('agency.additional_info.edit', [
             'legalDocuments' => collect(LegalDocumentType::cases())
                 ->mapWithKeys(fn (LegalDocumentType $type) => [$type->value => LegalDocument::currentPublished($type)]),
+            'typesNeedingConsent' => collect(LegalDocumentType::cases())
+                ->filter(fn (LegalDocumentType $type) => $agency->needsConsentFor($type))
+                ->map(fn (LegalDocumentType $type) => $type->value)
+                ->values(),
+            'isReconsent' => $agency->legalDocumentConsents()->exists(),
         ]);
     }
 
@@ -27,20 +35,22 @@ class AdditionalInfoController extends Controller
         /** @var Agency $agency */
         $agency = Auth::guard('agency')->user();
 
-        $request->validate([
-            'terms_agreed' => ['accepted'],
-            'privacy_agreed' => ['accepted'],
-            'partner_agreement_agreed' => ['accepted'],
-        ]);
-
-        $consentedDocumentIds = $agency->legalDocumentConsents()->pluck('legal_document_id');
+        $rules = [];
 
         foreach (LegalDocumentType::cases() as $type) {
-            $document = LegalDocument::currentPublished($type);
+            if ($agency->needsConsentFor($type)) {
+                $rules["{$type->value}_agreed"] = ['accepted'];
+            }
+        }
 
-            if (! $document || $consentedDocumentIds->contains($document->id)) {
+        $request->validate($rules);
+
+        foreach (LegalDocumentType::cases() as $type) {
+            if (! $agency->needsConsentFor($type)) {
                 continue;
             }
+
+            $document = LegalDocument::currentPublished($type);
 
             LegalDocumentConsent::create([
                 'agency_id' => $agency->id,
