@@ -105,7 +105,8 @@
 - 用途は**着金紐付け用のマッチングのみ**。パートナー向け画面（`agency/inquiries`）には一切表示しない
 - `inquiries`テーブルの`invite_link_id`/`line_user_id`は元々必須FKだが、過去データには実在するLINE UIDも招待リンクも無いためインポートできない → 両カラムをnullable化し、`is_legacy_import`（bool）と`legacy_line_display_name`（生のLINE表示名テキスト）を追加して緩和した
 - `invite_link_id`は該当するagency×projectの組み合わせで`InviteLink::firstOrCreate`（本番運用と同じ一意制約に乗る）。`line_user_id`は常にnull
-- 案件名の表記ゆれは`Project.legacy_names`（改行区切りテキスト）に別名を登録し、`Project::findByAnyName()`で解決。既存projectと対応が付かない旧案件（トレード案件／オールマイティ求人）は**ステータス`closed`・`oshigoto_listed=false`の専用projectを新規作成**して紐付け（パートナー向け一覧にも案件一覧にも出ない）
+- 案件名の表記ゆれは`Project.legacy_names`（改行区切りテキスト）に別名を登録し、`Project::findByAnyName()`で解決。既存projectと対応が付かない旧案件（トレード案件）は**ステータス`closed`・`oshigoto_listed=false`の専用projectを新規作成**して紐付け（パートナー向け一覧にも案件一覧にも出ない）
+- **注意**: 「オールマイティ求人」は当初どのprojectにも対応がないと判断して専用projectを作ったが、実際は管理画面側で既に「製造業 出稼ぎ案件｜全国｜短期OK」の`legacy_names`に登録済みだった。`findByAnyName()`は`name`完全一致を`legacy_names`検索より優先するため、コマンド側の`PROJECT_NAME_ALIASES`に載っていない別名は見落とされる。**別名を追加する前に、対象projectの`legacy_names`を`admin/projects`側で必ず確認すること**（誤って作成した専用projectと11件の問い合わせは本番・ローカルとも製造業出稼ぎ案件へ付け替え済み）
 - 「代表者募集」「紹介パートナー登録」など案件として扱う意味がないカテゴリはインポート対象外としてスキップ
 - 紹介コード（`legacy_code`）が現行agenciesと一致しない行（実データでは5件）はスキップし、コマンド実行結果に一覧表示。個別確認が必要な場合はそこから追う
 - 除外は`Agency\InquiryController`（問い合わせ一覧）のみに適用。`agency/contracts`（着金・支払い）は除外**しない** — レガシー問い合わせに実際の着金が紐付いた（`Contract`が作られた）時点で、それは現在進行系の実支払いなのでパートナーに通常通り表示される
