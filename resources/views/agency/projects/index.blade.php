@@ -51,6 +51,12 @@
                     ページを確認
                 </a>
             </div>
+
+            <pre>{{ $oshigotoTemplate }}</pre>
+            <button type="button" class="copy"
+                    onclick="copyToClipboard({{ Illuminate\Support\Js::from($oshigotoTemplate) }})">
+                募集文をコピー
+            </button>
         </div>
 
         @forelse ($projectsByCategory as $categoryName => $projects)

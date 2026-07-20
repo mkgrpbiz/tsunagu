@@ -12,6 +12,31 @@ use Illuminate\View\View;
 
 class ProjectController extends Controller
 {
+    private const OSHIGOTO_TEMPLATE = <<<'TEXT'
+💰【スマホだけで参加できる案件まとめ】
+知らないと普通に損してるかも？
+
+今募集中の案件をまとめました🙆‍♂️
+
+━━━━━━━━━━━━━
+
+🔥 最大50,000円案件あり
+🔥 スマホだけで参加OK案件あり
+🔥 在宅・モニター・求人あり
+🔥 初心者OK案件多数
+
+━━━━━━━━━━━━━
+
+「自分にできる案件が
+なかなか見つからない…」
+
+そんな方でも一覧で見れるので、
+気になる案件だけ確認でOK😊
+
+👇【募集中案件一覧】
+{invite_url}
+TEXT;
+
     public function index(): View
     {
         $agency = Auth::guard('agency')->user();
@@ -39,10 +64,13 @@ class ProjectController extends Controller
             ]];
         });
 
+        $oshigotoUrl = url('/oshigoto?ref='.$agency->getOrCreateOshigotoToken());
+
         return view('agency.projects.index', [
             'projectsByCategory' => $projects->groupBy(fn (Project $project) => $project->category->name),
             'inviteData' => $inviteData,
-            'oshigotoUrl' => url('/oshigoto?ref='.$agency->getOrCreateOshigotoToken()),
+            'oshigotoUrl' => $oshigotoUrl,
+            'oshigotoTemplate' => str_replace('{invite_url}', $oshigotoUrl, self::OSHIGOTO_TEMPLATE),
         ]);
     }
 }
