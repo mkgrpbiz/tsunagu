@@ -42,10 +42,17 @@
         <div class="box" style="margin-bottom:20px">
             <p class="box-title">✅ おしごとナビ（全案件まとめ紹介リンク）</p>
             <div class="muted">掲載中の全案件を1ページにまとめたページです。個別の招待リンクの代わりにこちらをシェアできます。</div>
+
+            @if (\Illuminate\Support\Facades\Storage::disk('public')->exists('oshigoto/logo.png'))
+                <div class="mkp-photo" style="margin-bottom:10px">
+                    <img src="{{ \Illuminate\Support\Facades\Storage::url('oshigoto/logo.png') }}" alt="おしごとナビ" loading="lazy">
+                </div>
+            @endif
+
             <input type="text" readonly value="{{ $oshigotoUrl }}">
             <div class="copy-row">
                 <button type="button" class="copy copy-link" onclick="copyToClipboard({{ Illuminate\Support\Js::from($oshigotoUrl) }})">
-                    リンクをコピー
+                    リンクのみコピー
                 </button>
                 <a href="{{ $oshigotoUrl }}" target="_blank" rel="noopener" class="copy">
                     ページを確認
