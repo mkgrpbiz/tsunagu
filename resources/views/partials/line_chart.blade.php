@@ -1,6 +1,7 @@
 @php
     $unit = $unit ?? '';
     $tickCount = 4;
+    $chartUid = 'chart-'.uniqid();
 
     $pointList = collect($points)->values();
     $n = $pointList->count();
@@ -26,8 +27,11 @@
 
         return [round($x, 1), round($y, 1)];
     };
+
+    $tooltipFor = fn ($p) => $p['month'].' ・ '.collect($series)->map(fn ($s) => $s['label'].': '.$unit.number_format((int) $p[$s['key']]))->implode(' ・ ');
 @endphp
 
+<div class="relative" id="{{ $chartUid }}">
 <svg viewBox="0 0 {{ $width }} {{ $height }}" class="w-full h-auto">
     @for ($tick = 0; $tick <= $tickCount; $tick++)
         @php
@@ -56,9 +60,43 @@
         @php $x = round($padLeft + $stepX * $i, 1); @endphp
         <text x="{{ $x }}" y="{{ $height - $padBottom + 10 }}" font-size="9" fill="#9ca3af" text-anchor="end" transform="rotate(-45 {{ $x }} {{ $height - $padBottom + 10 }})">{{ $p['month'] }}</text>
     @endforeach
+
+    @foreach ($pointList as $i => $p)
+        @php
+            $half = $stepX > 0 ? $stepX / 2 : $plotWidth / 2;
+            $hitX = max($padLeft, $padLeft + $stepX * $i - $half);
+            $hitW = $stepX > 0 ? $stepX : $plotWidth;
+        @endphp
+        <rect x="{{ round($hitX, 1) }}" y="{{ $padTop }}" width="{{ round($hitW, 1) }}" height="{{ $plotHeight }}"
+              fill="transparent" class="chart-hit" data-tooltip="{{ $tooltipFor($p) }}"></rect>
+    @endforeach
 </svg>
+<div class="chart-tooltip hidden absolute z-10 pointer-events-none bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap"></div>
+</div>
 <div class="flex gap-4 mt-2 text-xs text-gray-500">
     @foreach ($series as $s)
         <span class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-full" style="background:{{ $s['color'] }}"></span>{{ $s['label'] }}</span>
     @endforeach
 </div>
+
+<script>
+(function () {
+    const container = document.getElementById('{{ $chartUid }}');
+    const tooltip = container.querySelector('.chart-tooltip');
+
+    container.querySelectorAll('.chart-hit').forEach((hit) => {
+        hit.addEventListener('mouseenter', () => {
+            tooltip.textContent = hit.dataset.tooltip;
+            tooltip.classList.remove('hidden');
+        });
+        hit.addEventListener('mousemove', (e) => {
+            const bounds = container.getBoundingClientRect();
+            tooltip.style.left = (e.clientX - bounds.left + 12) + 'px';
+            tooltip.style.top = (e.clientY - bounds.top - 32) + 'px';
+        });
+        hit.addEventListener('mouseleave', () => {
+            tooltip.classList.add('hidden');
+        });
+    });
+})();
+</script>
