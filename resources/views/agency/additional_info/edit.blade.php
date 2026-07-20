@@ -8,10 +8,10 @@
 @if ($isReconsent)
     <div class="mb-6 rounded-md bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 text-sm" style="white-space: pre-line">契約書類を更新しました。
 引き続きTSUNAGUをご利用いただくため、変更内容をご確認のうえ、ご同意をお願いいたします。
-ご同意いただくまで、案件一覧・紹介機能はご利用いただけません。</div>
+ご同意いただくまで、案件一覧の閲覧および一部機能がご利用いただけません。</div>
 @else
     <div class="mb-6 rounded-md bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
-        サービスのご利用にあたり、契約書類へのご同意をお願いします。ご同意いただくまで、案件一覧・紹介機能はご利用いただけません。
+        サービスのご利用にあたり、契約書類へのご同意をお願いします。ご同意いただくまで、案件一覧の閲覧および一部機能がご利用いただけません。
     </div>
 @endif
 

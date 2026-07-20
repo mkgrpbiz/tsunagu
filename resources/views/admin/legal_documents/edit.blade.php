@@ -64,7 +64,7 @@
         <div class="mb-6">
             <label class="flex items-center gap-2 text-sm text-gray-700">
                 <input type="checkbox" name="requires_reconsent" value="1" @checked(old('requires_reconsent'))>
-                この変更は既存パートナーへの再同意を必須にする（同意するまで案件一覧・紹介機能が使えなくなります）
+                この変更は既存パートナーへの再同意を必須にする（同意するまで案件一覧の閲覧および一部機能が使えなくなります）
             </label>
         </div>
 
