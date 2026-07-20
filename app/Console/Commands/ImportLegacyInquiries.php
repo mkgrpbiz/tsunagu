@@ -43,6 +43,7 @@ class ImportLegacyInquiries extends Command
         'FX複数開設' => 'FX口座複数開設モニター【最大50,000円】',
         '賃貸併用住宅' => '賃貸併用住宅【おまとめ・支払い削減】',
         '資金調達' => '資金調達相談【ローンでお困りの方向け】',
+        'オールマイティ求人' => '製造業 出稼ぎ案件｜全国｜短期OK',
     ];
 
     /**
@@ -51,7 +52,6 @@ class ImportLegacyInquiries extends Command
      */
     private const LEGACY_ONLY_PROJECTS = [
         'トレード案件' => 1,
-        'オールマイティ求人' => 2,
     ];
 
     public function handle(): int
