@@ -6,6 +6,11 @@
 <h1 class="text-xl font-semibold mb-6">共創先紹介フォーム</h1>
 
 <div class="bg-white border border-gray-200 rounded-lg p-6 max-w-lg">
+    <div class="rounded-md bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 text-sm leading-relaxed mb-6">
+        TSUNAGUでは、共創につながる可能性のある企業・事業者をご紹介いただけます。<br>
+        ご紹介いただいた内容をもとに確認・審査を行い、条件に合致した場合はTSUNAGUよりご連絡させていただきます。
+    </div>
+
     @if ($errors->any())
         <div class="mb-4 rounded-md bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
             @foreach ($errors->all() as $error)
@@ -80,6 +85,12 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div class="rounded-md bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-xs leading-relaxed">
+            こちらのご紹介は審査制となります。<br>
+            ご紹介内容を確認・審査のうえ、必要に応じてTSUNAGUよりLINEにてご連絡させていただきます。<br>
+            ※ご紹介内容によっては、ご対応できない場合がございますので、あらかじめご了承ください。
         </div>
 
         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md py-2">
