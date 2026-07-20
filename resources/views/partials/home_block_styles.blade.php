@@ -48,16 +48,9 @@
 .tsn-home .ticker-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.06)}
 .tsn-home .ticker-head{display:flex;align-items:center;gap:8px;padding:12px 16px;background:linear-gradient(180deg,#eff6ff,#fff);border-bottom:1px solid #e5e7eb;font-weight:800;font-size:13px}
 .tsn-home .ticker-dot{width:8px;height:8px;border-radius:999px;background:#ef4444}
-.tsn-home .ticker-viewport{height:150px;overflow:hidden;position:relative}
-.tsn-home .ticker-fade{position:absolute;left:0;right:0;height:16px;pointer-events:none;z-index:1}
-.tsn-home .ticker-fade.top{top:0;background:linear-gradient(to bottom, #fff, rgba(255,255,255,0))}
-.tsn-home .ticker-fade.bottom{bottom:0;background:linear-gradient(to top, #fff, rgba(255,255,255,0))}
-.tsn-home .ticker-track{animation:tsn-ticker-scroll 18s linear infinite}
-.tsn-home .ticker-track:hover{animation-play-state:paused}
-.tsn-home .ticker-track--static{animation:none}
+.tsn-home .ticker-viewport{overflow:hidden;position:relative}
 .tsn-home .ticker-item{padding:10px 16px;font-size:13.5px;line-height:1.6;color:#334155;border-bottom:1px solid #f1f5f9;display:flex;gap:10px}
 .tsn-home .ticker-item .date{flex-shrink:0;color:#2563eb;font-weight:800}
-@keyframes tsn-ticker-scroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
 
 .tsn-home .closing{margin-top:24px;text-align:center;font-size:13.5px;font-weight:700;color:#0f172a;line-height:1.8;white-space:pre-line}
 </style>

@@ -93,20 +93,13 @@
         @if ($announcements->isEmpty())
             <p class="px-4 py-6 text-center text-sm text-gray-400">お知らせはまだありません。</p>
         @else
-            @php $tickerRepeat = $announcements->count() > 1 ? 2 : 1; @endphp
             <div class="ticker-viewport">
-                <span class="ticker-fade top"></span>
-                <span class="ticker-fade bottom"></span>
-                <div class="ticker-track {{ $tickerRepeat === 1 ? 'ticker-track--static' : '' }}">
-                    @for ($i = 0; $i < $tickerRepeat; $i++)
-                        @foreach ($announcements as $announcement)
-                            <div class="ticker-item">
-                                <span class="date">{{ $announcement->created_at->format('n/j') }}</span>
-                                <span>{{ $announcement->body }}</span>
-                            </div>
-                        @endforeach
-                    @endfor
-                </div>
+                @foreach ($announcements as $announcement)
+                    <div class="ticker-item">
+                        <span class="date">{{ $announcement->created_at->format('n/j') }}</span>
+                        <span>{{ $announcement->body }}</span>
+                    </div>
+                @endforeach
             </div>
         @endif
     </div>
