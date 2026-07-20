@@ -47,7 +47,9 @@
                   flex flex-col transform -translate-x-full transition-transform duration-200">
         <div class="px-4 py-4 border-b border-blue-600 flex items-center justify-between shrink-0">
             @if ($brandLogoPath)
-                <img src="{{ \Illuminate\Support\Facades\Storage::url($brandLogoPath) }}" alt="TSUNAGU" class="h-8 w-auto">
+                <div class="bg-white rounded-xl shadow-sm px-3 py-2">
+                    <img src="{{ \Illuminate\Support\Facades\Storage::url($brandLogoPath) }}" alt="TSUNAGU" class="h-14 w-auto">
+                </div>
             @else
                 <span class="font-bold text-lg text-white">TSUNAGU 管理画面</span>
             @endif
@@ -119,11 +121,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
-            @if ($brandLogoPath)
-                <img src="{{ \Illuminate\Support\Facades\Storage::url($brandLogoPath) }}" alt="TSUNAGU" class="h-6 w-auto">
-            @else
-                <span class="font-semibold">TSUNAGU 管理画面</span>
-            @endif
+            <span class="font-semibold">TSUNAGU 管理画面</span>
         </div>
 
         <main class="px-6 py-8">
