@@ -100,6 +100,17 @@
 
 - 検索欄（名前・フリガナ・LINE名）単独で検索可能。カテゴリー・案件名は絞り込み専用のオプション項目（以前は「カテゴリー→案件→検索」の3段階が必須だったのを解消）
 
+## 過去の問い合わせデータのインポート（`inquiries:import-legacy`）
+
+- 用途は**着金紐付け用のマッチングのみ**。パートナー向け画面（`agency/inquiries`）には一切表示しない
+- `inquiries`テーブルの`invite_link_id`/`line_user_id`は元々必須FKだが、過去データには実在するLINE UIDも招待リンクも無いためインポートできない → 両カラムをnullable化し、`is_legacy_import`（bool）と`legacy_line_display_name`（生のLINE表示名テキスト）を追加して緩和した
+- `invite_link_id`は該当するagency×projectの組み合わせで`InviteLink::firstOrCreate`（本番運用と同じ一意制約に乗る）。`line_user_id`は常にnull
+- 案件名の表記ゆれは`Project.legacy_names`（改行区切りテキスト）に別名を登録し、`Project::findByAnyName()`で解決。既存projectと対応が付かない旧案件（トレード案件／オールマイティ求人）は**ステータス`closed`・`oshigoto_listed=false`の専用projectを新規作成**して紐付け（パートナー向け一覧にも案件一覧にも出ない）
+- 「代表者募集」「紹介パートナー登録」など案件として扱う意味がないカテゴリはインポート対象外としてスキップ
+- 紹介コード（`legacy_code`）が現行agenciesと一致しない行（実データでは5件）はスキップし、コマンド実行結果に一覧表示。個別確認が必要な場合はそこから追う
+- 除外は`Agency\InquiryController`（問い合わせ一覧）のみに適用。`agency/contracts`（着金・支払い）は除外**しない** — レガシー問い合わせに実際の着金が紐付いた（`Contract`が作られた）時点で、それは現在進行系の実支払いなのでパートナーに通常通り表示される
+- 実行方法: `php artisan inquiries:import-legacy {CSVパス} [--dry-run]`。同じCSVを再実行すると同じ行がそのまま重複登録される（重複排除はしていない）ため、再実行が必要な場合は要注意
+
 ## パートナー着金・支払いページ（`agency/contracts`）
 
 - 3セクション: 紹介報酬（自分の着金、1行=1件）／パートナー10%（紹介先パートナー×支払予定日ごとに件数・合計額を集計した行）／共創パートナー30%（取引先ごとに案件数・着金数・合計額を集計、**承認済みのもののみ**表示）
