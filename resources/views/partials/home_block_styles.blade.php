@@ -54,6 +54,7 @@
 .tsn-home .ticker-fade.bottom{bottom:0;background:linear-gradient(to top, #fff, rgba(255,255,255,0))}
 .tsn-home .ticker-track{animation:tsn-ticker-scroll 18s linear infinite}
 .tsn-home .ticker-track:hover{animation-play-state:paused}
+.tsn-home .ticker-track--static{animation:none}
 .tsn-home .ticker-item{padding:10px 16px;font-size:13.5px;line-height:1.6;color:#334155;border-bottom:1px solid #f1f5f9;display:flex;gap:10px}
 .tsn-home .ticker-item .date{flex-shrink:0;color:#2563eb;font-weight:800}
 @keyframes tsn-ticker-scroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
