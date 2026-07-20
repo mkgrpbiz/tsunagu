@@ -48,7 +48,7 @@
 .tsn-home .ticker-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.06)}
 .tsn-home .ticker-head{display:flex;align-items:center;gap:8px;padding:12px 16px;background:linear-gradient(180deg,#eff6ff,#fff);border-bottom:1px solid #e5e7eb;font-weight:800;font-size:13px}
 .tsn-home .ticker-dot{width:8px;height:8px;border-radius:999px;background:#ef4444}
-.tsn-home .ticker-viewport{overflow:hidden;position:relative}
+.tsn-home .ticker-viewport{overflow-y:auto;position:relative;max-height:132px}
 .tsn-home .ticker-item{padding:10px 16px;font-size:13.5px;line-height:1.6;color:#334155;border-bottom:1px solid #f1f5f9;display:flex;gap:10px}
 .tsn-home .ticker-item .date{flex-shrink:0;color:#2563eb;font-weight:800}
 
