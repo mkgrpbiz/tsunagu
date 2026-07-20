@@ -45,7 +45,7 @@
     <aside id="sidebar"
            class="fixed inset-y-0 left-0 z-30 w-64 bg-blue-700 text-blue-100 overflow-y-auto
                   flex flex-col transform -translate-x-full transition-transform duration-200">
-        <div class="px-4 py-4 border-b border-blue-600 flex items-center justify-between shrink-0">
+        <div class="px-4 py-4 border-b border-blue-600 flex items-center shrink-0">
             @if ($brandLogoPath)
                 <div class="bg-white rounded-xl shadow-sm px-3 py-2">
                     <img src="{{ \Illuminate\Support\Facades\Storage::url($brandLogoPath) }}" alt="TSUNAGU" class="h-14 w-auto">
@@ -53,9 +53,6 @@
             @else
                 <span class="font-bold text-lg text-white">TSUNAGU 管理画面</span>
             @endif
-            <button id="sidebar-close" type="button" class="text-blue-200 hover:text-white text-2xl leading-none px-1">
-                ×
-            </button>
         </div>
 
         <nav class="py-2 text-sm flex-1">
@@ -143,7 +140,6 @@
         var sidebar  = document.getElementById('sidebar');
         var overlay  = document.getElementById('sidebar-overlay');
         var toggle   = document.getElementById('sidebar-toggle');
-        var closeBtn = document.getElementById('sidebar-close');
         var wrapper  = document.getElementById('content-wrapper');
 
         function isDesktop() {
@@ -159,7 +155,6 @@
         toggle.addEventListener('click', function () {
             setSidebarOpen(sidebar.classList.contains('-translate-x-full'));
         });
-        closeBtn.addEventListener('click', function () { setSidebarOpen(false); });
         overlay.addEventListener('click', function () { setSidebarOpen(false); });
 
         setSidebarOpen(isDesktop());
