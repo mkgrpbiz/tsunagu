@@ -6,16 +6,34 @@ use App\Enums\CollaborationReferralStatus;
 use App\Http\Controllers\Controller;
 use App\Models\CollaborationReferral;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CollaborationReferralController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $status = $request->query('status', 'all');
+
+        $statusCounts = CollaborationReferral::selectRaw('status, count(*) as count')->groupBy('status')->pluck('count', 'status');
+
+        $referrals = CollaborationReferral::with('agency')
+            ->when($status !== 'all', fn ($query) => $query->where('status', $status))
+            ->latest()
+            ->get();
+
         return view('admin.collaboration_referrals.index', [
-            'referrals' => CollaborationReferral::with('agency')
-                ->latest()
-                ->get(),
+            'referrals' => $referrals,
+            'status' => $status,
+            'statusCounts' => $statusCounts,
+            'totalCount' => CollaborationReferral::count(),
+        ]);
+    }
+
+    public function show(CollaborationReferral $collaborationReferral): View
+    {
+        return view('admin.collaboration_referrals.show', [
+            'referral' => $collaborationReferral->load('agency'),
         ]);
     }
 
@@ -27,6 +45,6 @@ class CollaborationReferralController extends Controller
                 : CollaborationReferralStatus::Handled,
         ]);
 
-        return redirect()->route('admin.collaboration-referrals.index')->with('status', 'ステータスを更新しました。');
+        return redirect()->route('admin.collaboration-referrals.show', $collaborationReferral)->with('status', 'ステータスを更新しました。');
     }
 }

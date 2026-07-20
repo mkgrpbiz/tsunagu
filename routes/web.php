@@ -130,6 +130,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::middleware('menu:collaboration_referrals')->group(function () {
                 Route::get('collaboration-referrals', [CollaborationReferralController::class, 'index'])->name('collaboration-referrals.index');
+                Route::get('collaboration-referrals/{collaborationReferral}', [CollaborationReferralController::class, 'show'])->name('collaboration-referrals.show');
                 Route::patch('collaboration-referrals/{collaborationReferral}/toggle-status', [CollaborationReferralController::class, 'toggleStatus'])->name('collaboration-referrals.toggle-status');
             });
 
