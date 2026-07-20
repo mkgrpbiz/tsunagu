@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Agency;
 
 use App\Http\Controllers\Controller;
 use App\Models\CollaborationReferral;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -18,7 +17,7 @@ class CollaborationReferralController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): View
     {
         $data = $request->validate([
             'referred_name' => ['required', 'string', 'max:255'],
@@ -33,6 +32,6 @@ class CollaborationReferralController extends Controller
 
         CollaborationReferral::create($data);
 
-        return redirect()->route('agency.home')->with('status', '共創先のご紹介ありがとうございました。担当者より確認のうえご連絡いたします。');
+        return view('agency.collaboration_referrals.complete');
     }
 }
