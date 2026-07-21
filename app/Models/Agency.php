@@ -24,6 +24,8 @@ use Illuminate\Notifications\Notifiable;
     'legacy_referral_code',
     'line_uid',
     'line_display_name',
+    'line_notify_project_info',
+    'line_notify_payment',
     'oshigoto_token',
     'name',
     'name_kana',
@@ -84,6 +86,8 @@ class Agency extends Authenticatable
             'desired_activities' => 'array',
             'is_collaboration_partner' => 'boolean',
             'collaboration_partner_at' => 'datetime',
+            'line_notify_project_info' => 'boolean',
+            'line_notify_payment' => 'boolean',
         ];
     }
 

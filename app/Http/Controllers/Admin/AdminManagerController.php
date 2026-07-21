@@ -29,7 +29,7 @@ class AdminManagerController extends Controller
             'collaboration_partners' => '共創パートナー',
             'inquiries' => '問い合わせ',
             'deposit_links' => '着金紐付け',
-            'payments' => '支払い',
+            'payments' => '支払い管理',
             'announcements' => 'お知らせ',
             'collaboration_referrals' => '共創紹介',
             'collaboration_partner_applications' => '共創パートナー申請',

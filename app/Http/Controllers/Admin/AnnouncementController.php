@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AnnouncementCategory;
 use App\Http\Controllers\Controller;
+use App\Models\Agency;
 use App\Models\Announcement;
+use App\Services\LineMessagingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -22,9 +25,13 @@ class AnnouncementController extends Controller
         return view('admin.announcements.create', ['announcement' => new Announcement]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, LineMessagingService $lineMessaging): RedirectResponse
     {
-        Announcement::create($this->validated($request));
+        $announcement = Announcement::create($this->validated($request));
+
+        if ($announcement->notify_line) {
+            $this->sendLineNotifications($announcement, $lineMessaging);
+        }
 
         return redirect()->route('admin.announcements.index')->with('status', 'お知らせを作成しました。');
     }
@@ -52,6 +59,22 @@ class AnnouncementController extends Controller
     {
         return $request->validate([
             'body' => ['required', 'string', 'max:1000'],
+            'category' => ['required', 'in:important,project_info'],
+            'notify_line' => ['sometimes', 'boolean'],
+            'line_message' => ['nullable', 'string', 'max:1000'],
         ]);
+    }
+
+    private function sendLineNotifications(Announcement $announcement, LineMessagingService $lineMessaging): void
+    {
+        $message = $announcement->line_message ?: $announcement->body;
+
+        $query = Agency::whereNotNull('line_uid');
+
+        if ($announcement->category === AnnouncementCategory::ProjectInfo) {
+            $query->where('line_notify_project_info', true);
+        }
+
+        $query->pluck('line_uid')->each(fn (string $lineUid) => $lineMessaging->sendPush($lineUid, $message));
     }
 }

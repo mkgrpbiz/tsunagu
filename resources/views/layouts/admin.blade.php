@@ -29,7 +29,7 @@
             ],
             '報酬・支払管理' => [
                 'deposit_links' => ['label' => '着金紐付け', 'route' => 'admin.deposit-links.index', 'active' => 'admin.deposit-links.*'],
-                'payments' => ['label' => '支払い', 'route' => 'admin.payments.index', 'active' => 'admin.payments.*'],
+                'payments' => ['label' => '支払い管理', 'route' => 'admin.payments.index', 'active' => 'admin.payments.*'],
                 'collaboration_rewards' => ['label' => '共創報酬管理', 'route' => 'admin.collaboration-rewards.index', 'active' => 'admin.collaboration-rewards.*'],
             ],
             '各ページ管理' => [

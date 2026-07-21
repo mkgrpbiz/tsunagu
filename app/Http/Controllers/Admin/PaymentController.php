@@ -8,8 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Agency;
 use App\Models\CollaborationReward;
 use App\Models\Contract;
+use App\Models\NotificationMessageSetting;
 use App\Models\Project;
 use App\Models\ReferralCommission;
+use App\Services\LineMessagingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,6 +19,8 @@ use Illuminate\View\View;
 class PaymentController extends Controller
 {
     private const CARRY_OVER_THRESHOLD = 1000;
+
+    private const DEFAULT_PAYMENT_MESSAGE = 'お振込みが完了しました。金額: {amount}円';
 
     public function index(Request $request): View
     {
@@ -112,12 +116,14 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function update(Contract $contract): RedirectResponse
+    public function update(Contract $contract, LineMessagingService $lineMessaging): RedirectResponse
     {
         $contract->update([
             'payment_status' => PaymentStatus::Paid,
             'paid_at' => now(),
         ]);
+
+        $this->notifyPaymentCompleted($contract->inquiry->agency, (int) $contract->agency_reward_amount, $lineMessaging);
 
         return redirect()->route('admin.payments.index')->with('status', '支払済みにしました。');
     }
@@ -132,12 +138,14 @@ class PaymentController extends Controller
         return redirect()->route('admin.payments.index')->with('status', '未払いに戻しました。');
     }
 
-    public function updateReferralCommission(ReferralCommission $referralCommission): RedirectResponse
+    public function updateReferralCommission(ReferralCommission $referralCommission, LineMessagingService $lineMessaging): RedirectResponse
     {
         $referralCommission->update([
             'payment_status' => PaymentStatus::Paid,
             'paid_at' => now(),
         ]);
+
+        $this->notifyPaymentCompleted($referralCommission->referrerAgency, (int) $referralCommission->amount, $lineMessaging);
 
         return redirect()->route('admin.payments.index')->with('status', 'パートナー10%を支払済みにしました。');
     }
@@ -152,12 +160,19 @@ class PaymentController extends Controller
         return redirect()->route('admin.payments.index')->with('status', 'パートナー10%を未払いに戻しました。');
     }
 
-    public function updateCollaborationReward(CollaborationReward $collaborationReward): RedirectResponse
+    public function updateCollaborationReward(CollaborationReward $collaborationReward, LineMessagingService $lineMessaging): RedirectResponse
     {
         $collaborationReward->update([
             'payment_status' => PaymentStatus::Paid,
             'paid_at' => now(),
         ]);
+
+        $referrerAgency = Project::where('client_name', $collaborationReward->client_name)
+            ->whereNotNull('referrer_agency_id')
+            ->with('referrerAgency')
+            ->first()?->referrerAgency;
+
+        $this->notifyPaymentCompleted($referrerAgency, (int) $collaborationReward->reward_amount, $lineMessaging);
 
         return redirect()->route('admin.payments.index')->with('status', '共創パートナー30%を支払済みにしました。');
     }
@@ -170,5 +185,22 @@ class PaymentController extends Controller
         ]);
 
         return redirect()->route('admin.payments.index')->with('status', '共創パートナー30%を未払いに戻しました。');
+    }
+
+    private function notifyPaymentCompleted(?Agency $agency, int $amount, LineMessagingService $lineMessaging): void
+    {
+        if (! $agency || ! $agency->line_uid || ! $agency->line_notify_payment) {
+            return;
+        }
+
+        $setting = NotificationMessageSetting::forFeature(
+            NotificationMessageSetting::FEATURE_PAYMENT_COMPLETED,
+            self::DEFAULT_PAYMENT_MESSAGE,
+            '',
+        );
+
+        $message = str_replace('{amount}', number_format($amount), $setting->approved_message);
+
+        $lineMessaging->sendPush($agency->line_uid, $message);
     }
 }

@@ -3,7 +3,10 @@
 @section('title', '支払い管理')
 
 @section('content')
-<h1 class="text-xl font-semibold mb-6">支払い管理</h1>
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-semibold">支払い管理</h1>
+    <a href="{{ route('admin.notification-message-settings.payments.edit') }}" class="text-sm text-blue-600 hover:underline">LINE通知文章を設定</a>
+</div>
 
 <form method="GET" action="{{ route('admin.payments.index') }}" class="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex flex-wrap gap-4 items-end">
     <div>

@@ -127,6 +127,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::patch('payments/referral-commissions/{referralCommission}/revert', [PaymentController::class, 'revertReferralCommission'])->name('payments.referral-commissions.revert');
                 Route::patch('payments/collaboration-rewards/{collaborationReward}', [PaymentController::class, 'updateCollaborationReward'])->name('payments.collaboration-rewards.update');
                 Route::patch('payments/collaboration-rewards/{collaborationReward}/revert', [PaymentController::class, 'revertCollaborationReward'])->name('payments.collaboration-rewards.revert');
+
+                Route::get('payments-notification-settings', [NotificationMessageSettingController::class, 'edit'])
+                    ->name('notification-message-settings.payments.edit')
+                    ->defaults('feature', NotificationMessageSetting::FEATURE_PAYMENT_COMPLETED);
+                Route::put('payments-notification-settings', [NotificationMessageSettingController::class, 'update'])
+                    ->name('notification-message-settings.payments.update')
+                    ->defaults('feature', NotificationMessageSetting::FEATURE_PAYMENT_COMPLETED);
             });
 
             Route::middleware('menu:announcements')->group(function () {
@@ -211,6 +218,7 @@ Route::prefix('agency')->name('agency.')->group(function () {
         Route::put('profile', [AgencyProfileController::class, 'update'])->name('profile.update');
 
         Route::get('line-connection', [AgencyLineConnectionController::class, 'edit'])->name('line-connection.edit');
+        Route::put('line-connection/preferences', [AgencyLineConnectionController::class, 'updatePreferences'])->name('line-connection.preferences.update');
         Route::delete('line-connection', [AgencyLineConnectionController::class, 'destroy'])->name('line-connection.destroy');
 
         Route::middleware('agency.password_changed')->group(function () {

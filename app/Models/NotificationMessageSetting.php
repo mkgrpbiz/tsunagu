@@ -12,6 +12,8 @@ class NotificationMessageSetting extends Model
 
     public const FEATURE_COLLABORATION_PARTNER_APPLICATION = 'collaboration_partner_application';
 
+    public const FEATURE_PAYMENT_COMPLETED = 'payment_completed';
+
     public static function forFeature(string $feature, string $defaultApprovedMessage, string $defaultRejectedMessage): self
     {
         return static::firstOrCreate(

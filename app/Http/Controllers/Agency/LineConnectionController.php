@@ -67,6 +67,19 @@ class LineConnectionController extends Controller
         return redirect()->route('agency.line-connection.edit')->with('status', 'LINE連携を解除しました。');
     }
 
+    public function updatePreferences(Request $request): RedirectResponse
+    {
+        /** @var Agency $agency */
+        $agency = Auth::guard('agency')->user();
+
+        $agency->update([
+            'line_notify_project_info' => $request->boolean('line_notify_project_info'),
+            'line_notify_payment' => $request->boolean('line_notify_payment'),
+        ]);
+
+        return redirect()->route('agency.line-connection.edit')->with('status', 'LINE通知設定を更新しました。');
+    }
+
     private function resolveAgencyFromToken(string $token): ?Agency
     {
         $agencyId = Cache::pull(self::cacheKey($token));
