@@ -103,16 +103,70 @@ class PaymentController extends Controller
             + $allCommissions->where('payment_status', PaymentStatus::Unpaid)->sum('amount')
             + $allCollaborationRewards->where('payment_status', PaymentStatus::Unpaid)->sum('reward_amount');
 
+        $summaries = collect();
+
+        foreach ($payableContracts as $contract) {
+            $agencyId = $contract->inquiry->agency_id;
+            $summaries[$agencyId] ??= ['agency' => $contract->inquiry->agency, 'contract_total' => 0, 'commission_total' => 0, 'reward_total' => 0];
+
+            if ($contract->payment_status === PaymentStatus::Unpaid) {
+                $summaries[$agencyId]['contract_total'] += $contract->agency_reward_amount;
+            }
+        }
+
+        foreach ($payableCommissions as $commission) {
+            $agencyId = $commission->referrer_agency_id;
+            $summaries[$agencyId] ??= ['agency' => $commission->referrerAgency, 'contract_total' => 0, 'commission_total' => 0, 'reward_total' => 0];
+
+            if ($commission->payment_status === PaymentStatus::Unpaid) {
+                $summaries[$agencyId]['commission_total'] += $commission->amount;
+            }
+        }
+
+        foreach ($payableCollaborationRewards as $reward) {
+            $agencyId = $reward->referrerAgency->id;
+            $summaries[$agencyId] ??= ['agency' => $reward->referrerAgency, 'contract_total' => 0, 'commission_total' => 0, 'reward_total' => 0];
+
+            if ($reward->payment_status === PaymentStatus::Unpaid) {
+                $summaries[$agencyId]['reward_total'] += $reward->reward_amount;
+            }
+        }
+
+        $agencySummaries = $summaries->map(function (array $row) {
+            $row['total'] = $row['contract_total'] + $row['commission_total'] + $row['reward_total'];
+
+            return $row;
+        })->sortByDesc('total')->values();
+
         return view('admin.payments.index', [
-            'contractsByAgency' => $payableContracts->groupBy(fn (Contract $contract) => $contract->inquiry->agency->name),
-            'referralCommissionsByAgency' => $payableCommissions->groupBy(fn (ReferralCommission $commission) => $commission->referrerAgency->name),
-            'collaborationRewardsByAgency' => $payableCollaborationRewards->groupBy(fn (CollaborationReward $reward) => $reward->referrerAgency->name),
+            'agencySummaries' => $agencySummaries,
             'carryOverAgencies' => $carryOverAgencies,
             'carryOverTotal' => $carryOverTotal,
             'months' => $months,
             'month' => $month,
             'monthlyTotal' => $monthlyTotal,
             'cumulativeTotal' => $cumulativeTotal,
+        ]);
+    }
+
+    public function show(Agency $agency): View
+    {
+        $contracts = $agency->contracts()->with(['inquiry.project'])->orderByDesc('payment_due_date')->get();
+
+        $commissions = $agency->referralCommissions()->with('sourceAgency')->orderByDesc('payment_due_date')->get();
+
+        $clientNames = $agency->projects()->whereNotNull('client_name')->distinct()->pluck('client_name');
+
+        $collaborationRewards = CollaborationReward::whereIn('client_name', $clientNames)
+            ->where('status', CollaborationRewardStatus::Approved)
+            ->orderByDesc('payment_due_date')
+            ->get();
+
+        return view('admin.payments.show', [
+            'agency' => $agency,
+            'contracts' => $contracts,
+            'commissions' => $commissions,
+            'collaborationRewards' => $collaborationRewards,
         ]);
     }
 
@@ -123,9 +177,11 @@ class PaymentController extends Controller
             'paid_at' => now(),
         ]);
 
-        $this->notifyPaymentCompleted($contract->inquiry->agency, (int) $contract->agency_reward_amount, $lineMessaging);
+        $agency = $contract->inquiry->agency;
 
-        return redirect()->route('admin.payments.index')->with('status', '支払済みにしました。');
+        $this->notifyPaymentCompleted($agency, (int) $contract->agency_reward_amount, $lineMessaging);
+
+        return redirect()->route('admin.payments.show', $agency)->with('status', '支払済みにしました。');
     }
 
     public function revert(Contract $contract): RedirectResponse
@@ -135,7 +191,7 @@ class PaymentController extends Controller
             'paid_at' => null,
         ]);
 
-        return redirect()->route('admin.payments.index')->with('status', '未払いに戻しました。');
+        return redirect()->route('admin.payments.show', $contract->inquiry->agency)->with('status', '未払いに戻しました。');
     }
 
     public function updateReferralCommission(ReferralCommission $referralCommission, LineMessagingService $lineMessaging): RedirectResponse
@@ -147,7 +203,7 @@ class PaymentController extends Controller
 
         $this->notifyPaymentCompleted($referralCommission->referrerAgency, (int) $referralCommission->amount, $lineMessaging);
 
-        return redirect()->route('admin.payments.index')->with('status', 'パートナー10%を支払済みにしました。');
+        return redirect()->route('admin.payments.show', $referralCommission->referrerAgency)->with('status', 'パートナー10%を支払済みにしました。');
     }
 
     public function revertReferralCommission(ReferralCommission $referralCommission): RedirectResponse
@@ -157,7 +213,7 @@ class PaymentController extends Controller
             'paid_at' => null,
         ]);
 
-        return redirect()->route('admin.payments.index')->with('status', 'パートナー10%を未払いに戻しました。');
+        return redirect()->route('admin.payments.show', $referralCommission->referrerAgency)->with('status', 'パートナー10%を未払いに戻しました。');
     }
 
     public function updateCollaborationReward(CollaborationReward $collaborationReward, LineMessagingService $lineMessaging): RedirectResponse
@@ -174,7 +230,7 @@ class PaymentController extends Controller
 
         $this->notifyPaymentCompleted($referrerAgency, (int) $collaborationReward->reward_amount, $lineMessaging);
 
-        return redirect()->route('admin.payments.index')->with('status', '共創パートナー30%を支払済みにしました。');
+        return redirect()->route('admin.payments.show', $referrerAgency)->with('status', '共創パートナー30%を支払済みにしました。');
     }
 
     public function revertCollaborationReward(CollaborationReward $collaborationReward): RedirectResponse
@@ -184,7 +240,12 @@ class PaymentController extends Controller
             'paid_at' => null,
         ]);
 
-        return redirect()->route('admin.payments.index')->with('status', '共創パートナー30%を未払いに戻しました。');
+        $referrerAgency = Project::where('client_name', $collaborationReward->client_name)
+            ->whereNotNull('referrer_agency_id')
+            ->with('referrerAgency')
+            ->first()?->referrerAgency;
+
+        return redirect()->route('admin.payments.show', $referrerAgency)->with('status', '共創パートナー30%を未払いに戻しました。');
     }
 
     private function notifyPaymentCompleted(?Agency $agency, int $amount, LineMessagingService $lineMessaging): void
