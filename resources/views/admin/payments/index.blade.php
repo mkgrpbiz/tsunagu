@@ -44,6 +44,7 @@
         <thead class="bg-gray-50 text-gray-500 text-left">
             <tr>
                 <th class="px-4 py-3 font-medium">パートナー</th>
+                <th class="px-4 py-3 font-medium">会員番号</th>
                 <th class="px-4 py-3 font-medium">紹介報酬</th>
                 <th class="px-4 py-3 font-medium">パートナー10%</th>
                 <th class="px-4 py-3 font-medium">共創パートナー30%</th>
@@ -55,6 +56,7 @@
             @forelse ($agencySummaries as $row)
                 <tr>
                     <td class="px-4 py-3 font-medium">{{ $row['agency']->name }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ $row['agency']->referral_code }}</td>
                     <td class="px-4 py-3">¥{{ number_format($row['contract_total']) }}</td>
                     <td class="px-4 py-3">¥{{ number_format($row['commission_total']) }}</td>
                     <td class="px-4 py-3">¥{{ number_format($row['reward_total']) }}</td>
@@ -65,7 +67,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="px-4 py-6 text-center text-gray-400">対象パートナーがいません。</td>
+                    <td colspan="7" class="px-4 py-6 text-center text-gray-400">対象パートナーがいません。</td>
                 </tr>
             @endforelse
         </tbody>
