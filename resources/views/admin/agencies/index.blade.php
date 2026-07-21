@@ -38,9 +38,9 @@
                 <th class="px-4 py-3 font-medium">フリガナ</th>
                 <th class="px-4 py-3 font-medium">会員番号</th>
                 <th class="px-4 py-3 font-medium">紹介者</th>
-                <th class="px-4 py-3 font-medium">審査ステータス</th>
                 <th class="px-4 py-3 font-medium">登録申請日時</th>
-                <th class="px-4 py-3 font-medium">承認日時</th>
+                <th class="px-4 py-3 font-medium">審査ステータス</th>
+                <th class="px-4 py-3 font-medium">LINE連携</th>
                 <th class="px-4 py-3 font-medium">問い合わせ数</th>
                 <th class="px-4 py-3 font-medium">パートナー紹介数</th>
                 <th class="px-4 py-3 font-medium w-40 text-center">操作</th>
@@ -59,11 +59,17 @@
                     <td class="px-4 py-3 text-gray-600">{{ $agency->name_kana }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $agency->referral_code }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $agency->referredBy?->referral_code ?: '—' }}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">{{ $agency->created_at->format('Y-m-d H:i') }}</td>
                     <td class="px-4 py-3">
                         <span class="text-xs font-medium border rounded-full px-2 py-1 {{ $agency->status->color() }}">{{ $agency->status->label() }}</span>
                     </td>
-                    <td class="px-4 py-3 whitespace-nowrap">{{ $agency->created_at->format('Y-m-d H:i') }}</td>
-                    <td class="px-4 py-3 whitespace-nowrap">{{ optional($agency->approved_at)->format('Y-m-d H:i') ?? '—' }}</td>
+                    <td class="px-4 py-3">
+                        @if ($agency->line_uid)
+                            <span class="text-xs font-medium border rounded-full px-2 py-1 bg-green-50 text-green-700 border-green-200">連携済</span>
+                        @else
+                            <span class="text-xs font-medium border rounded-full px-2 py-1 bg-gray-50 text-gray-500 border-gray-200">未連携</span>
+                        @endif
+                    </td>
                     <td class="px-4 py-3">{{ $agency->inquiries_count }}</td>
                     <td class="px-4 py-3">{{ $agency->referrals_count }}</td>
                     <td class="px-4 py-3">

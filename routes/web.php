@@ -28,6 +28,7 @@ use App\Http\Controllers\Agency\CollaborationReferralController as AgencyCollabo
 use App\Http\Controllers\Agency\ContractController as AgencyContractController;
 use App\Http\Controllers\Agency\HomeController as AgencyHomeController;
 use App\Http\Controllers\Agency\InquiryController as AgencyInquiryController;
+use App\Http\Controllers\Agency\LineConnectionController as AgencyLineConnectionController;
 use App\Http\Controllers\Agency\ProfileController as AgencyProfileController;
 use App\Http\Controllers\Agency\ProjectController as AgencyProjectController;
 use App\Http\Controllers\Public\AgencyRegistrationController;
@@ -197,12 +198,20 @@ Route::prefix('agency')->name('agency.')->group(function () {
     Route::get('register/form', [AgencyRegistrationController::class, 'form'])->name('register.form');
     Route::post('register/form', [AgencyRegistrationController::class, 'store'])->name('register.store');
 
+    // LIFF経由でLINEアプリ内に開き直されると元のログインセッションが引き継がれないため、
+    // このコールバックはトークン(connect_token)だけを頼りにパートナーを特定する未ログイン専用エンドポイント
+    Route::get('line-connection/callback', [AgencyLineConnectionController::class, 'liffCallback'])->name('line-connection.callback');
+    Route::post('line-connection/callback', [AgencyLineConnectionController::class, 'connect'])->name('line-connection.connect');
+
     Route::middleware('auth:agency')->group(function () {
         Route::post('logout', [AgencyAuthController::class, 'logout'])->name('logout');
         Route::redirect('/', '/agency/home');
 
         Route::get('profile', [AgencyProfileController::class, 'edit'])->name('profile.edit');
         Route::put('profile', [AgencyProfileController::class, 'update'])->name('profile.update');
+
+        Route::get('line-connection', [AgencyLineConnectionController::class, 'edit'])->name('line-connection.edit');
+        Route::delete('line-connection', [AgencyLineConnectionController::class, 'destroy'])->name('line-connection.destroy');
 
         Route::middleware('agency.password_changed')->group(function () {
             Route::get('home', [AgencyHomeController::class, 'index'])->name('home');
@@ -212,7 +221,7 @@ Route::prefix('agency')->name('agency.')->group(function () {
             Route::get('additional-info', [AgencyAdditionalInfoController::class, 'edit'])->name('additional-info.edit');
             Route::put('additional-info', [AgencyAdditionalInfoController::class, 'update'])->name('additional-info.update');
 
-            Route::middleware(['agency.approved', 'agency.consents_submitted'])->group(function () {
+            Route::middleware(['agency.approved', 'agency.consents_submitted', 'agency.line_connected'])->group(function () {
                 Route::get('projects', [AgencyProjectController::class, 'index'])->name('projects.index');
 
                 Route::get('collaboration-referrals/create', [AgencyCollaborationReferralController::class, 'create'])->name('collaboration-referrals.create');

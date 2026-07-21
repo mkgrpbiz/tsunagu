@@ -19,6 +19,7 @@
                     <a href="{{ route('agency.inquiries.index') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.inquiries.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">問い合わせ</a>
                     <a href="{{ route('agency.contracts.index') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.contracts.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">着金・支払い</a>
                     <a href="{{ route('agency.profile.edit') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.profile.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">プロフィール</a>
+                    <a href="{{ route('agency.line-connection.edit') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.line-connection.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">LINE通知設定</a>
                     <form method="POST" action="{{ route('agency.logout') }}">
                         @csrf
                         <button type="submit" class="text-gray-500 hover:text-gray-800">ログアウト</button>
@@ -36,6 +37,7 @@
                 <a href="{{ route('agency.inquiries.index') }}" class="py-2 {{ request()->routeIs('agency.inquiries.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">問い合わせ</a>
                 <a href="{{ route('agency.contracts.index') }}" class="py-2 {{ request()->routeIs('agency.contracts.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">着金・支払い</a>
                 <a href="{{ route('agency.profile.edit') }}" class="py-2 {{ request()->routeIs('agency.profile.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">プロフィール</a>
+                <a href="{{ route('agency.line-connection.edit') }}" class="py-2 {{ request()->routeIs('agency.line-connection.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">LINE通知設定</a>
                 <form method="POST" action="{{ route('agency.logout') }}" class="py-2">
                     @csrf
                     <button type="submit" class="text-gray-500">ログアウト</button>

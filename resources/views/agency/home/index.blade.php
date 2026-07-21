@@ -7,6 +7,13 @@
 @endpush
 
 @section('content')
+@unless ($agency->line_uid)
+    <div class="max-w-2xl mx-auto mb-4 rounded-md bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 text-sm text-center">
+        <p class="font-semibold mb-1">📢 パートナー専用LINEに登録してください</p>
+        <p class="mb-3">案件案内・重要なお知らせを受け取るため、LINE連携が必要です。</p>
+        @include('partials.agency_line_connect_button', ['buttonClass' => 'inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md px-6 py-2'])
+    </div>
+@endunless
 <div class="tsn-home">
     <div class="hero">
         @if ($content->brand_logo_path)

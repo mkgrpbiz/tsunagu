@@ -31,6 +31,7 @@ class HomeController extends Controller
             'salesMaterials' => SalesMaterial::latest()->get(),
             'referralUrl' => url('/agency/register?ref='.$agency->referral_code),
             'restrictedReason' => $restrictedReason,
+            'liffId' => config('services.line.liff_id'),
         ]);
     }
 }

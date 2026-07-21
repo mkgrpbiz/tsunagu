@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureAdminPasswordChanged;
 use App\Http\Middleware\EnsureAgencyApproved;
 use App\Http\Middleware\EnsureAgencyConsentsSubmitted;
+use App\Http\Middleware\EnsureAgencyLineConnected;
 use App\Http\Middleware\EnsureAgencyPasswordChanged;
 use App\Http\Middleware\EnsureCanAccessMenu;
 use Illuminate\Foundation\Application;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'agency.password_changed' => EnsureAgencyPasswordChanged::class,
             'agency.approved' => EnsureAgencyApproved::class,
             'agency.consents_submitted' => EnsureAgencyConsentsSubmitted::class,
+            'agency.line_connected' => EnsureAgencyLineConnected::class,
             'admin.password_changed' => EnsureAdminPasswordChanged::class,
             'menu' => EnsureCanAccessMenu::class,
         ]);
