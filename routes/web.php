@@ -46,8 +46,16 @@ Route::view('line/login-complete', 'public.line_login_complete')->name('line.log
 Route::get('apply', function (\Illuminate\Http\Request $request) {
     $liffState = (string) $request->get('liff_state', '');
 
+    \Illuminate\Support\Facades\Log::info('debug: /apply hit', [
+        'full_url' => $request->fullUrl(),
+        'all_query' => $request->query(),
+        'liff_state' => $liffState,
+    ]);
+
     if ($liffState !== '') {
         parse_str(ltrim($liffState, '?'), $params);
+
+        \Illuminate\Support\Facades\Log::info('debug: /apply parsed liff_state', ['params' => $params]);
 
         if (! empty($params['from'])) {
             return redirect($params['from']);
@@ -59,6 +67,12 @@ Route::get('apply', function (\Illuminate\Http\Request $request) {
 
 Route::get('apply/{inviteLink:token}', [ApplyController::class, 'show'])->name('apply.show');
 Route::post('apply/{inviteLink:token}', [ApplyController::class, 'store'])->name('apply.store');
+
+Route::post('debug-log', function (\Illuminate\Http\Request $request) {
+    \Illuminate\Support\Facades\Log::info('debug: client', $request->all());
+
+    return response('', 204);
+})->name('debug-log');
 
 Route::get('oshigoto', [OshigotoController::class, 'index'])->name('oshigoto.index');
 
