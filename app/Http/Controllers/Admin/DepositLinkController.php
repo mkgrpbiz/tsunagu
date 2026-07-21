@@ -61,10 +61,6 @@ class DepositLinkController extends Controller
 
     public function store(Request $request, Inquiry $inquiry): RedirectResponse
     {
-        if ($inquiry->contract && ! $inquiry->project->is_recurring) {
-            return back()->with('error', 'この問い合わせにはすでに着金が紐付けられています。');
-        }
-
         $data = $request->validate([
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.tsunagu_unit_price' => ['required', 'integer', 'min:0'],
@@ -72,10 +68,143 @@ class DepositLinkController extends Controller
             'lines.*.count' => ['required', 'integer', 'min:1'],
         ]);
 
+        if (! $this->linkInquiry($inquiry, $data['lines'])) {
+            return back()->with('error', 'この問い合わせにはすでに着金が紐付けられています。');
+        }
+
+        return redirect()
+            ->route('admin.deposit-links.index', $request->only(['category_id', 'project_id', 'q']))
+            ->with('status', '着金を紐付け、ステータスを着金済みに更新しました。');
+    }
+
+    public function bulkPreview(Request $request): View
+    {
+        $data = $request->validate(['pasted_text' => ['required', 'string']]);
+
+        $result = $this->parseBulkText($data['pasted_text']);
+
+        return view('admin.deposit_links.bulk_preview', [
+            'pastedText' => $data['pasted_text'],
+            'matched' => $result['matched'],
+            'unmatched' => $result['unmatched'],
+        ]);
+    }
+
+    public function bulkStore(Request $request): RedirectResponse
+    {
+        $data = $request->validate(['pasted_text' => ['required', 'string']]);
+
+        $result = $this->parseBulkText($data['pasted_text']);
+
+        $linkedCount = 0;
+        $blockedCount = 0;
+
+        foreach ($result['matched'] as $match) {
+            $success = $this->linkInquiry($match['inquiry'], [[
+                'tsunagu_unit_price' => $match['tsunagu_price'],
+                'agency_unit_price' => $match['agency_price'],
+                'count' => $match['count'],
+            ]]);
+
+            if ($success) {
+                $linkedCount++;
+            } else {
+                $blockedCount++;
+            }
+        }
+
+        $unmatchedCount = count($result['unmatched']);
+
+        $status = "{$linkedCount}件を一括紐付けしました。";
+        if ($blockedCount > 0) {
+            $status .= "{$blockedCount}件はすでに紐付け済みのためスキップしました。";
+        }
+        if ($unmatchedCount > 0) {
+            $status .= "{$unmatchedCount}件は問い合わせと一致しなかったためスキップしました。";
+        }
+
+        return redirect()->route('admin.deposit-links.index')->with('status', $status);
+    }
+
+    /**
+     * @return array{matched: array<int, array{raw: string, inquiry: Inquiry, tsunagu_price: int, agency_price: int, count: int}>, unmatched: array<int, array{raw: string, reason: string}>}
+     */
+    private function parseBulkText(string $text): array
+    {
+        $lines = preg_split('/\r\n|\r|\n/', trim($text)) ?: [];
+        $matched = [];
+        $unmatched = [];
+        $claimedIds = [];
+
+        foreach ($lines as $lineText) {
+            $lineText = trim($lineText);
+
+            if ($lineText === '') {
+                continue;
+            }
+
+            $columns = explode("\t", $lineText);
+            $projectName = trim($columns[0] ?? '');
+            $name = trim($columns[1] ?? '');
+            $nameKana = trim($columns[2] ?? '');
+            $tsunaguPriceRaw = trim($columns[3] ?? '');
+            $agencyPriceRaw = trim($columns[4] ?? '');
+            $countRaw = trim($columns[5] ?? '');
+
+            if ($projectName === '' || $name === '' || $tsunaguPriceRaw === '' || $agencyPriceRaw === '') {
+                $unmatched[] = ['raw' => $lineText, 'reason' => '案件名・名前・単価のいずれかが空です'];
+
+                continue;
+            }
+
+            $tsunaguPrice = (int) preg_replace('/[^\d]/', '', $tsunaguPriceRaw);
+            $agencyPrice = (int) preg_replace('/[^\d]/', '', $agencyPriceRaw);
+            $count = $countRaw !== '' ? (int) preg_replace('/[^\d]/', '', $countRaw) : 1;
+            $count = max($count, 1);
+
+            $candidateInquiries = Inquiry::with(['project', 'agency'])
+                ->whereHas('project', fn ($q) => $q->where('name', $projectName))
+                ->where('name', $name)
+                ->when($nameKana !== '', fn ($q) => $q->where('name_kana', $nameKana))
+                ->where(function ($q) {
+                    $q->whereDoesntHave('contracts')
+                        ->orWhereHas('project', fn ($q2) => $q2->where('is_recurring', true));
+                })
+                ->orderBy('inquired_at')
+                ->get();
+
+            $inquiry = $candidateInquiries->first(fn (Inquiry $c) => ! in_array($c->id, $claimedIds, true));
+
+            if (! $inquiry) {
+                $unmatched[] = ['raw' => $lineText, 'reason' => '一致する問い合わせ候補が見つかりません（案件名・名前・フリガナをご確認ください）'];
+
+                continue;
+            }
+
+            $claimedIds[] = $inquiry->id;
+
+            $matched[] = [
+                'raw' => $lineText,
+                'inquiry' => $inquiry,
+                'tsunagu_price' => $tsunaguPrice,
+                'agency_price' => $agencyPrice,
+                'count' => $count,
+            ];
+        }
+
+        return ['matched' => $matched, 'unmatched' => $unmatched];
+    }
+
+    private function linkInquiry(Inquiry $inquiry, array $lines): bool
+    {
+        if ($inquiry->contract && ! $inquiry->project->is_recurring) {
+            return false;
+        }
+
         $depositDate = Carbon::now();
         $paymentDueDate = $depositDate->copy()->addMonthNoOverflow()->day(5);
 
-        foreach ($data['lines'] as $line) {
+        foreach ($lines as $line) {
             $contract = Contract::create([
                 'inquiry_id' => $inquiry->id,
                 'deposit_date' => $depositDate,
@@ -99,8 +228,6 @@ class DepositLinkController extends Controller
 
         $inquiry->update(['status' => InquiryStatus::Contracted]);
 
-        return redirect()
-            ->route('admin.deposit-links.index', $request->only(['category_id', 'project_id', 'q']))
-            ->with('status', '着金を紐付け、ステータスを着金済みに更新しました。');
+        return true;
     }
 }

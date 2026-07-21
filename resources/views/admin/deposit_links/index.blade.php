@@ -40,6 +40,19 @@
     </form>
 </div>
 
+<div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+    <h2 class="text-sm font-medium text-gray-700 mb-2">一括紐付け（スプレッドシートから貼り付け）</h2>
+    <p class="text-xs text-gray-500 mb-3">
+        「案件名 - 名前 - フリガナ - TSUNAGU単価 - パートナー単価 - 件数（省略可、未入力は1件）」の順にタブ区切りで貼り付けてください。1行1件です。
+    </p>
+    <form method="POST" action="{{ route('admin.deposit-links.bulk-preview') }}">
+        @csrf
+        <textarea name="pasted_text" rows="6" required placeholder="BIMONI【募集モニター30件以上】&#9;三浦小雪&#9;ミウラコユキ&#9;1000&#9;800&#9;"
+                  class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-xs"></textarea>
+        <button type="submit" class="mt-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md px-4 py-2">プレビュー</button>
+    </form>
+</div>
+
 @if ($q !== '')
     <h2 class="text-sm font-medium text-gray-700 mb-3">該当する問い合わせ候補</h2>
 
