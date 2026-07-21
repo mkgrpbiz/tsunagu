@@ -59,8 +59,8 @@
                 $tsunaguPrice = $project->singleTsunaguUnitPrice();
                 $agencyPrice = $project->singleAgencyUnitPrice();
             @endphp
-            <div class="bg-white border border-gray-300 shadow-sm rounded-lg p-4 tsn-deposit-row">
-                <div class="grid grid-cols-6 gap-3 text-sm mb-3 pb-3 border-b border-gray-100">
+            <div class="bg-white border border-gray-300 shadow-sm rounded-lg overflow-hidden tsn-deposit-row">
+                <div class="grid grid-cols-6 gap-3 text-sm p-4 bg-blue-50">
                     <div><span class="text-gray-400 text-xs block">問い合わせ日時</span>{{ $candidate->inquired_at?->format('Y-m-d H:i') }}</div>
                     <div><span class="text-gray-400 text-xs block">パートナー</span>{{ $candidate->agency->name }}</div>
                     <div><span class="text-gray-400 text-xs block">案件名</span>{{ $project->name }}</div>
@@ -68,7 +68,7 @@
                     <div><span class="text-gray-400 text-xs block">名前</span>{{ $candidate->name }}</div>
                     <div><span class="text-gray-400 text-xs block">フリガナ</span>{{ $candidate->name_kana }}</div>
                 </div>
-                <div class="grid grid-cols-7 gap-3 items-end text-sm">
+                <div class="grid grid-cols-7 gap-3 items-end text-sm p-4">
                     <div>
                         <span class="text-gray-400 text-xs block">TSUNAGU単価</span>
                         <input type="number" name="tsunagu_unit_price" min="0" required
