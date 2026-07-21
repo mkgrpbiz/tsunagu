@@ -84,44 +84,62 @@
     </div>
 
     @php
-        $tsunaguMode = old('tsunagu_price_mode', $project->tsunagu_unit_price === null ? 'variable' : 'fixed');
-        $agencyMode = old('agency_price_mode', $project->agency_unit_price === null ? 'variable' : 'fixed');
+        $tsunaguMode = old('tsunagu_price_mode', empty($project->tsunagu_unit_prices) ? 'variable' : 'fixed');
+        $agencyMode = old('agency_price_mode', empty($project->agency_unit_prices) ? 'variable' : 'fixed');
+        $tsunaguPrices = old('tsunagu_unit_price', $project->tsunagu_unit_prices ?: ['']);
+        $agencyPrices = old('agency_unit_price', $project->agency_unit_prices ?: ['']);
     @endphp
 
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">TSUNAGU単価</label>
         <div class="flex items-center gap-4 mb-2 text-sm">
             <label class="flex items-center gap-1.5">
-                <input type="radio" name="tsunagu_price_mode" value="fixed" class="price-mode-radio" data-target="tsunagu_unit_price" @checked($tsunaguMode === 'fixed')>
+                <input type="radio" name="tsunagu_price_mode" value="fixed" class="price-mode-radio" data-target="tsunagu_unit_price_rows" @checked($tsunaguMode === 'fixed')>
                 金額
             </label>
             <label class="flex items-center gap-1.5">
-                <input type="radio" name="tsunagu_price_mode" value="variable" class="price-mode-radio" data-target="tsunagu_unit_price" @checked($tsunaguMode === 'variable')>
+                <input type="radio" name="tsunagu_price_mode" value="variable" class="price-mode-radio" data-target="tsunagu_unit_price_rows" @checked($tsunaguMode === 'variable')>
                 変動
             </label>
         </div>
-        <input type="number" name="tsunagu_unit_price" id="tsunagu_unit_price" value="{{ old('tsunagu_unit_price', $project->tsunagu_unit_price) }}" min="0"
-               placeholder="円"
-               class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        <div id="tsunagu_unit_price_rows" class="space-y-2">
+            @foreach ($tsunaguPrices as $price)
+                <div class="flex items-center gap-2 price-row">
+                    <input type="number" name="tsunagu_unit_price[]" value="{{ $price }}" min="0" placeholder="円"
+                           class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <button type="button" class="tsn-remove-price-row text-gray-400 hover:text-red-600 text-sm px-1" title="削除">×</button>
+                </div>
+            @endforeach
+        </div>
+        <button type="button" class="tsn-add-price-row text-xs text-blue-600 hover:underline mt-1" data-rows="tsunagu_unit_price_rows" data-name="tsunagu_unit_price[]">+ パターンを追加</button>
         @error('tsunagu_unit_price')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+        @error('tsunagu_unit_price.*')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">パートナー単価</label>
         <div class="flex items-center gap-4 mb-2 text-sm">
             <label class="flex items-center gap-1.5">
-                <input type="radio" name="agency_price_mode" value="fixed" class="price-mode-radio" data-target="agency_unit_price" @checked($agencyMode === 'fixed')>
+                <input type="radio" name="agency_price_mode" value="fixed" class="price-mode-radio" data-target="agency_unit_price_rows" @checked($agencyMode === 'fixed')>
                 金額
             </label>
             <label class="flex items-center gap-1.5">
-                <input type="radio" name="agency_price_mode" value="variable" class="price-mode-radio" data-target="agency_unit_price" @checked($agencyMode === 'variable')>
+                <input type="radio" name="agency_price_mode" value="variable" class="price-mode-radio" data-target="agency_unit_price_rows" @checked($agencyMode === 'variable')>
                 変動
             </label>
         </div>
-        <input type="number" name="agency_unit_price" id="agency_unit_price" value="{{ old('agency_unit_price', $project->agency_unit_price) }}" min="0"
-               placeholder="円"
-               class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        <div id="agency_unit_price_rows" class="space-y-2">
+            @foreach ($agencyPrices as $price)
+                <div class="flex items-center gap-2 price-row">
+                    <input type="number" name="agency_unit_price[]" value="{{ $price }}" min="0" placeholder="円"
+                           class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <button type="button" class="tsn-remove-price-row text-gray-400 hover:text-red-600 text-sm px-1" title="削除">×</button>
+                </div>
+            @endforeach
+        </div>
+        <button type="button" class="tsn-add-price-row text-xs text-blue-600 hover:underline mt-1" data-rows="agency_unit_price_rows" data-name="agency_unit_price[]">+ パターンを追加</button>
         @error('agency_unit_price')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+        @error('agency_unit_price.*')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
     <div class="col-span-2">
@@ -173,13 +191,15 @@ function tsnFilterReferrerAgencyOptions(query) {
 }
 
 function tsnApplyPriceMode(radio) {
-    var input = document.getElementById(radio.dataset.target);
+    var container = document.getElementById(radio.dataset.target);
     var isVariable = radio.value === 'variable';
-    input.disabled = isVariable;
-    input.classList.toggle('bg-gray-100', isVariable);
-    if (isVariable) {
-        input.value = '';
-    }
+    container.querySelectorAll('input').forEach(function (input) {
+        input.disabled = isVariable;
+        input.classList.toggle('bg-gray-100', isVariable);
+        if (isVariable) {
+            input.value = '';
+        }
+    });
 }
 
 document.querySelectorAll('.price-mode-radio').forEach(function (radio) {
@@ -189,5 +209,29 @@ document.querySelectorAll('.price-mode-radio').forEach(function (radio) {
     radio.addEventListener('change', function () {
         tsnApplyPriceMode(radio);
     });
+});
+
+document.querySelectorAll('.tsn-add-price-row').forEach(function (button) {
+    button.addEventListener('click', function () {
+        var container = document.getElementById(button.dataset.rows);
+        var row = document.createElement('div');
+        row.className = 'flex items-center gap-2 price-row';
+        row.innerHTML = '<input type="number" name="' + button.dataset.name + '" min="0" placeholder="円" class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">'
+            + '<button type="button" class="tsn-remove-price-row text-gray-400 hover:text-red-600 text-sm px-1" title="削除">×</button>';
+        container.appendChild(row);
+    });
+});
+
+document.addEventListener('click', function (e) {
+    if (!e.target.classList.contains('tsn-remove-price-row')) {
+        return;
+    }
+    var row = e.target.closest('.price-row');
+    var container = row.parentElement;
+    if (container.querySelectorAll('.price-row').length > 1) {
+        row.remove();
+    } else {
+        row.querySelector('input').value = '';
+    }
 });
 </script>

@@ -180,8 +180,8 @@ class ImportLegacyInquiries extends Command
                     'category_id' => $categoryId,
                     'status' => ProjectStatus::Closed,
                     'oshigoto_listed' => false,
-                    'tsunagu_unit_price' => 0,
-                    'agency_unit_price' => 0,
+                    'tsunagu_unit_prices' => [0],
+                    'agency_unit_prices' => [0],
                 ],
             );
         }

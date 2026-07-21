@@ -85,9 +85,9 @@
                         </td>
                         <td class="px-4 py-3">
                             <input type="number" name="agency_reward_amount" min="0"
-                                   @required($candidate->project->agency_unit_price === null)
+                                   @required($candidate->project->singleAgencyUnitPrice() === null)
                                    form="deposit-form-{{ $candidate->id }}" class="w-28 rounded-md border border-gray-300 text-sm"
-                                   placeholder="{{ $candidate->project->agency_unit_price ?? '金額を入力' }}">
+                                   placeholder="{{ $candidate->project->singleAgencyUnitPrice() ?? '金額を入力' }}">
                         </td>
                         <td class="px-4 py-3">
                             <button type="submit" form="deposit-form-{{ $candidate->id }}" class="text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md px-3 py-1.5">紐付け</button>

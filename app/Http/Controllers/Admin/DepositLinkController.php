@@ -66,7 +66,7 @@ class DepositLinkController extends Controller
             'deposit_date' => ['required', 'date'],
             'deposit_amount' => ['required', 'integer', 'min:0'],
             'agency_reward_amount' => [
-                $inquiry->project->agency_unit_price === null ? 'required' : 'nullable',
+                $inquiry->project->singleAgencyUnitPrice() === null ? 'required' : 'nullable',
                 'integer',
                 'min:0',
             ],
@@ -79,7 +79,7 @@ class DepositLinkController extends Controller
             'inquiry_id' => $inquiry->id,
             'deposit_date' => $depositDate,
             'deposit_amount' => $data['deposit_amount'],
-            'agency_reward_amount' => $data['agency_reward_amount'] ?? $inquiry->project->agency_unit_price,
+            'agency_reward_amount' => $data['agency_reward_amount'] ?? $inquiry->project->singleAgencyUnitPrice(),
             'payment_due_date' => $paymentDueDate,
             'payment_status' => PaymentStatus::Unpaid,
         ]);

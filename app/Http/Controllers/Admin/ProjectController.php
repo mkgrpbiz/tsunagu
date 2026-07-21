@@ -159,6 +159,22 @@ class ProjectController extends Controller
 
     private function validated(Request $request): array
     {
+        $requireAtLeastOnePrice = function (string $label) use ($request) {
+            return function ($attribute, $value, $fail) use ($request, $label) {
+                $mode = $request->input(str_replace('_unit_price', '_price_mode', $attribute));
+
+                if ($mode !== 'fixed') {
+                    return;
+                }
+
+                $filled = collect($value ?? [])->filter(fn ($v) => $v !== null && $v !== '');
+
+                if ($filled->isEmpty()) {
+                    $fail("{$label}を1つ以上入力してください。");
+                }
+            };
+        };
+
         $data = $request->validate([
             'category_id' => ['required', 'exists:categories,id'],
             'name' => ['required', 'string', 'max:255'],
@@ -171,17 +187,23 @@ class ProjectController extends Controller
             'referrer_agency_id' => ['nullable', 'exists:agencies,id'],
             'tsunagu_price_mode' => ['required', 'in:fixed,variable'],
             'agency_price_mode' => ['required', 'in:fixed,variable'],
-            'tsunagu_unit_price' => ['nullable', 'required_if:tsunagu_price_mode,fixed', 'integer', 'min:0'],
-            'agency_unit_price' => ['nullable', 'required_if:agency_price_mode,fixed', 'integer', 'min:0'],
+            'tsunagu_unit_price' => ['nullable', 'array', $requireAtLeastOnePrice('TSUNAGU単価')],
+            'tsunagu_unit_price.*' => ['nullable', 'integer', 'min:0'],
+            'agency_unit_price' => ['nullable', 'array', $requireAtLeastOnePrice('パートナー単価')],
+            'agency_unit_price.*' => ['nullable', 'integer', 'min:0'],
             'payment_timing' => ['nullable', 'string', 'max:255'],
             'recruitment_template' => ['nullable', 'string'],
             'line_auto_message' => ['nullable', 'string'],
         ]);
 
         $data['oshigoto_listed'] = $request->boolean('oshigoto_listed');
-        $data['tsunagu_unit_price'] = $data['tsunagu_price_mode'] === 'fixed' ? $data['tsunagu_unit_price'] : null;
-        $data['agency_unit_price'] = $data['agency_price_mode'] === 'fixed' ? $data['agency_unit_price'] : null;
-        unset($data['tsunagu_price_mode'], $data['agency_price_mode']);
+
+        $tsunaguPrices = collect($data['tsunagu_unit_price'] ?? [])->filter(fn ($v) => $v !== null && $v !== '')->map(fn ($v) => (int) $v)->values()->all();
+        $agencyPrices = collect($data['agency_unit_price'] ?? [])->filter(fn ($v) => $v !== null && $v !== '')->map(fn ($v) => (int) $v)->values()->all();
+
+        $data['tsunagu_unit_prices'] = $data['tsunagu_price_mode'] === 'fixed' ? $tsunaguPrices : null;
+        $data['agency_unit_prices'] = $data['agency_price_mode'] === 'fixed' ? $agencyPrices : null;
+        unset($data['tsunagu_price_mode'], $data['agency_price_mode'], $data['tsunagu_unit_price'], $data['agency_unit_price']);
 
         return $data;
     }

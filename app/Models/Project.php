@@ -19,8 +19,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'oshigoto_listed',
     'client_name',
     'referrer_agency_id',
-    'tsunagu_unit_price',
-    'agency_unit_price',
+    'tsunagu_unit_prices',
+    'agency_unit_prices',
     'payment_timing',
     'recruitment_template',
     'line_auto_message',
@@ -32,6 +32,8 @@ class Project extends Model
         return [
             'status' => ProjectStatus::class,
             'oshigoto_listed' => 'boolean',
+            'tsunagu_unit_prices' => 'array',
+            'agency_unit_prices' => 'array',
         ];
     }
 
@@ -53,6 +55,30 @@ class Project extends Model
     public function inquiries(): HasMany
     {
         return $this->hasMany(Inquiry::class);
+    }
+
+    public function singleAgencyUnitPrice(): ?int
+    {
+        return count($this->agency_unit_prices ?? []) === 1 ? $this->agency_unit_prices[0] : null;
+    }
+
+    public function formattedTsunaguUnitPrices(): string
+    {
+        return self::formatUnitPrices($this->tsunagu_unit_prices);
+    }
+
+    public function formattedAgencyUnitPrices(): string
+    {
+        return self::formatUnitPrices($this->agency_unit_prices);
+    }
+
+    private static function formatUnitPrices(?array $prices): string
+    {
+        if (empty($prices)) {
+            return '変動';
+        }
+
+        return collect($prices)->map(fn (int $price) => '¥'.number_format($price))->implode(' / ');
     }
 
     public function legacyNamesList(): array
