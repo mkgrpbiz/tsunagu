@@ -21,10 +21,11 @@ class AgencyController extends Controller
     {
         $status = $request->query('status', 'all');
 
-        $statusCounts = Agency::selectRaw('status, count(*) as count')->groupBy('status')->pluck('count', 'status');
+        $statusCounts = Agency::where('is_system', false)->selectRaw('status, count(*) as count')->groupBy('status')->pluck('count', 'status');
 
         $agencies = Agency::withCount(['inquiries', 'referrals'])
             ->with('referredBy')
+            ->where('is_system', false)
             ->when($status !== 'all', fn ($query) => $query->where('status', $status))
             ->orderByDesc('created_at')
             ->get();
@@ -33,7 +34,7 @@ class AgencyController extends Controller
             'agencies' => $agencies,
             'status' => $status,
             'statusCounts' => $statusCounts,
-            'totalCount' => Agency::count(),
+            'totalCount' => Agency::where('is_system', false)->count(),
         ]);
     }
 

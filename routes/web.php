@@ -118,6 +118,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('deposit-links', [DepositLinkController::class, 'index'])->name('deposit-links.index');
                 Route::post('deposit-links/bulk-preview', [DepositLinkController::class, 'bulkPreview'])->name('deposit-links.bulk-preview');
                 Route::post('deposit-links/bulk-store', [DepositLinkController::class, 'bulkStore'])->name('deposit-links.bulk-store');
+                Route::post('deposit-links/no-referral', [DepositLinkController::class, 'storeNoReferral'])->name('deposit-links.no-referral');
                 Route::post('deposit-links/{inquiry}', [DepositLinkController::class, 'store'])->name('deposit-links.store');
             });
 

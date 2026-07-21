@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 #[Fillable([
     'referred_by_agency_id',
@@ -44,6 +45,7 @@ use Illuminate\Notifications\Notifiable;
     'bank_account_holder',
     'must_change_password',
     'status',
+    'is_system',
     'review_note',
     'approved_at',
     'approved_by_user_id',
@@ -80,6 +82,7 @@ class Agency extends Authenticatable
             'must_change_password' => 'boolean',
             'password' => 'hashed',
             'status' => AgencyStatus::class,
+            'is_system' => 'boolean',
             'approved_at' => 'datetime',
             'last_login_at' => 'datetime',
             'activity_type' => ActivityType::class,
@@ -149,6 +152,24 @@ class Agency extends Authenticatable
     public function getReferralCodeAttribute(): string
     {
         return $this->legacy_code ?: sprintf('B%04d', $this->id);
+    }
+
+    public static function noReferralAgency(): self
+    {
+        return static::firstOrCreate(
+            ['is_system' => true],
+            [
+                'name' => '紹介なし',
+                'name_kana' => 'ショウカイナシ',
+                'gender' => Gender::Other,
+                'prefecture' => '－',
+                'phone' => '00000000000',
+                'email' => 'no-referral@system.internal',
+                'password' => bcrypt(Str::random(32)),
+                'status' => AgencyStatus::Approved,
+                'must_change_password' => false,
+            ],
+        );
     }
 
     public static function generateUniqueLegacyCode(int $startFrom): string

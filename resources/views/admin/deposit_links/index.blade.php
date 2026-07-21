@@ -64,7 +64,47 @@
 </details>
 
 @if ($q !== '')
-    <h2 class="text-sm font-medium text-gray-700 mb-3">該当する問い合わせ候補</h2>
+    <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-medium text-gray-700">該当する問い合わせ候補</h2>
+        <button type="button" onclick="document.getElementById('tsn-no-referral-form').classList.toggle('hidden')"
+                class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md px-3 py-1.5">該当なし成果</button>
+    </div>
+
+    <div id="tsn-no-referral-form" class="hidden bg-white border border-gray-200 rounded-lg p-4 mb-4">
+        <h3 class="text-sm font-medium text-gray-700 mb-1">該当なし成果を追加</h3>
+        <p class="text-xs text-gray-500 mb-3">紹介元パートナーがいない成果（直接反響など）を、全額TSUNAGU利益として追加・紐付けします。</p>
+        <form method="POST" action="{{ route('admin.deposit-links.no-referral') }}" class="grid grid-cols-5 gap-3 items-end">
+            @csrf
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">案件</label>
+                <select name="project_id" required class="w-full rounded-md border border-gray-300 text-sm">
+                    <option value="">選択してください</option>
+                    @foreach ($everyProject as $everyProjectItem)
+                        <option value="{{ $everyProjectItem->id }}">{{ $everyProjectItem->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">名前</label>
+                <input type="text" name="name" required class="w-full rounded-md border border-gray-300 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">フリガナ</label>
+                <input type="text" name="name_kana" required class="w-full rounded-md border border-gray-300 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">TSUNAGU単価</label>
+                <input type="number" name="tsunagu_unit_price" min="0" required class="w-full rounded-md border border-gray-300 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">件数</label>
+                <input type="number" name="count" min="1" step="1" value="1" required class="w-full rounded-md border border-gray-300 text-sm">
+            </div>
+            <div class="col-span-5">
+                <button type="submit" class="text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md px-4 py-2">追加して紐付ける</button>
+            </div>
+        </form>
+    </div>
 
     @foreach ($candidates as $candidate)
         <form id="deposit-form-{{ $candidate->id }}" method="POST" action="{{ route('admin.deposit-links.store', $candidate) }}">

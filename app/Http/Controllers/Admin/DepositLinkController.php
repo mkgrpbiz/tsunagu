@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\InquiryStatus;
 use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Agency;
 use App\Models\Category;
 use App\Models\Contract;
 use App\Models\Inquiry;
@@ -53,6 +54,7 @@ class DepositLinkController extends Controller
             'categories' => Category::orderBy('name')->get(),
             'projects' => $projects,
             'allProjects' => Project::where('bulk_link_enabled', true)->orderBy('name')->get(),
+            'everyProject' => Project::orderBy('name')->get(),
             'candidates' => $candidates,
             'categoryId' => $categoryId,
             'projectId' => $projectId,
@@ -77,6 +79,38 @@ class DepositLinkController extends Controller
         return redirect()
             ->route('admin.deposit-links.index', $request->only(['category_id', 'project_id', 'q']))
             ->with('status', '着金を紐付け、ステータスを着金済みに更新しました。');
+    }
+
+    public function storeNoReferral(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'project_id' => ['required', 'exists:projects,id'],
+            'name' => ['required', 'string', 'max:255'],
+            'name_kana' => ['required', 'string', 'max:255'],
+            'tsunagu_unit_price' => ['required', 'integer', 'min:0'],
+            'count' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $inquiry = Inquiry::create([
+            'agency_id' => Agency::noReferralAgency()->id,
+            'project_id' => $data['project_id'],
+            'name' => $data['name'],
+            'name_kana' => $data['name_kana'],
+            'email' => '',
+            'status' => InquiryStatus::Contracted,
+            'inquired_at' => now(),
+            'is_legacy_import' => false,
+        ]);
+
+        $this->linkInquiry($inquiry, [[
+            'tsunagu_unit_price' => $data['tsunagu_unit_price'],
+            'agency_unit_price' => 0,
+            'count' => $data['count'],
+        ]]);
+
+        return redirect()
+            ->route('admin.deposit-links.index')
+            ->with('status', '該当なし成果を追加し、着金を紐付けました。');
     }
 
     public function bulkPreview(Request $request): View
