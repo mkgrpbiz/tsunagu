@@ -62,6 +62,11 @@ class Project extends Model
         return count($this->agency_unit_prices ?? []) === 1 ? $this->agency_unit_prices[0] : null;
     }
 
+    public function singleTsunaguUnitPrice(): ?int
+    {
+        return count($this->tsunagu_unit_prices ?? []) === 1 ? $this->tsunagu_unit_prices[0] : null;
+    }
+
     public function formattedTsunaguUnitPrices(): string
     {
         return self::formatUnitPrices($this->tsunagu_unit_prices);

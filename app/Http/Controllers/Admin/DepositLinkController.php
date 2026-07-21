@@ -63,8 +63,11 @@ class DepositLinkController extends Controller
         }
 
         $data = $request->validate([
-            'deposit_date' => ['required', 'date'],
-            'deposit_amount' => ['required', 'integer', 'min:0'],
+            'deposit_amount' => [
+                $inquiry->project->singleTsunaguUnitPrice() === null ? 'required' : 'nullable',
+                'integer',
+                'min:0',
+            ],
             'agency_reward_amount' => [
                 $inquiry->project->singleAgencyUnitPrice() === null ? 'required' : 'nullable',
                 'integer',
@@ -72,13 +75,13 @@ class DepositLinkController extends Controller
             ],
         ]);
 
-        $depositDate = Carbon::parse($data['deposit_date']);
+        $depositDate = Carbon::now();
         $paymentDueDate = $depositDate->copy()->addMonthNoOverflow()->day(5);
 
         $contract = Contract::create([
             'inquiry_id' => $inquiry->id,
             'deposit_date' => $depositDate,
-            'deposit_amount' => $data['deposit_amount'],
+            'deposit_amount' => $data['deposit_amount'] ?? $inquiry->project->singleTsunaguUnitPrice(),
             'agency_reward_amount' => $data['agency_reward_amount'] ?? $inquiry->project->singleAgencyUnitPrice(),
             'payment_due_date' => $paymentDueDate,
             'payment_status' => PaymentStatus::Unpaid,

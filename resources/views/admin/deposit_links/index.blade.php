@@ -52,54 +52,104 @@
         </form>
     @endforeach
 
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-gray-500 text-left">
-                <tr>
-                    <th class="px-4 py-3 font-medium">パートナー</th>
-                    <th class="px-4 py-3 font-medium">案件名</th>
-                    <th class="px-4 py-3 font-medium">LINE名</th>
-                    <th class="px-4 py-3 font-medium">名前</th>
-                    <th class="px-4 py-3 font-medium">フリガナ</th>
-                    <th class="px-4 py-3 font-medium">メールアドレス</th>
-                    <th class="px-4 py-3 font-medium">着金日</th>
-                    <th class="px-4 py-3 font-medium">着金金額</th>
-                    <th class="px-4 py-3 font-medium">パートナー報酬</th>
-                    <th class="px-4 py-3 font-medium w-24"></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse ($candidates as $candidate)
-                    <tr>
-                        <td class="px-4 py-3">{{ $candidate->agency->name }}</td>
-                        <td class="px-4 py-3">{{ $candidate->project->name }}</td>
-                        <td class="px-4 py-3">{{ $candidate->lineUser->display_name ?? $candidate->legacy_line_display_name }}</td>
-                        <td class="px-4 py-3">{{ $candidate->name }}</td>
-                        <td class="px-4 py-3">{{ $candidate->name_kana }}</td>
-                        <td class="px-4 py-3">{{ $candidate->email }}</td>
-                        <td class="px-4 py-3">
-                            <input type="date" name="deposit_date" required form="deposit-form-{{ $candidate->id }}" class="rounded-md border border-gray-300 text-sm">
-                        </td>
-                        <td class="px-4 py-3">
-                            <input type="number" name="deposit_amount" required min="0" form="deposit-form-{{ $candidate->id }}" class="w-28 rounded-md border border-gray-300 text-sm">
-                        </td>
-                        <td class="px-4 py-3">
-                            <input type="number" name="agency_reward_amount" min="0"
-                                   @required($candidate->project->singleAgencyUnitPrice() === null)
-                                   form="deposit-form-{{ $candidate->id }}" class="w-28 rounded-md border border-gray-300 text-sm"
-                                   placeholder="{{ $candidate->project->singleAgencyUnitPrice() ?? '金額を入力' }}">
-                        </td>
-                        <td class="px-4 py-3">
-                            <button type="submit" form="deposit-form-{{ $candidate->id }}" class="text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md px-3 py-1.5">紐付け</button>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="10" class="px-4 py-6 text-center text-gray-400">該当する問い合わせがありません。</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+    <div class="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
+        @forelse ($candidates as $candidate)
+            @php
+                $project = $candidate->project;
+                $tsunaguPrice = $project->singleTsunaguUnitPrice();
+                $agencyPrice = $project->singleAgencyUnitPrice();
+                $canAutoCalc = $tsunaguPrice !== null && $agencyPrice !== null;
+                $rowId = 'row-'.$candidate->id;
+            @endphp
+            <div class="p-4 tsn-deposit-row" data-tsunagu-price="{{ $tsunaguPrice }}" data-agency-price="{{ $agencyPrice }}">
+                <div class="grid grid-cols-5 gap-3 text-sm mb-3">
+                    <div><span class="text-gray-400 text-xs block">パートナー</span>{{ $candidate->agency->name }}</div>
+                    <div><span class="text-gray-400 text-xs block">案件名</span>{{ $project->name }}</div>
+                    <div><span class="text-gray-400 text-xs block">LINE名</span>{{ $candidate->lineUser->display_name ?? $candidate->legacy_line_display_name }}</div>
+                    <div><span class="text-gray-400 text-xs block">名前</span>{{ $candidate->name }}</div>
+                    <div><span class="text-gray-400 text-xs block">フリガナ</span>{{ $candidate->name_kana }}</div>
+                </div>
+                <div class="grid grid-cols-7 gap-3 items-end text-sm">
+                    <div>
+                        <span class="text-gray-400 text-xs block">TSUNAGU単価</span>
+                        {{ $project->formattedTsunaguUnitPrices() }}
+                    </div>
+                    <div>
+                        <span class="text-gray-400 text-xs block">パートナー単価</span>
+                        {{ $project->formattedAgencyUnitPrices() }}
+                    </div>
+                    <div>
+                        <span class="text-gray-400 text-xs block">件数</span>
+                        @if ($canAutoCalc)
+                            <input type="number" min="1" value="1" step="1" class="tsn-count-input w-20 rounded-md border border-gray-300 text-sm">
+                        @else
+                            <span class="text-gray-300">—</span>
+                        @endif
+                    </div>
+                    <div>
+                        <span class="text-gray-400 text-xs block">TSUNAGU合計</span>
+                        <input type="number" name="deposit_amount" min="0"
+                               @if ($canAutoCalc) readonly @else @required($tsunaguPrice === null) @endif
+                               form="deposit-form-{{ $candidate->id }}"
+                               class="tsn-tsunagu-total w-28 rounded-md border border-gray-300 text-sm {{ $canAutoCalc ? 'bg-gray-100' : '' }}"
+                               value="{{ $canAutoCalc ? $tsunaguPrice : '' }}"
+                               placeholder="{{ $canAutoCalc ? '' : ($tsunaguPrice ?? '金額を入力') }}">
+                    </div>
+                    <div>
+                        <span class="text-gray-400 text-xs block">パートナー合計</span>
+                        <input type="number" name="agency_reward_amount" min="0"
+                               @if ($canAutoCalc) readonly @else @required($agencyPrice === null) @endif
+                               form="deposit-form-{{ $candidate->id }}"
+                               class="tsn-agency-total w-28 rounded-md border border-gray-300 text-sm {{ $canAutoCalc ? 'bg-gray-100' : '' }}"
+                               value="{{ $canAutoCalc ? $agencyPrice : '' }}"
+                               placeholder="{{ $canAutoCalc ? '' : ($agencyPrice ?? '金額を入力') }}">
+                    </div>
+                    <div>
+                        <span class="text-gray-400 text-xs block">TSUNAGU利益</span>
+                        <span class="tsn-profit-display font-medium">{{ $canAutoCalc ? '¥'.number_format($tsunaguPrice - $agencyPrice) : '—' }}</span>
+                    </div>
+                    <div>
+                        <button type="submit" form="deposit-form-{{ $candidate->id }}" class="text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md px-3 py-1.5">紐付け</button>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="px-4 py-6 text-center text-gray-400">該当する問い合わせがありません。</div>
+        @endforelse
     </div>
 @endif
+
+<script>
+document.querySelectorAll('.tsn-deposit-row').forEach(function (row) {
+    var countInput = row.querySelector('.tsn-count-input');
+    var tsunaguTotalInput = row.querySelector('.tsn-tsunagu-total');
+    var agencyTotalInput = row.querySelector('.tsn-agency-total');
+    var profitDisplay = row.querySelector('.tsn-profit-display');
+
+    function updateProfitDisplay() {
+        var tsunaguTotal = parseInt(tsunaguTotalInput.value, 10);
+        var agencyTotal = parseInt(agencyTotalInput.value, 10);
+        if (isNaN(tsunaguTotal) || isNaN(agencyTotal)) {
+            profitDisplay.textContent = '—';
+            return;
+        }
+        profitDisplay.textContent = '¥' + (tsunaguTotal - agencyTotal).toLocaleString();
+    }
+
+    if (countInput) {
+        var tsunaguPrice = parseInt(row.dataset.tsunaguPrice, 10);
+        var agencyPrice = parseInt(row.dataset.agencyPrice, 10);
+
+        countInput.addEventListener('input', function () {
+            var count = parseInt(countInput.value, 10) || 0;
+            tsunaguTotalInput.value = tsunaguPrice * count;
+            agencyTotalInput.value = agencyPrice * count;
+            updateProfitDisplay();
+        });
+    } else {
+        tsunaguTotalInput.addEventListener('input', updateProfitDisplay);
+        agencyTotalInput.addEventListener('input', updateProfitDisplay);
+    }
+});
+</script>
 @endsection
