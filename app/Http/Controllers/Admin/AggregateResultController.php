@@ -39,11 +39,21 @@ class AggregateResultController extends Controller
         $agencyId = $request->query('agency_id');
         $selectedAgency = $agencyId ? Agency::where('is_system', false)->find($agencyId) : null;
 
+        $history = collect();
+        if ($selectedAgency) {
+            $history = Inquiry::where('agency_id', $selectedAgency->id)
+                ->where('name', '合計成果反映')
+                ->with(['project', 'contract.referralCommission'])
+                ->latest('created_at')
+                ->get();
+        }
+
         return view('admin.aggregate_results.index', [
             'q' => $q,
             'candidates' => $candidates,
             'selectedAgency' => $selectedAgency,
             'projects' => Project::orderBy('name')->get(),
+            'history' => $history,
         ]);
     }
 

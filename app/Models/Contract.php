@@ -6,6 +6,7 @@ use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'inquiry_id',
@@ -31,5 +32,10 @@ class Contract extends Model
     public function inquiry(): BelongsTo
     {
         return $this->belongsTo(Inquiry::class);
+    }
+
+    public function referralCommission(): HasOne
+    {
+        return $this->hasOne(ReferralCommission::class);
     }
 }

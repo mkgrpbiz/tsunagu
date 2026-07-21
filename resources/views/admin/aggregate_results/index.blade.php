@@ -110,6 +110,42 @@
             </div>
         </form>
     </div>
+
+    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden mt-6">
+        <h2 class="text-sm font-medium text-gray-700 p-4 border-b border-gray-200">反映履歴</h2>
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-left text-gray-500">
+                <tr>
+                    <th class="px-4 py-3 font-medium">反映日時</th>
+                    <th class="px-4 py-3 font-medium">案件名</th>
+                    <th class="px-4 py-3 font-medium">TSUNAGU合計</th>
+                    <th class="px-4 py-3 font-medium">パートナー合計</th>
+                    <th class="px-4 py-3 font-medium">パートナー10%</th>
+                    <th class="px-4 py-3 font-medium">支払状況</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @forelse ($history as $record)
+                    <tr>
+                        <td class="px-4 py-3">{{ $record->created_at->format('Y-m-d H:i') }}</td>
+                        <td class="px-4 py-3">{{ $record->project->name }}</td>
+                        <td class="px-4 py-3">¥{{ number_format($record->contract->deposit_amount) }}</td>
+                        <td class="px-4 py-3">¥{{ number_format($record->contract->agency_reward_amount) }}</td>
+                        <td class="px-4 py-3">{{ $record->contract->referralCommission ? '対象（¥'.number_format($record->contract->referralCommission->amount).'）' : '対象外' }}</td>
+                        <td class="px-4 py-3">
+                            <span class="{{ $record->contract->payment_status === \App\Enums\PaymentStatus::Paid ? 'text-green-700' : 'text-amber-700' }}">
+                                {{ $record->contract->payment_status->label() }}
+                            </span>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="px-4 py-6 text-center text-gray-400">反映履歴はありません。</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 @endif
 
 <script>
