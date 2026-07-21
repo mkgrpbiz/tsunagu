@@ -7,9 +7,9 @@ use App\Models\Agency;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
-use Throwable;
 
 class LineConnectionController extends Controller
 {
@@ -69,16 +69,17 @@ class LineConnectionController extends Controller
 
     private function resolveAgencyFromToken(string $token): ?Agency
     {
-        try {
-            $payload = decrypt($token);
-        } catch (Throwable) {
+        $agencyId = Cache::pull(self::cacheKey($token));
+
+        if (! $agencyId) {
             return null;
         }
 
-        if (! is_array($payload) || ($payload['expires_at'] ?? 0) < now()->timestamp) {
-            return null;
-        }
+        return Agency::find($agencyId);
+    }
 
-        return Agency::find($payload['agency_id'] ?? null);
+    public static function cacheKey(string $token): string
+    {
+        return 'agency_line_connect_token:'.$token;
     }
 }

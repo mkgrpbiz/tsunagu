@@ -1,7 +1,12 @@
 @php
     $connectAgency = $agency ?? auth('agency')->user();
-    $connectToken = encrypt(['agency_id' => $connectAgency->id, 'expires_at' => now()->addMinutes(15)->timestamp]);
-    $callbackFrom = '/agency/line-connection/callback?connect_token=' . urlencode($connectToken);
+    $connectToken = \Illuminate\Support\Str::random(40);
+    \Illuminate\Support\Facades\Cache::put(
+        \App\Http\Controllers\Agency\LineConnectionController::cacheKey($connectToken),
+        $connectAgency->id,
+        now()->addMinutes(15),
+    );
+    $callbackFrom = '/agency/line-connection/callback?connect_token=' . $connectToken;
     $liffUrl = 'https://liff.line.me/' . ($liffId ?? config('services.line.liff_id')) . '?from=' . urlencode($callbackFrom);
 @endphp
 
