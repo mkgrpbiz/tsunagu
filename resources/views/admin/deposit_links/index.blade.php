@@ -52,17 +52,16 @@
         </form>
     @endforeach
 
-    <div class="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
+    <div class="space-y-3">
         @forelse ($candidates as $candidate)
             @php
                 $project = $candidate->project;
                 $tsunaguPrice = $project->singleTsunaguUnitPrice();
                 $agencyPrice = $project->singleAgencyUnitPrice();
-                $canAutoCalc = $tsunaguPrice !== null && $agencyPrice !== null;
-                $rowId = 'row-'.$candidate->id;
             @endphp
-            <div class="p-4 tsn-deposit-row" data-tsunagu-price="{{ $tsunaguPrice }}" data-agency-price="{{ $agencyPrice }}">
-                <div class="grid grid-cols-5 gap-3 text-sm mb-3">
+            <div class="bg-white border border-gray-300 shadow-sm rounded-lg p-4 tsn-deposit-row">
+                <div class="grid grid-cols-6 gap-3 text-sm mb-3 pb-3 border-b border-gray-100">
+                    <div><span class="text-gray-400 text-xs block">問い合わせ日時</span>{{ $candidate->inquired_at?->format('Y-m-d H:i') }}</div>
                     <div><span class="text-gray-400 text-xs block">パートナー</span>{{ $candidate->agency->name }}</div>
                     <div><span class="text-gray-400 text-xs block">案件名</span>{{ $project->name }}</div>
                     <div><span class="text-gray-400 text-xs block">LINE名</span>{{ $candidate->lineUser->display_name ?? $candidate->legacy_line_display_name }}</div>
@@ -72,41 +71,37 @@
                 <div class="grid grid-cols-7 gap-3 items-end text-sm">
                     <div>
                         <span class="text-gray-400 text-xs block">TSUNAGU単価</span>
-                        {{ $project->formattedTsunaguUnitPrices() }}
+                        <input type="number" name="tsunagu_unit_price" min="0" required
+                               form="deposit-form-{{ $candidate->id }}"
+                               class="tsn-tsunagu-price w-24 rounded-md border border-gray-300 text-sm"
+                               value="{{ $tsunaguPrice }}" placeholder="{{ $tsunaguPrice === null ? '金額' : '' }}">
                     </div>
                     <div>
                         <span class="text-gray-400 text-xs block">パートナー単価</span>
-                        {{ $project->formattedAgencyUnitPrices() }}
+                        <input type="number" name="agency_unit_price" min="0" required
+                               form="deposit-form-{{ $candidate->id }}"
+                               class="tsn-agency-price w-24 rounded-md border border-gray-300 text-sm"
+                               value="{{ $agencyPrice }}" placeholder="{{ $agencyPrice === null ? '金額' : '' }}">
                     </div>
                     <div>
                         <span class="text-gray-400 text-xs block">件数</span>
-                        @if ($canAutoCalc)
-                            <input type="number" min="1" value="1" step="1" class="tsn-count-input w-20 rounded-md border border-gray-300 text-sm">
-                        @else
-                            <span class="text-gray-300">—</span>
-                        @endif
+                        <input type="number" name="count" min="1" step="1" value="1" required
+                               form="deposit-form-{{ $candidate->id }}"
+                               class="tsn-count-input w-20 rounded-md border border-gray-300 text-sm">
                     </div>
                     <div>
                         <span class="text-gray-400 text-xs block">TSUNAGU合計</span>
-                        <input type="number" name="deposit_amount" min="0"
-                               @if ($canAutoCalc) readonly @else @required($tsunaguPrice === null) @endif
-                               form="deposit-form-{{ $candidate->id }}"
-                               class="tsn-tsunagu-total w-28 rounded-md border border-gray-300 text-sm {{ $canAutoCalc ? 'bg-gray-100' : '' }}"
-                               value="{{ $canAutoCalc ? $tsunaguPrice : '' }}"
-                               placeholder="{{ $canAutoCalc ? '' : ($tsunaguPrice ?? '金額を入力') }}">
+                        <input type="number" readonly tabindex="-1"
+                               class="tsn-tsunagu-total w-28 rounded-md border border-gray-300 text-sm bg-gray-100">
                     </div>
                     <div>
                         <span class="text-gray-400 text-xs block">パートナー合計</span>
-                        <input type="number" name="agency_reward_amount" min="0"
-                               @if ($canAutoCalc) readonly @else @required($agencyPrice === null) @endif
-                               form="deposit-form-{{ $candidate->id }}"
-                               class="tsn-agency-total w-28 rounded-md border border-gray-300 text-sm {{ $canAutoCalc ? 'bg-gray-100' : '' }}"
-                               value="{{ $canAutoCalc ? $agencyPrice : '' }}"
-                               placeholder="{{ $canAutoCalc ? '' : ($agencyPrice ?? '金額を入力') }}">
+                        <input type="number" readonly tabindex="-1"
+                               class="tsn-agency-total w-28 rounded-md border border-gray-300 text-sm bg-gray-100">
                     </div>
                     <div>
                         <span class="text-gray-400 text-xs block">TSUNAGU利益</span>
-                        <span class="tsn-profit-display font-medium">{{ $canAutoCalc ? '¥'.number_format($tsunaguPrice - $agencyPrice) : '—' }}</span>
+                        <span class="tsn-profit-display font-medium">—</span>
                     </div>
                     <div>
                         <button type="submit" form="deposit-form-{{ $candidate->id }}" class="text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md px-3 py-1.5">紐付け</button>
@@ -114,42 +109,44 @@
                 </div>
             </div>
         @empty
-            <div class="px-4 py-6 text-center text-gray-400">該当する問い合わせがありません。</div>
+            <div class="bg-white border border-gray-200 rounded-lg px-4 py-6 text-center text-gray-400">該当する問い合わせがありません。</div>
         @endforelse
     </div>
 @endif
 
 <script>
 document.querySelectorAll('.tsn-deposit-row').forEach(function (row) {
+    var tsunaguPriceInput = row.querySelector('.tsn-tsunagu-price');
+    var agencyPriceInput = row.querySelector('.tsn-agency-price');
     var countInput = row.querySelector('.tsn-count-input');
     var tsunaguTotalInput = row.querySelector('.tsn-tsunagu-total');
     var agencyTotalInput = row.querySelector('.tsn-agency-total');
     var profitDisplay = row.querySelector('.tsn-profit-display');
 
-    function updateProfitDisplay() {
-        var tsunaguTotal = parseInt(tsunaguTotalInput.value, 10);
-        var agencyTotal = parseInt(agencyTotalInput.value, 10);
-        if (isNaN(tsunaguTotal) || isNaN(agencyTotal)) {
+    function recalculate() {
+        var tsunaguPrice = parseInt(tsunaguPriceInput.value, 10);
+        var agencyPrice = parseInt(agencyPriceInput.value, 10);
+        var count = parseInt(countInput.value, 10);
+
+        if (isNaN(tsunaguPrice) || isNaN(agencyPrice) || isNaN(count)) {
+            tsunaguTotalInput.value = '';
+            agencyTotalInput.value = '';
             profitDisplay.textContent = '—';
             return;
         }
+
+        var tsunaguTotal = tsunaguPrice * count;
+        var agencyTotal = agencyPrice * count;
+        tsunaguTotalInput.value = tsunaguTotal;
+        agencyTotalInput.value = agencyTotal;
         profitDisplay.textContent = '¥' + (tsunaguTotal - agencyTotal).toLocaleString();
     }
 
-    if (countInput) {
-        var tsunaguPrice = parseInt(row.dataset.tsunaguPrice, 10);
-        var agencyPrice = parseInt(row.dataset.agencyPrice, 10);
+    [tsunaguPriceInput, agencyPriceInput, countInput].forEach(function (input) {
+        input.addEventListener('input', recalculate);
+    });
 
-        countInput.addEventListener('input', function () {
-            var count = parseInt(countInput.value, 10) || 0;
-            tsunaguTotalInput.value = tsunaguPrice * count;
-            agencyTotalInput.value = agencyPrice * count;
-            updateProfitDisplay();
-        });
-    } else {
-        tsunaguTotalInput.addEventListener('input', updateProfitDisplay);
-        agencyTotalInput.addEventListener('input', updateProfitDisplay);
-    }
+    recalculate();
 });
 </script>
 @endsection
