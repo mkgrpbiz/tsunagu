@@ -60,6 +60,7 @@ class ProjectController extends Controller
             'categories' => Category::orderBy('sort_order')->get(),
             'statuses' => ProjectStatus::cases(),
             'agencies' => Agency::where('is_collaboration_partner', true)->orderBy('name')->get(),
+            'clientNames' => Project::whereNotNull('client_name')->distinct()->orderBy('client_name')->pluck('client_name'),
         ]);
     }
 
@@ -108,6 +109,7 @@ class ProjectController extends Controller
             'categories' => Category::orderBy('sort_order')->get(),
             'statuses' => ProjectStatus::cases(),
             'agencies' => $agencies,
+            'clientNames' => Project::whereNotNull('client_name')->distinct()->orderBy('client_name')->pluck('client_name'),
         ]);
     }
 

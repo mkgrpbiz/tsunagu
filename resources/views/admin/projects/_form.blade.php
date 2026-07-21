@@ -57,7 +57,13 @@
     <div>
         <label for="client_name" class="block text-sm font-medium text-gray-700 mb-1">取引先名</label>
         <input type="text" name="client_name" id="client_name" value="{{ old('client_name', $project->client_name) }}"
+               list="client_name_list" autocomplete="off"
                class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        <datalist id="client_name_list">
+            @foreach ($clientNames as $clientName)
+                <option value="{{ $clientName }}">
+            @endforeach
+        </datalist>
         @error('client_name')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
