@@ -88,7 +88,7 @@
                     <td class="px-4 py-3">{{ $inquiry->lineUser->display_name }}</td>
                     <td class="px-4 py-3">{{ $inquiry->name }}</td>
                     <td class="px-4 py-3">{{ $inquiry->name_kana }}</td>
-                    <td class="px-4 py-3">{{ $inquiry->status->label() }}</td>
+                    <td class="px-4 py-3">{{ $inquiry->status->partnerLabel() }}</td>
                 </tr>
             @empty
                 <tr>

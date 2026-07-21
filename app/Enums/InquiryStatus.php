@@ -18,4 +18,12 @@ enum InquiryStatus: string
             self::Contracted => '着金',
         };
     }
+
+    public function partnerLabel(): string
+    {
+        return match ($this) {
+            self::GuidanceFailed => self::New->label(),
+            default => $this->label(),
+        };
+    }
 }
