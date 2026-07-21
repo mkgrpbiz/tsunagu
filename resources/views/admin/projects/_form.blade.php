@@ -45,6 +45,15 @@
         @error('is_recurring')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
+    <div class="col-span-2">
+        <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <input type="checkbox" name="bulk_link_enabled" value="1" @checked(old('bulk_link_enabled', $project->bulk_link_enabled))>
+            一括紐付け（貼り付け）の対象案件にする
+        </label>
+        <p class="text-xs text-gray-500 mt-1">ONにすると、着金紐付け画面の一括紐付け（貼り付け）の案件プルダウンに表示されます。</p>
+        @error('bulk_link_enabled')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+    </div>
+
     <div>
         <label for="client_name" class="block text-sm font-medium text-gray-700 mb-1">取引先名</label>
         <input type="text" name="client_name" id="client_name" value="{{ old('client_name', $project->client_name) }}"

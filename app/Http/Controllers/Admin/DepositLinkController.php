@@ -13,6 +13,7 @@ use App\Models\ReferralCommission;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class DepositLinkController extends Controller
@@ -51,7 +52,7 @@ class DepositLinkController extends Controller
         return view('admin.deposit_links.index', [
             'categories' => Category::orderBy('name')->get(),
             'projects' => $projects,
-            'allProjects' => Project::orderBy('name')->get(),
+            'allProjects' => Project::where('bulk_link_enabled', true)->orderBy('name')->get(),
             'candidates' => $candidates,
             'categoryId' => $categoryId,
             'projectId' => $projectId,
@@ -81,7 +82,7 @@ class DepositLinkController extends Controller
     public function bulkPreview(Request $request): View
     {
         $data = $request->validate([
-            'project_id' => ['required', 'exists:projects,id'],
+            'project_id' => ['required', Rule::exists('projects', 'id')->where('bulk_link_enabled', true)],
             'pasted_text' => ['required', 'string'],
         ]);
 
@@ -98,7 +99,7 @@ class DepositLinkController extends Controller
     public function bulkStore(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'project_id' => ['required', 'exists:projects,id'],
+            'project_id' => ['required', Rule::exists('projects', 'id')->where('bulk_link_enabled', true)],
             'pasted_text' => ['required', 'string'],
         ]);
 
