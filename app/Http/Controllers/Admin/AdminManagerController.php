@@ -29,6 +29,7 @@ class AdminManagerController extends Controller
             'collaboration_partners' => '共創パートナー',
             'inquiries' => '問い合わせ',
             'deposit_links' => '着金紐付け',
+            'aggregate_results' => '合計成果反映',
             'payments' => '支払い管理',
             'announcements' => 'お知らせ管理',
             'collaboration_referrals' => '共創紹介',

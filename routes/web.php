@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminManagerController;
 use App\Http\Controllers\Admin\AgencyController;
+use App\Http\Controllers\Admin\AggregateResultController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -120,6 +121,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::post('deposit-links/bulk-store', [DepositLinkController::class, 'bulkStore'])->name('deposit-links.bulk-store');
                 Route::post('deposit-links/no-referral', [DepositLinkController::class, 'storeNoReferral'])->name('deposit-links.no-referral');
                 Route::post('deposit-links/{inquiry}', [DepositLinkController::class, 'store'])->name('deposit-links.store');
+            });
+
+            Route::middleware('menu:aggregate_results')->group(function () {
+                Route::get('aggregate-results', [AggregateResultController::class, 'index'])->name('aggregate-results.index');
+                Route::post('aggregate-results/{agency}', [AggregateResultController::class, 'store'])->name('aggregate-results.store');
             });
 
             Route::middleware('menu:payments')->group(function () {

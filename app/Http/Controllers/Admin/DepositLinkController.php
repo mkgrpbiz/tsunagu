@@ -3,22 +3,23 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\InquiryStatus;
-use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
 use App\Models\Category;
-use App\Models\Contract;
 use App\Models\Inquiry;
 use App\Models\Project;
-use App\Models\ReferralCommission;
+use App\Services\ContractLinkingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class DepositLinkController extends Controller
 {
+    public function __construct(private readonly ContractLinkingService $contractLinkingService)
+    {
+    }
+
     public function index(Request $request): View
     {
         $categoryId = $request->query('category_id');
@@ -72,7 +73,7 @@ class DepositLinkController extends Controller
             'lines.*.count' => ['required', 'integer', 'min:1'],
         ]);
 
-        if (! $this->linkInquiry($inquiry, $data['lines'])) {
+        if (! $this->contractLinkingService->linkInquiry($inquiry, $data['lines'])) {
             return back()->with('error', 'この問い合わせにはすでに着金が紐付けられています。');
         }
 
@@ -102,7 +103,7 @@ class DepositLinkController extends Controller
             'is_legacy_import' => false,
         ]);
 
-        $this->linkInquiry($inquiry, [[
+        $this->contractLinkingService->linkInquiry($inquiry, [[
             'tsunagu_unit_price' => $data['tsunagu_unit_price'],
             'agency_unit_price' => 0,
             'count' => $data['count'],
@@ -143,7 +144,7 @@ class DepositLinkController extends Controller
         $blockedCount = 0;
 
         foreach ($result['matched'] as $match) {
-            $success = $this->linkInquiry($match['inquiry'], [[
+            $success = $this->contractLinkingService->linkInquiry($match['inquiry'], [[
                 'tsunagu_unit_price' => $match['tsunagu_price'],
                 'agency_unit_price' => $match['agency_price'],
                 'count' => $match['count'],
@@ -236,41 +237,5 @@ class DepositLinkController extends Controller
         }
 
         return ['matched' => $matched, 'unmatched' => $unmatched];
-    }
-
-    private function linkInquiry(Inquiry $inquiry, array $lines): bool
-    {
-        if ($inquiry->contract && ! $inquiry->project->is_recurring) {
-            return false;
-        }
-
-        $depositDate = Carbon::now();
-        $paymentDueDate = $depositDate->copy()->addMonthNoOverflow()->day(5);
-
-        foreach ($lines as $line) {
-            $contract = Contract::create([
-                'inquiry_id' => $inquiry->id,
-                'deposit_date' => $depositDate,
-                'deposit_amount' => $line['tsunagu_unit_price'] * $line['count'],
-                'agency_reward_amount' => $line['agency_unit_price'] * $line['count'],
-                'payment_due_date' => $paymentDueDate,
-                'payment_status' => PaymentStatus::Unpaid,
-            ]);
-
-            if ($inquiry->agency->referred_by_agency_id) {
-                ReferralCommission::create([
-                    'contract_id' => $contract->id,
-                    'referrer_agency_id' => $inquiry->agency->referred_by_agency_id,
-                    'source_agency_id' => $inquiry->agency_id,
-                    'amount' => (int) round($contract->agency_reward_amount * 0.1),
-                    'payment_due_date' => $paymentDueDate,
-                    'payment_status' => PaymentStatus::Unpaid,
-                ]);
-            }
-        }
-
-        $inquiry->update(['status' => InquiryStatus::Contracted]);
-
-        return true;
     }
 }
