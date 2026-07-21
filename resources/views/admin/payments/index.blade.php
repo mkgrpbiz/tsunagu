@@ -38,6 +38,20 @@
     </div>
 </div>
 
+<div class="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex items-center justify-between">
+    <p class="text-xs text-gray-500">
+        月の絞り込みに関係なく、現在支払い可能な全パートナーの未払い全額が対象です。
+    </p>
+    <div class="flex gap-2">
+        <a href="{{ route('admin.payments.export-csv') }}" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md px-4 py-2">一括CSV抽出</a>
+        <form method="POST" action="{{ route('admin.payments.pay-all-agencies') }}" onsubmit="return confirm('支払い可能な全パートナーの未払い分をまとめて支払済みにしますか？');">
+            @csrf
+            @method('PATCH')
+            <button type="submit" class="text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md px-4 py-2">一括で支払済みにする</button>
+        </form>
+    </div>
+</div>
+
 <h2 class="text-sm font-semibold text-gray-700 mb-3">パートナー別支払い{{ $month ? '（'.$month.'）' : '' }}</h2>
 <div class="bg-white border border-gray-200 rounded-lg overflow-hidden mb-6">
     <table class="w-full text-sm">

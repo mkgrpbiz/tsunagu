@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\BankAccountType;
 use App\Enums\CollaborationRewardStatus;
 use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
@@ -12,8 +13,11 @@ use App\Models\NotificationMessageSetting;
 use App\Models\Project;
 use App\Models\ReferralCommission;
 use App\Services\LineMessagingService;
+use App\Services\ZenginTransferCsvBuilder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class PaymentController extends Controller
@@ -182,6 +186,87 @@ class PaymentController extends Controller
 
     public function payAll(Agency $agency, LineMessagingService $lineMessaging): RedirectResponse
     {
+        $total = $this->markAgencyPaid($agency, $lineMessaging);
+
+        if ($total <= 0) {
+            return redirect()->route('admin.payments.show', $agency)->with('status', '未払いの項目がありませんでした。');
+        }
+
+        return redirect()->route('admin.payments.show', $agency)->with('status', 'まとめて支払済みにしました。');
+    }
+
+    public function payAllAgencies(LineMessagingService $lineMessaging): RedirectResponse
+    {
+        $rows = $this->payableAgencySummaries();
+        $paidCount = 0;
+
+        foreach ($rows as $row) {
+            if ($this->markAgencyPaid($row['agency'], $lineMessaging) > 0) {
+                $paidCount++;
+            }
+        }
+
+        return redirect()->route('admin.payments.index')->with('status', "{$paidCount}件のパートナーをまとめて支払済みにしました。");
+    }
+
+    public function exportCsv()
+    {
+        $rows = $this->payableAgencySummaries();
+        $transferDate = $this->nextTransferDate();
+
+        $recipients = $rows->map(fn (array $row) => [
+            'bank_code' => $row['agency']->bank_code,
+            'branch_code' => $row['agency']->bank_branch_code,
+            'account_type' => $row['agency']->bank_account_type === BankAccountType::Checking ? '2' : '1',
+            'account_no' => $row['agency']->bank_account_number,
+            'name' => $row['agency']->bank_account_holder,
+            'amount' => $row['total'],
+        ])->all();
+
+        $csv = (new ZenginTransferCsvBuilder())->build($recipients, $transferDate);
+        $sjis = mb_convert_encoding($csv, 'SJIS-win', 'UTF-8');
+
+        $filename = 'tsunagu_'.$transferDate->format('md').'.csv';
+
+        return response($sjis, 200, [
+            'Content-Type' => 'text/csv; charset=Shift_JIS',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    /**
+     * 現在支払い可能（累計未払い額が繰り越し閾値以上）なパートナーごとに、
+     * 紹介報酬・パートナー10%・共創パートナー30%を合算した内訳を返す。
+     * 一括支払い・CSV出力の両方で、月の絞り込みに関係なく「今の未払い全額」を対象にするために使う。
+     */
+    private function payableAgencySummaries(): Collection
+    {
+        $agencyIdsWithUnpaid = collect()
+            ->merge(
+                Contract::where('payment_status', PaymentStatus::Unpaid)->with('inquiry')->get()->pluck('inquiry.agency_id')
+            )
+            ->merge(
+                ReferralCommission::where('payment_status', PaymentStatus::Unpaid)->pluck('referrer_agency_id')
+            )
+            ->merge(
+                CollaborationReward::where('status', CollaborationRewardStatus::Approved)
+                    ->where('payment_status', PaymentStatus::Unpaid)
+                    ->get()
+                    ->map(fn (CollaborationReward $reward) => Project::where('client_name', $reward->client_name)
+                        ->whereNotNull('referrer_agency_id')
+                        ->value('referrer_agency_id'))
+            )
+            ->unique()->filter()->values();
+
+        return Agency::whereIn('id', $agencyIdsWithUnpaid)->get()
+            ->map(fn (Agency $agency) => ['agency' => $agency, ...$agency->pendingPayoutBreakdown()])
+            ->filter(fn (array $row) => $row['total'] >= self::CARRY_OVER_THRESHOLD)
+            ->sortByDesc('total')
+            ->values();
+    }
+
+    private function markAgencyPaid(Agency $agency, LineMessagingService $lineMessaging): int
+    {
         $unpaidContracts = $agency->contracts()->where('payment_status', PaymentStatus::Unpaid)->get();
         $unpaidCommissions = $agency->referralCommissions()->where('payment_status', PaymentStatus::Unpaid)->get();
 
@@ -197,7 +282,7 @@ class PaymentController extends Controller
             + $unpaidRewards->sum('reward_amount');
 
         if ($total <= 0) {
-            return redirect()->route('admin.payments.show', $agency)->with('status', '未払いの項目がありませんでした。');
+            return 0;
         }
 
         $now = now();
@@ -216,7 +301,16 @@ class PaymentController extends Controller
 
         $this->notifyPaymentCompleted($agency, (int) $total, $lineMessaging);
 
-        return redirect()->route('admin.payments.show', $agency)->with('status', 'まとめて支払済みにしました。');
+        return (int) $total;
+    }
+
+    private function nextTransferDate(): Carbon
+    {
+        $today = now();
+
+        return $today->day <= 5
+            ? $today->copy()->startOfMonth()->addDays(4)
+            : $today->copy()->addMonthNoOverflow()->startOfMonth()->addDays(4);
     }
 
     public function revertAll(Agency $agency): RedirectResponse

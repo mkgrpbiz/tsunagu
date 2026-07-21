@@ -43,4 +43,13 @@ return [
         'official_account_id' => env('LINE_OFFICIAL_ACCOUNT_ID'),
     ],
 
+    'zengin_transfer' => [
+        'consignor_code' => env('ZENGIN_CONSIGNOR_CODE'),
+        'consignor_name' => env('ZENGIN_CONSIGNOR_NAME', 'TSUNAGU'),
+        'source_bank_code' => env('ZENGIN_SOURCE_BANK_CODE'),
+        'source_branch_code' => env('ZENGIN_SOURCE_BRANCH_CODE'),
+        'source_account_type' => env('ZENGIN_SOURCE_ACCOUNT_TYPE', '1'),
+        'source_account_no' => env('ZENGIN_SOURCE_ACCOUNT_NO'),
+    ],
+
 ];
