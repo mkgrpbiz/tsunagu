@@ -11,6 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // MySQLは外部キーを支えるインデックスが常に1つ以上存在しないと
+        // UNIQUE制約を外せないため、先に非UNIQUEの索引を別ステートメントで追加してから外す
+        Schema::table('contracts', function (Blueprint $table) {
+            $table->index('inquiry_id', 'contracts_inquiry_id_index');
+        });
+
         Schema::table('contracts', function (Blueprint $table) {
             $table->dropUnique('contracts_inquiry_id_unique');
         });
@@ -23,6 +29,10 @@ return new class extends Migration
     {
         Schema::table('contracts', function (Blueprint $table) {
             $table->unique('inquiry_id');
+        });
+
+        Schema::table('contracts', function (Blueprint $table) {
+            $table->dropIndex('contracts_inquiry_id_index');
         });
     }
 };
