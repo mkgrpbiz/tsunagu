@@ -150,6 +150,7 @@ class PaymentController extends Controller
             'month' => $month,
             'monthlyTotal' => $monthlyTotal,
             'cumulativeTotal' => $cumulativeTotal,
+            'defaultTransferDate' => $this->nextTransferDate(),
         ]);
     }
 
@@ -209,10 +210,12 @@ class PaymentController extends Controller
         return redirect()->route('admin.payments.index')->with('status', "{$paidCount}件のパートナーをまとめて支払済みにしました。");
     }
 
-    public function exportCsv()
+    public function exportCsv(Request $request)
     {
         $rows = $this->payableAgencySummaries();
-        $transferDate = $this->nextTransferDate();
+        $transferDate = $request->filled('date')
+            ? Carbon::parse($request->query('date'))
+            : $this->nextTransferDate();
 
         $recipients = $rows->map(fn (array $row) => [
             'bank_code' => $row['agency']->bank_code,

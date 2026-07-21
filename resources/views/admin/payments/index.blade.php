@@ -38,12 +38,16 @@
     </div>
 </div>
 
-<div class="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex items-center justify-between">
+<div class="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex items-center justify-between flex-wrap gap-3">
     <p class="text-xs text-gray-500">
         月の絞り込みに関係なく、現在支払い可能な全パートナーの未払い全額が対象です。
     </p>
-    <div class="flex gap-2">
-        <a href="{{ route('admin.payments.export-csv') }}" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md px-4 py-2">一括CSV抽出</a>
+    <div class="flex items-center gap-2">
+        <form method="GET" action="{{ route('admin.payments.export-csv') }}" class="flex items-center gap-2">
+            <label for="csv-date" class="text-xs text-gray-500">振込指定日</label>
+            <input type="date" name="date" id="csv-date" value="{{ $defaultTransferDate->format('Y-m-d') }}" class="rounded-md border border-gray-300 text-sm">
+            <button type="submit" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md px-4 py-2">一括CSV抽出</button>
+        </form>
         <form method="POST" action="{{ route('admin.payments.pay-all-agencies') }}" onsubmit="return confirm('支払い可能な全パートナーの未払い分をまとめて支払済みにしますか？');">
             @csrf
             @method('PATCH')
