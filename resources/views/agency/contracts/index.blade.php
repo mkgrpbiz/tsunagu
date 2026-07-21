@@ -8,6 +8,7 @@
 <div class="bg-blue-50 border border-blue-100 rounded-lg p-6 mb-6 text-sm text-gray-700 leading-relaxed">
     <p class="font-semibold mb-1">お支払いについて</p>
     <p>TSUNAGU着金確認後、月末で締めて翌月5日にお振込みいたします。</p>
+    <p>※5日が土日祝の場合、明けの振り込みになります。</p>
     <p>※金額1,000円未満の場合、翌月に繰り越されます。</p>
 </div>
 
@@ -42,27 +43,31 @@
     <table class="w-full text-sm min-w-max">
         <thead class="bg-gray-50 text-gray-500 text-left">
             <tr>
+                <th class="px-4 py-3 font-medium">着金日</th>
                 <th class="px-4 py-3 font-medium">案件名</th>
                 <th class="px-4 py-3 font-medium">名前</th>
                 <th class="px-4 py-3 font-medium">フリガナ</th>
-                <th class="px-4 py-3 font-medium">紹介報酬</th>
-                <th class="px-4 py-3 font-medium">着金日</th>
+                <th class="px-4 py-3 font-medium">単価</th>
+                <th class="px-4 py-3 font-medium">件数</th>
+                <th class="px-4 py-3 font-medium">合計</th>
                 <th class="px-4 py-3 font-medium">支払予定日</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($contracts as $contract)
                 <tr>
+                    <td class="px-4 py-3">{{ $contract->deposit_date->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">{{ $contract->inquiry->project->name }}</td>
                     <td class="px-4 py-3">{{ $contract->inquiry->name }}</td>
                     <td class="px-4 py-3">{{ $contract->inquiry->name_kana }}</td>
+                    <td class="px-4 py-3">{{ $contract->agency_unit_price !== null ? '¥'.number_format($contract->agency_unit_price) : '－' }}</td>
+                    <td class="px-4 py-3">{{ $contract->count ?? '－' }}</td>
                     <td class="px-4 py-3">¥{{ number_format($contract->agency_reward_amount) }}</td>
-                    <td class="px-4 py-3">{{ $contract->deposit_date->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">{{ $contract->payment_due_date->format('Y-m-d') }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="px-4 py-6 text-center text-gray-400">着金はまだありません。</td>
+                    <td colspan="8" class="px-4 py-6 text-center text-gray-400">着金はまだありません。</td>
                 </tr>
             @endforelse
         </tbody>

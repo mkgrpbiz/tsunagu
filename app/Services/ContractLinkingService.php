@@ -29,6 +29,8 @@ class ContractLinkingService
                 'deposit_date' => $depositDate,
                 'deposit_amount' => $line['tsunagu_unit_price'] * $line['count'],
                 'agency_reward_amount' => $line['agency_unit_price'] * $line['count'],
+                'agency_unit_price' => $line['agency_unit_price'],
+                'count' => $line['count'],
                 'payment_due_date' => $paymentDueDate,
                 'payment_status' => PaymentStatus::Unpaid,
             ]);
