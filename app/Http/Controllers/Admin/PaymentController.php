@@ -162,12 +162,56 @@ class PaymentController extends Controller
             ->orderByDesc('payment_due_date')
             ->get();
 
+        $unpaidTotal = $contracts->where('payment_status', PaymentStatus::Unpaid)->sum('agency_reward_amount')
+            + $commissions->where('payment_status', PaymentStatus::Unpaid)->sum('amount')
+            + $collaborationRewards->where('payment_status', PaymentStatus::Unpaid)->sum('reward_amount');
+
         return view('admin.payments.show', [
             'agency' => $agency,
             'contracts' => $contracts,
             'commissions' => $commissions,
             'collaborationRewards' => $collaborationRewards,
+            'unpaidTotal' => $unpaidTotal,
         ]);
+    }
+
+    public function payAll(Agency $agency, LineMessagingService $lineMessaging): RedirectResponse
+    {
+        $unpaidContracts = $agency->contracts()->where('payment_status', PaymentStatus::Unpaid)->get();
+        $unpaidCommissions = $agency->referralCommissions()->where('payment_status', PaymentStatus::Unpaid)->get();
+
+        $clientNames = $agency->projects()->whereNotNull('client_name')->distinct()->pluck('client_name');
+
+        $unpaidRewards = CollaborationReward::whereIn('client_name', $clientNames)
+            ->where('status', CollaborationRewardStatus::Approved)
+            ->where('payment_status', PaymentStatus::Unpaid)
+            ->get();
+
+        $total = $unpaidContracts->sum('agency_reward_amount')
+            + $unpaidCommissions->sum('amount')
+            + $unpaidRewards->sum('reward_amount');
+
+        if ($total <= 0) {
+            return redirect()->route('admin.payments.show', $agency)->with('status', '未払いの項目がありませんでした。');
+        }
+
+        $now = now();
+
+        foreach ($unpaidContracts as $contract) {
+            $contract->update(['payment_status' => PaymentStatus::Paid, 'paid_at' => $now]);
+        }
+
+        foreach ($unpaidCommissions as $commission) {
+            $commission->update(['payment_status' => PaymentStatus::Paid, 'paid_at' => $now]);
+        }
+
+        foreach ($unpaidRewards as $reward) {
+            $reward->update(['payment_status' => PaymentStatus::Paid, 'paid_at' => $now]);
+        }
+
+        $this->notifyPaymentCompleted($agency, (int) $total, $lineMessaging);
+
+        return redirect()->route('admin.payments.show', $agency)->with('status', 'まとめて支払済みにしました。');
     }
 
     public function update(Contract $contract, LineMessagingService $lineMessaging): RedirectResponse
