@@ -123,6 +123,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
                 Route::get('payments/{agency}', [PaymentController::class, 'show'])->name('payments.show');
                 Route::patch('payments/{agency}/pay-all', [PaymentController::class, 'payAll'])->name('payments.pay-all');
+                Route::patch('payments/{agency}/revert-all', [PaymentController::class, 'revertAll'])->name('payments.revert-all');
                 Route::patch('payments/{contract}', [PaymentController::class, 'update'])->name('payments.update');
                 Route::patch('payments/{contract}/revert', [PaymentController::class, 'revert'])->name('payments.revert');
                 Route::patch('payments/referral-commissions/{referralCommission}', [PaymentController::class, 'updateReferralCommission'])->name('payments.referral-commissions.update');

@@ -166,12 +166,17 @@ class PaymentController extends Controller
             + $commissions->where('payment_status', PaymentStatus::Unpaid)->sum('amount')
             + $collaborationRewards->where('payment_status', PaymentStatus::Unpaid)->sum('reward_amount');
 
+        $paidTotal = $contracts->where('payment_status', PaymentStatus::Paid)->sum('agency_reward_amount')
+            + $commissions->where('payment_status', PaymentStatus::Paid)->sum('amount')
+            + $collaborationRewards->where('payment_status', PaymentStatus::Paid)->sum('reward_amount');
+
         return view('admin.payments.show', [
             'agency' => $agency,
             'contracts' => $contracts,
             'commissions' => $commissions,
             'collaborationRewards' => $collaborationRewards,
             'unpaidTotal' => $unpaidTotal,
+            'paidTotal' => $paidTotal,
         ]);
     }
 
@@ -212,6 +217,37 @@ class PaymentController extends Controller
         $this->notifyPaymentCompleted($agency, (int) $total, $lineMessaging);
 
         return redirect()->route('admin.payments.show', $agency)->with('status', 'まとめて支払済みにしました。');
+    }
+
+    public function revertAll(Agency $agency): RedirectResponse
+    {
+        $paidContracts = $agency->contracts()->where('payment_status', PaymentStatus::Paid)->get();
+        $paidCommissions = $agency->referralCommissions()->where('payment_status', PaymentStatus::Paid)->get();
+
+        $clientNames = $agency->projects()->whereNotNull('client_name')->distinct()->pluck('client_name');
+
+        $paidRewards = CollaborationReward::whereIn('client_name', $clientNames)
+            ->where('status', CollaborationRewardStatus::Approved)
+            ->where('payment_status', PaymentStatus::Paid)
+            ->get();
+
+        if ($paidContracts->isEmpty() && $paidCommissions->isEmpty() && $paidRewards->isEmpty()) {
+            return redirect()->route('admin.payments.show', $agency)->with('status', '支払済みの項目がありませんでした。');
+        }
+
+        foreach ($paidContracts as $contract) {
+            $contract->update(['payment_status' => PaymentStatus::Unpaid, 'paid_at' => null]);
+        }
+
+        foreach ($paidCommissions as $commission) {
+            $commission->update(['payment_status' => PaymentStatus::Unpaid, 'paid_at' => null]);
+        }
+
+        foreach ($paidRewards as $reward) {
+            $reward->update(['payment_status' => PaymentStatus::Unpaid, 'paid_at' => null]);
+        }
+
+        return redirect()->route('admin.payments.show', $agency)->with('status', 'まとめて未払いに戻しました。');
     }
 
     public function update(Contract $contract, LineMessagingService $lineMessaging): RedirectResponse

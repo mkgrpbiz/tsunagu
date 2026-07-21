@@ -24,13 +24,22 @@
 
     <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
         <span class="text-sm text-gray-700">未払い合計: <span class="font-semibold">¥{{ number_format($unpaidTotal) }}</span></span>
-        @if ($unpaidTotal > 0)
-            <form method="POST" action="{{ route('admin.payments.pay-all', $agency) }}" onsubmit="return confirm('紹介報酬・パートナー10%・共創パートナー30%の未払い分をまとめて支払済みにしますか？');">
-                @csrf
-                @method('PATCH')
-                <button type="submit" class="text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md px-4 py-2">まとめて支払済みにする</button>
-            </form>
-        @endif
+        <div class="flex gap-2">
+            @if ($paidTotal > 0)
+                <form method="POST" action="{{ route('admin.payments.revert-all', $agency) }}" onsubmit="return confirm('支払済みの項目をまとめて未払いに戻しますか？');">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md px-4 py-2">まとめて未払いに戻す</button>
+                </form>
+            @endif
+            @if ($unpaidTotal > 0)
+                <form method="POST" action="{{ route('admin.payments.pay-all', $agency) }}" onsubmit="return confirm('紹介報酬・パートナー10%・共創パートナー30%の未払い分をまとめて支払済みにしますか？');">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md px-4 py-2">まとめて支払済みにする</button>
+                </form>
+            @endif
+        </div>
     </div>
 </div>
 
