@@ -166,22 +166,32 @@ class Agency extends Authenticatable
 
     public function totalPendingPayout(): int
     {
-        $contractsTotal = $this->contracts()
+        return $this->pendingPayoutBreakdown()['total'];
+    }
+
+    public function pendingPayoutBreakdown(): array
+    {
+        $contractTotal = (int) $this->contracts()
             ->where('payment_status', PaymentStatus::Unpaid)
             ->sum('agency_reward_amount');
 
-        $referralTotal = $this->referralCommissions()
+        $commissionTotal = (int) $this->referralCommissions()
             ->where('payment_status', PaymentStatus::Unpaid)
             ->sum('amount');
 
         $clientNames = $this->projects()->whereNotNull('client_name')->distinct()->pluck('client_name');
 
-        $collaborationTotal = CollaborationReward::whereIn('client_name', $clientNames)
+        $rewardTotal = (int) CollaborationReward::whereIn('client_name', $clientNames)
             ->where('status', CollaborationRewardStatus::Approved)
             ->where('payment_status', PaymentStatus::Unpaid)
             ->sum('reward_amount');
 
-        return (int) ($contractsTotal + $referralTotal + $collaborationTotal);
+        return [
+            'contract_total' => $contractTotal,
+            'commission_total' => $commissionTotal,
+            'reward_total' => $rewardTotal,
+            'total' => $contractTotal + $commissionTotal + $rewardTotal,
+        ];
     }
 
     public static function carryOverSummary(int $threshold = 1000): array
@@ -204,7 +214,7 @@ class Agency extends Authenticatable
             ->unique()->filter()->values();
 
         $rows = static::whereIn('id', $agencyIdsWithUnpaid)->get()
-            ->map(fn (self $agency) => ['agency' => $agency, 'total' => $agency->totalPendingPayout()])
+            ->map(fn (self $agency) => ['agency' => $agency, ...$agency->pendingPayoutBreakdown()])
             ->filter(fn (array $row) => $row['total'] > 0 && $row['total'] < $threshold)
             ->sortByDesc('total')
             ->values();
