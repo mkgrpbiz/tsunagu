@@ -20,20 +20,9 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-    function tsnDebugLog(step, data) {
-        try {
-            var payload = Object.assign({ step: step, url: window.location.href }, data || {});
-            navigator.sendBeacon('{{ route('debug-log') }}', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
-        } catch (e) {}
-    }
-
-    tsnDebugLog('page_loaded');
-
     liff.init({ liffId: @json($liffId) })
         .then(function () {
-            tsnDebugLog('liff_init_ok', { isInClient: liff.isInClient(), isLoggedIn: liff.isLoggedIn() });
             if (!liff.isLoggedIn()) {
-                tsnDebugLog('not_logged_in_calling_login');
                 liff.login();
                 return null;
             }
@@ -41,14 +30,12 @@
         })
         .then(function (profile) {
             if (!profile) return;
-            tsnDebugLog('get_profile_ok', { userId: profile.userId });
             document.getElementById('tsn-line-uid').value = profile.userId;
             document.getElementById('tsn-line-name').value = profile.displayName;
             document.getElementById('tsn-connect-form').submit();
         })
         .catch(function (error) {
             console.error(error);
-            tsnDebugLog('error', { message: String(error) });
             document.getElementById('tsn-status').style.display = 'none';
             document.getElementById('tsn-error').style.display = 'block';
         });

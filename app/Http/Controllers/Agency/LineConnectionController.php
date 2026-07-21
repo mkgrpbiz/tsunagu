@@ -8,7 +8,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -28,11 +27,6 @@ class LineConnectionController extends Controller
      */
     public function liffCallback(Request $request): View
     {
-        Log::info('debug: line-connection liffCallback hit', [
-            'full_url' => $request->fullUrl(),
-            'connect_token' => (string) $request->query('connect_token', ''),
-        ]);
-
         return view('agency.line_connection.liff_callback', [
             'liffId' => config('services.line.liff_id'),
             'connectToken' => (string) $request->query('connect_token', ''),
@@ -48,12 +42,6 @@ class LineConnectionController extends Controller
         ]);
 
         $agency = $this->resolveAgencyFromToken($data['connect_token']);
-
-        Log::info('debug: line-connection connect() called', [
-            'connect_token' => $data['connect_token'],
-            'resolved_agency_id' => $agency?->id,
-            'line_uid' => $data['line_uid'],
-        ]);
 
         if (! $agency) {
             return response()->view('agency.line_connection.expired', [], 400);
