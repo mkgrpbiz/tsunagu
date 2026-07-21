@@ -112,6 +112,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::middleware('menu:inquiries')->group(function () {
                 Route::get('inquiries', [InquiryController::class, 'index'])->name('inquiries.index');
+                Route::patch('inquiries/{inquiry}/resend-guidance', [InquiryController::class, 'resendGuidance'])->name('inquiries.resend-guidance');
             });
 
             Route::middleware('menu:deposit_links')->group(function () {

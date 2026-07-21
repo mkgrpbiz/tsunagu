@@ -75,6 +75,8 @@ class LineWebhookController extends Controller
 
             if ($sent) {
                 $inquiry->update(['guidance_sent_at' => now(), 'status' => InquiryStatus::Guided]);
+            } else {
+                $inquiry->update(['status' => InquiryStatus::GuidanceFailed]);
             }
         }
     }

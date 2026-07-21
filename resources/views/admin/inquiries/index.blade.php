@@ -61,11 +61,20 @@
                         @php
                             $statusColor = match ($inquiry->status) {
                                 \App\Enums\InquiryStatus::New => 'bg-blue-50 text-blue-700 border-blue-200',
+                                \App\Enums\InquiryStatus::GuidanceFailed => 'bg-red-50 text-red-700 border-red-200',
                                 \App\Enums\InquiryStatus::Guided => 'bg-purple-50 text-purple-700 border-purple-200',
                                 \App\Enums\InquiryStatus::Contracted => 'bg-green-50 text-green-700 border-green-200',
                             };
                         @endphp
                         <span class="text-xs font-medium border rounded-full px-2 py-1 {{ $statusColor }}">{{ $inquiry->status->label() }}</span>
+
+                        @if ($inquiry->status === \App\Enums\InquiryStatus::GuidanceFailed)
+                            <form method="POST" action="{{ route('admin.inquiries.resend-guidance', $inquiry) }}" class="inline">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="ml-1 text-xs text-blue-600 hover:underline">再送信</button>
+                            </form>
+                        @endif
                     </td>
                 </tr>
             @empty

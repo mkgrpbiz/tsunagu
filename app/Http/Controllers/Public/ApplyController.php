@@ -76,8 +76,14 @@ class ApplyController extends Controller
         $result = 'not_friend';
 
         if ($isFriend && filled($inviteLink->project->line_auto_message)) {
-            $lineMessaging->sendPush($lineUser->line_uid, $inviteLink->project->line_auto_message);
-            $inquiry->update(['guidance_sent_at' => now(), 'status' => InquiryStatus::Guided]);
+            $sent = $lineMessaging->sendPush($lineUser->line_uid, $inviteLink->project->line_auto_message);
+
+            if ($sent) {
+                $inquiry->update(['guidance_sent_at' => now(), 'status' => InquiryStatus::Guided]);
+            } else {
+                $inquiry->update(['status' => InquiryStatus::GuidanceFailed]);
+            }
+
             $result = 'friend';
         }
 
