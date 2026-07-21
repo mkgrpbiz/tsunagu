@@ -85,7 +85,7 @@
                 <tr>
                     <td class="px-4 py-3 whitespace-nowrap">{{ $inquiry->inquired_at->format('Y-m-d H:i') }}</td>
                     <td class="px-4 py-3">{{ $inquiry->project->name }}</td>
-                    <td class="px-4 py-3">{{ $inquiry->lineUser->display_name }}</td>
+                    <td class="px-4 py-3">{{ $inquiry->lineUser->display_name ?? $inquiry->legacy_line_display_name }}</td>
                     <td class="px-4 py-3">{{ $inquiry->name }}</td>
                     <td class="px-4 py-3">{{ $inquiry->name_kana }}</td>
                     <td class="px-4 py-3">{{ $inquiry->status->partnerLabel() }}</td>
