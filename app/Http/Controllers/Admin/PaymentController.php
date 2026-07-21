@@ -103,7 +103,7 @@ class PaymentController extends Controller
             + $allCommissions->where('payment_status', PaymentStatus::Unpaid)->sum('amount')
             + $allCollaborationRewards->where('payment_status', PaymentStatus::Unpaid)->sum('reward_amount');
 
-        $summaries = collect();
+        $summaries = [];
 
         foreach ($payableContracts as $contract) {
             $agencyId = $contract->inquiry->agency_id;
@@ -132,7 +132,7 @@ class PaymentController extends Controller
             }
         }
 
-        $agencySummaries = $summaries->map(function (array $row) {
+        $agencySummaries = collect($summaries)->map(function (array $row) {
             $row['total'] = $row['contract_total'] + $row['commission_total'] + $row['reward_total'];
 
             return $row;
