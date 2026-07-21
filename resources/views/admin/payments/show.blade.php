@@ -45,7 +45,6 @@
                 <th class="px-4 py-3 font-medium">支払予定日</th>
                 <th class="px-4 py-3 font-medium">ステータス</th>
                 <th class="px-4 py-3 font-medium">支払日</th>
-                <th class="px-4 py-3 font-medium w-32"></th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
@@ -61,25 +60,10 @@
                         </span>
                     </td>
                     <td class="px-4 py-3">{{ optional($contract->paid_at)->format('Y-m-d') }}</td>
-                    <td class="px-4 py-3">
-                        @if ($contract->payment_status === \App\Enums\PaymentStatus::Unpaid)
-                            <form method="POST" action="{{ route('admin.payments.update', $contract) }}" onsubmit="return confirm('支払済みにしますか？');">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit" class="text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md px-3 py-1.5">支払済みにする</button>
-                            </form>
-                        @else
-                            <form method="POST" action="{{ route('admin.payments.revert', $contract) }}" onsubmit="return confirm('未払いに戻しますか？');">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md px-3 py-1.5">未払いに戻す</button>
-                            </form>
-                        @endif
-                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="px-4 py-6 text-center text-gray-400">紹介報酬データがありません。</td>
+                    <td colspan="6" class="px-4 py-6 text-center text-gray-400">紹介報酬データがありません。</td>
                 </tr>
             @endforelse
         </tbody>
@@ -96,7 +80,6 @@
                 <th class="px-4 py-3 font-medium">支払予定日</th>
                 <th class="px-4 py-3 font-medium">ステータス</th>
                 <th class="px-4 py-3 font-medium">支払日</th>
-                <th class="px-4 py-3 font-medium w-32"></th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
@@ -111,25 +94,10 @@
                         </span>
                     </td>
                     <td class="px-4 py-3">{{ optional($commission->paid_at)->format('Y-m-d') }}</td>
-                    <td class="px-4 py-3">
-                        @if ($commission->payment_status === \App\Enums\PaymentStatus::Unpaid)
-                            <form method="POST" action="{{ route('admin.payments.referral-commissions.update', $commission) }}" onsubmit="return confirm('支払済みにしますか？');">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit" class="text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md px-3 py-1.5">支払済みにする</button>
-                            </form>
-                        @else
-                            <form method="POST" action="{{ route('admin.payments.referral-commissions.revert', $commission) }}" onsubmit="return confirm('未払いに戻しますか？');">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md px-3 py-1.5">未払いに戻す</button>
-                            </form>
-                        @endif
-                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="px-4 py-6 text-center text-gray-400">パートナー10%のデータがありません。</td>
+                    <td colspan="5" class="px-4 py-6 text-center text-gray-400">パートナー10%のデータがありません。</td>
                 </tr>
             @endforelse
         </tbody>
@@ -147,7 +115,6 @@
                 <th class="px-4 py-3 font-medium">支払予定日</th>
                 <th class="px-4 py-3 font-medium">ステータス</th>
                 <th class="px-4 py-3 font-medium">支払日</th>
-                <th class="px-4 py-3 font-medium w-32"></th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
@@ -163,25 +130,10 @@
                         </span>
                     </td>
                     <td class="px-4 py-3">{{ optional($reward->paid_at)->format('Y-m-d') }}</td>
-                    <td class="px-4 py-3">
-                        @if ($reward->payment_status === \App\Enums\PaymentStatus::Unpaid)
-                            <form method="POST" action="{{ route('admin.payments.collaboration-rewards.update', $reward) }}" onsubmit="return confirm('支払済みにしますか？');">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit" class="text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md px-3 py-1.5">支払済みにする</button>
-                            </form>
-                        @else
-                            <form method="POST" action="{{ route('admin.payments.collaboration-rewards.revert', $reward) }}" onsubmit="return confirm('未払いに戻しますか？');">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md px-3 py-1.5">未払いに戻す</button>
-                            </form>
-                        @endif
-                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="px-4 py-6 text-center text-gray-400">共創パートナー30%のデータがありません。</td>
+                    <td colspan="6" class="px-4 py-6 text-center text-gray-400">共創パートナー30%のデータがありません。</td>
                 </tr>
             @endforelse
         </tbody>
