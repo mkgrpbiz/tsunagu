@@ -15,6 +15,7 @@ class InquiryController extends Controller
     public function index(Request $request): View
     {
         $inquiries = Inquiry::with(['agency', 'project.category', 'lineUser', 'contract'])
+            ->where('is_bulk_reflection', false)
             ->latest('inquired_at')
             ->get();
 

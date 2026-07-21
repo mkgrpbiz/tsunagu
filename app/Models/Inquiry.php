@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'guidance_sent_at',
     'inquired_at',
     'is_legacy_import',
+    'is_bulk_reflection',
     'legacy_line_display_name',
 ])]
 class Inquiry extends Model
@@ -32,6 +33,7 @@ class Inquiry extends Model
             'guidance_sent_at' => 'datetime',
             'inquired_at' => 'datetime',
             'is_legacy_import' => 'boolean',
+            'is_bulk_reflection' => 'boolean',
         ];
     }
 

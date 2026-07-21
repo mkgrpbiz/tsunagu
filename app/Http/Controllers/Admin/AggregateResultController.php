@@ -42,7 +42,7 @@ class AggregateResultController extends Controller
         $history = collect();
         if ($selectedAgency) {
             $history = Inquiry::where('agency_id', $selectedAgency->id)
-                ->where('name', '合計成果反映')
+                ->where('is_bulk_reflection', true)
                 ->with(['project', 'contract.referralCommission'])
                 ->latest('created_at')
                 ->get();
@@ -78,6 +78,7 @@ class AggregateResultController extends Controller
                 'status' => InquiryStatus::Contracted,
                 'inquired_at' => now(),
                 'is_legacy_import' => false,
+                'is_bulk_reflection' => true,
             ]);
 
             $this->contractLinkingService->linkInquiry($inquiry, [[
