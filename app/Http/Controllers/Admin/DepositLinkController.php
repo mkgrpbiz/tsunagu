@@ -152,7 +152,8 @@ class DepositLinkController extends Controller
                 continue;
             }
 
-            $columns = explode("\t", $lineText);
+            // タブ区切りが基本だが、手入力で紛れ込んだ半角スペース(2個以上連続)も列区切りとして許容する
+            $columns = preg_split('/\t+| {2,}/', $lineText) ?: [];
             $name = trim($columns[0] ?? '');
             $nameKana = trim($columns[1] ?? '');
             $tsunaguPriceRaw = trim($columns[2] ?? '');
