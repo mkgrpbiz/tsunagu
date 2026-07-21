@@ -31,8 +31,11 @@ class DepositLinkController extends Controller
         $selectedProject = $projectId ? $projects->firstWhere('id', (int) $projectId) : null;
 
         if ($q !== '') {
-            $candidates = Inquiry::with(['agency', 'lineUser', 'project'])
-                ->whereDoesntHave('contract')
+            $candidates = Inquiry::with(['agency', 'lineUser', 'project', 'contracts'])
+                ->where(function ($query) {
+                    $query->whereDoesntHave('contracts')
+                        ->orWhereHas('project', fn ($q2) => $q2->where('is_recurring', true));
+                })
                 ->when($categoryId, fn ($query) => $query->whereHas('project', fn ($q2) => $q2->where('category_id', $categoryId)))
                 ->when($projectId, fn ($query) => $query->where('project_id', $projectId))
                 ->where(function ($query) use ($q) {
@@ -58,40 +61,43 @@ class DepositLinkController extends Controller
 
     public function store(Request $request, Inquiry $inquiry): RedirectResponse
     {
-        if ($inquiry->contract) {
+        if ($inquiry->contract && ! $inquiry->project->is_recurring) {
             return back()->with('error', 'この問い合わせにはすでに着金が紐付けられています。');
         }
 
         $data = $request->validate([
-            'tsunagu_unit_price' => ['required', 'integer', 'min:0'],
-            'agency_unit_price' => ['required', 'integer', 'min:0'],
-            'count' => ['required', 'integer', 'min:1'],
+            'lines' => ['required', 'array', 'min:1'],
+            'lines.*.tsunagu_unit_price' => ['required', 'integer', 'min:0'],
+            'lines.*.agency_unit_price' => ['required', 'integer', 'min:0'],
+            'lines.*.count' => ['required', 'integer', 'min:1'],
         ]);
 
         $depositDate = Carbon::now();
         $paymentDueDate = $depositDate->copy()->addMonthNoOverflow()->day(5);
 
-        $contract = Contract::create([
-            'inquiry_id' => $inquiry->id,
-            'deposit_date' => $depositDate,
-            'deposit_amount' => $data['tsunagu_unit_price'] * $data['count'],
-            'agency_reward_amount' => $data['agency_unit_price'] * $data['count'],
-            'payment_due_date' => $paymentDueDate,
-            'payment_status' => PaymentStatus::Unpaid,
-        ]);
-
-        $inquiry->update(['status' => InquiryStatus::Contracted]);
-
-        if ($inquiry->agency->referred_by_agency_id) {
-            ReferralCommission::create([
-                'contract_id' => $contract->id,
-                'referrer_agency_id' => $inquiry->agency->referred_by_agency_id,
-                'source_agency_id' => $inquiry->agency_id,
-                'amount' => (int) round($contract->agency_reward_amount * 0.1),
+        foreach ($data['lines'] as $line) {
+            $contract = Contract::create([
+                'inquiry_id' => $inquiry->id,
+                'deposit_date' => $depositDate,
+                'deposit_amount' => $line['tsunagu_unit_price'] * $line['count'],
+                'agency_reward_amount' => $line['agency_unit_price'] * $line['count'],
                 'payment_due_date' => $paymentDueDate,
                 'payment_status' => PaymentStatus::Unpaid,
             ]);
+
+            if ($inquiry->agency->referred_by_agency_id) {
+                ReferralCommission::create([
+                    'contract_id' => $contract->id,
+                    'referrer_agency_id' => $inquiry->agency->referred_by_agency_id,
+                    'source_agency_id' => $inquiry->agency_id,
+                    'amount' => (int) round($contract->agency_reward_amount * 0.1),
+                    'payment_due_date' => $paymentDueDate,
+                    'payment_status' => PaymentStatus::Unpaid,
+                ]);
+            }
         }
+
+        $inquiry->update(['status' => InquiryStatus::Contracted]);
 
         return redirect()
             ->route('admin.deposit-links.index', $request->only(['category_id', 'project_id', 'q']))

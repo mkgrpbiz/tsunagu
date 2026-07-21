@@ -182,6 +182,7 @@ class ProjectController extends Controller
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'max:4096'],
             'status' => ['required', Rule::enum(ProjectStatus::class)],
+            'is_recurring' => ['nullable', 'boolean'],
             'oshigoto_listed' => ['nullable', 'boolean'],
             'client_name' => ['nullable', 'string', 'max:255'],
             'referrer_agency_id' => ['nullable', 'exists:agencies,id'],
@@ -197,6 +198,7 @@ class ProjectController extends Controller
         ]);
 
         $data['oshigoto_listed'] = $request->boolean('oshigoto_listed');
+        $data['is_recurring'] = $request->boolean('is_recurring');
 
         $tsunaguPrices = collect($data['tsunagu_unit_price'] ?? [])->filter(fn ($v) => $v !== null && $v !== '')->map(fn ($v) => (int) $v)->values()->all();
         $agencyPrices = collect($data['agency_unit_price'] ?? [])->filter(fn ($v) => $v !== null && $v !== '')->map(fn ($v) => (int) $v)->values()->all();

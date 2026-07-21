@@ -36,6 +36,15 @@
         @error('oshigoto_listed')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
+    <div class="col-span-2">
+        <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <input type="checkbox" name="is_recurring" value="1" @checked(old('is_recurring', $project->is_recurring))>
+            ストック系案件（同じ問い合わせに何度でも着金紐付けできるようにする）
+        </label>
+        <p class="text-xs text-gray-500 mt-1">OFFの場合、1つの問い合わせに着金を紐付けると着金紐付け候補から消えます（誤って二重に紐付けるのを防止）。ONにすると何度でも紐付けでき、着金紐付け候補にも残り続けます。</p>
+        @error('is_recurring')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+    </div>
+
     <div>
         <label for="client_name" class="block text-sm font-medium text-gray-700 mb-1">取引先名</label>
         <input type="text" name="client_name" id="client_name" value="{{ old('client_name', $project->client_name) }}"

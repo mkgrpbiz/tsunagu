@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'description',
     'image_path',
     'status',
+    'is_recurring',
     'oshigoto_listed',
     'client_name',
     'referrer_agency_id',
@@ -31,6 +32,7 @@ class Project extends Model
     {
         return [
             'status' => ProjectStatus::class,
+            'is_recurring' => 'boolean',
             'oshigoto_listed' => 'boolean',
             'tsunagu_unit_prices' => 'array',
             'agency_unit_prices' => 'array',
