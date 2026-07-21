@@ -36,7 +36,6 @@
                 'home' => ['label' => 'ホーム編集', 'route' => 'admin.home-blocks.index', 'active' => ['admin.home-blocks.*', 'admin.home-content.*', 'admin.sales-materials.*']],
                 'landing_page_content' => ['label' => 'LP編集', 'route' => 'admin.landing-page-content.edit', 'active' => 'admin.landing-page-content.*'],
                 'legal_documents' => ['label' => '契約管理', 'route' => 'admin.legal-documents.index', 'active' => 'admin.legal-documents.*'],
-                'announcements' => ['label' => 'お知らせ', 'route' => 'admin.announcements.index', 'active' => 'admin.announcements.*'],
             ],
         ];
     @endphp
@@ -61,6 +60,13 @@
                 <a href="{{ route('admin.dashboard') }}"
                    class="block px-4 py-2.5 hover:bg-blue-600 transition-colors font-medium {{ request()->routeIs('admin.dashboard') ? 'bg-blue-800' : '' }}">
                     ダッシュボード
+                </a>
+            @endif
+
+            @if ($authAdmin->canAccessMenu('announcements'))
+                <a href="{{ route('admin.announcements.index') }}"
+                   class="block px-4 py-2.5 hover:bg-blue-600 transition-colors font-medium {{ request()->routeIs('admin.announcements.*') ? 'bg-blue-800' : '' }}">
+                    お知らせ
                 </a>
             @endif
 
