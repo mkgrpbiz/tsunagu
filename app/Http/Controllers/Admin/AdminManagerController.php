@@ -30,7 +30,7 @@ class AdminManagerController extends Controller
             'inquiries' => '問い合わせ',
             'deposit_links' => '着金紐付け',
             'payments' => '支払い管理',
-            'announcements' => 'お知らせ',
+            'announcements' => 'お知らせ管理',
             'collaboration_referrals' => '共創紹介',
             'collaboration_partner_applications' => '共創パートナー申請',
             'collaboration_rewards' => '共創報酬管理',

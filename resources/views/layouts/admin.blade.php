@@ -66,7 +66,7 @@
             @if ($authAdmin->canAccessMenu('announcements'))
                 <a href="{{ route('admin.announcements.index') }}"
                    class="block px-4 py-2.5 hover:bg-blue-600 transition-colors font-medium {{ request()->routeIs('admin.announcements.*') ? 'bg-blue-800' : '' }}">
-                    お知らせ
+                    お知らせ管理
                 </a>
             @endif
 

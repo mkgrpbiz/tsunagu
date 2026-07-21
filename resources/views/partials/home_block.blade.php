@@ -118,7 +118,7 @@
 
 @elseif ($block->type === 'announcements')
     <div class="ticker-card">
-        <div class="ticker-head"><span class="ticker-dot"></span> {{ $block->title ?: '新着情報' }}</div>
+        <div class="ticker-head"><span class="ticker-dot"></span> {{ $block->title ?: 'お知らせ' }}</div>
         @if ($announcements->isEmpty())
             <p class="px-4 py-6 text-center text-sm text-gray-400">お知らせはまだありません。</p>
         @else
