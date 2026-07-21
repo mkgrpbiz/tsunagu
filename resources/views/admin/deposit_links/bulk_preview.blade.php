@@ -10,6 +10,7 @@
 
 <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
     <p class="text-sm text-gray-700">
+        案件: <span class="font-semibold">{{ $project->name }}</span><br>
         一致: <span class="font-semibold">{{ count($matched) }}件</span>
         不一致: <span class="font-semibold text-red-600">{{ count($unmatched) }}件</span>
     </p>
@@ -86,6 +87,7 @@
 @if (count($matched) > 0)
     <form method="POST" action="{{ route('admin.deposit-links.bulk-store') }}" onsubmit="return confirm('{{ count($matched) }}件を紐付けます。よろしいですか？');">
         @csrf
+        <input type="hidden" name="project_id" value="{{ $project->id }}">
         <input type="hidden" name="pasted_text" value="{{ $pastedText }}">
         <button type="submit" class="text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md px-4 py-2">この内容で紐付けを確定する</button>
     </form>

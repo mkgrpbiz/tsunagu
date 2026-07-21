@@ -51,6 +51,7 @@ class DepositLinkController extends Controller
         return view('admin.deposit_links.index', [
             'categories' => Category::orderBy('name')->get(),
             'projects' => $projects,
+            'allProjects' => Project::orderBy('name')->get(),
             'candidates' => $candidates,
             'categoryId' => $categoryId,
             'projectId' => $projectId,
@@ -79,11 +80,15 @@ class DepositLinkController extends Controller
 
     public function bulkPreview(Request $request): View
     {
-        $data = $request->validate(['pasted_text' => ['required', 'string']]);
+        $data = $request->validate([
+            'project_id' => ['required', 'exists:projects,id'],
+            'pasted_text' => ['required', 'string'],
+        ]);
 
-        $result = $this->parseBulkText($data['pasted_text']);
+        $result = $this->parseBulkText((int) $data['project_id'], $data['pasted_text']);
 
         return view('admin.deposit_links.bulk_preview', [
+            'project' => Project::find($data['project_id']),
             'pastedText' => $data['pasted_text'],
             'matched' => $result['matched'],
             'unmatched' => $result['unmatched'],
@@ -92,9 +97,12 @@ class DepositLinkController extends Controller
 
     public function bulkStore(Request $request): RedirectResponse
     {
-        $data = $request->validate(['pasted_text' => ['required', 'string']]);
+        $data = $request->validate([
+            'project_id' => ['required', 'exists:projects,id'],
+            'pasted_text' => ['required', 'string'],
+        ]);
 
-        $result = $this->parseBulkText($data['pasted_text']);
+        $result = $this->parseBulkText((int) $data['project_id'], $data['pasted_text']);
 
         $linkedCount = 0;
         $blockedCount = 0;
@@ -129,7 +137,7 @@ class DepositLinkController extends Controller
     /**
      * @return array{matched: array<int, array{raw: string, inquiry: Inquiry, tsunagu_price: int, agency_price: int, count: int}>, unmatched: array<int, array{raw: string, reason: string}>}
      */
-    private function parseBulkText(string $text): array
+    private function parseBulkText(int $projectId, string $text): array
     {
         $lines = preg_split('/\r\n|\r|\n/', trim($text)) ?: [];
         $matched = [];
@@ -144,15 +152,14 @@ class DepositLinkController extends Controller
             }
 
             $columns = explode("\t", $lineText);
-            $projectName = trim($columns[0] ?? '');
-            $name = trim($columns[1] ?? '');
-            $nameKana = trim($columns[2] ?? '');
-            $tsunaguPriceRaw = trim($columns[3] ?? '');
-            $agencyPriceRaw = trim($columns[4] ?? '');
-            $countRaw = trim($columns[5] ?? '');
+            $name = trim($columns[0] ?? '');
+            $nameKana = trim($columns[1] ?? '');
+            $tsunaguPriceRaw = trim($columns[2] ?? '');
+            $agencyPriceRaw = trim($columns[3] ?? '');
+            $countRaw = trim($columns[4] ?? '');
 
-            if ($projectName === '' || $name === '' || $tsunaguPriceRaw === '' || $agencyPriceRaw === '') {
-                $unmatched[] = ['raw' => $lineText, 'reason' => '案件名・名前・単価のいずれかが空です'];
+            if ($name === '' || $tsunaguPriceRaw === '' || $agencyPriceRaw === '') {
+                $unmatched[] = ['raw' => $lineText, 'reason' => '名前・単価のいずれかが空です'];
 
                 continue;
             }
@@ -163,7 +170,7 @@ class DepositLinkController extends Controller
             $count = max($count, 1);
 
             $candidateInquiries = Inquiry::with(['project', 'agency'])
-                ->whereHas('project', fn ($q) => $q->where('name', $projectName))
+                ->where('project_id', $projectId)
                 ->where('name', $name)
                 ->when($nameKana !== '', fn ($q) => $q->where('name_kana', $nameKana))
                 ->where(function ($q) {
@@ -176,7 +183,7 @@ class DepositLinkController extends Controller
             $inquiry = $candidateInquiries->first(fn (Inquiry $c) => ! in_array($c->id, $claimedIds, true));
 
             if (! $inquiry) {
-                $unmatched[] = ['raw' => $lineText, 'reason' => '一致する問い合わせ候補が見つかりません（案件名・名前・フリガナをご確認ください）'];
+                $unmatched[] = ['raw' => $lineText, 'reason' => '一致する問い合わせ候補が見つかりません（名前・フリガナをご確認ください）'];
 
                 continue;
             }
