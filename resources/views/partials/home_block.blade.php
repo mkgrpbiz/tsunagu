@@ -68,6 +68,13 @@
             <p class="restricted-title">{{ $restrictedTitle }}</p>
             <p class="restricted-body">{{ $restrictedBody }}</p>
         </div>
+    @elseif (! ($agency->line_uid ?? null))
+        <div class="cta-card" style="text-align: center;">
+            <div class="cta-title">🔒 パートナー専用LINEへの登録が必要です。</div>
+            <div style="margin-top: 12px;">
+                @include('partials.agency_line_connect_button', ['agency' => $agency])
+            </div>
+        </div>
     @else
         <div class="cta-card">
             @if ($block->title)<div class="cta-title">{{ $block->title }}</div>@endif
@@ -82,6 +89,13 @@
         <div class="cta-card cta-card-restricted">
             <p class="restricted-title">{{ $restrictedTitle }}</p>
             <p class="restricted-body">{{ $restrictedBody }}</p>
+        </div>
+    @elseif (! ($agency->line_uid ?? null))
+        <div class="cta-card" style="text-align: center;">
+            <div class="cta-title">🔒 パートナー専用LINEへの登録が必要です。</div>
+            <div style="margin-top: 12px;">
+                @include('partials.agency_line_connect_button', ['agency' => $agency])
+            </div>
         </div>
     @else
         <div class="cta-card">
