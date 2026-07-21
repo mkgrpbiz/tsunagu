@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 class ContractLinkingService
 {
     /**
-     * @param  array<int, array{tsunagu_unit_price: int, agency_unit_price: int, count: int}>  $lines
+     * @param  array<int, array{tsunagu_unit_price: int, agency_unit_price: int, count: int, apply_referral_commission?: bool}>  $lines
      */
     public function linkInquiry(Inquiry $inquiry, array $lines): bool
     {
@@ -33,7 +33,9 @@ class ContractLinkingService
                 'payment_status' => PaymentStatus::Unpaid,
             ]);
 
-            if ($inquiry->agency->referred_by_agency_id) {
+            $applyReferralCommission = (bool) ($line['apply_referral_commission'] ?? true);
+
+            if ($applyReferralCommission && $inquiry->agency->referred_by_agency_id) {
                 ReferralCommission::create([
                     'contract_id' => $contract->id,
                     'referrer_agency_id' => $inquiry->agency->referred_by_agency_id,

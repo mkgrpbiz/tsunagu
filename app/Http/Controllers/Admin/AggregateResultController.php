@@ -55,6 +55,7 @@ class AggregateResultController extends Controller
             'lines.*.tsunagu_unit_price' => ['required', 'integer', 'min:0'],
             'lines.*.agency_unit_price' => ['required', 'integer', 'min:0'],
             'lines.*.count' => ['required', 'integer', 'min:1'],
+            'lines.*.apply_referral_commission' => ['nullable', 'boolean'],
         ]);
 
         foreach ($data['lines'] as $line) {
@@ -73,6 +74,7 @@ class AggregateResultController extends Controller
                 'tsunagu_unit_price' => $line['tsunagu_unit_price'],
                 'agency_unit_price' => $line['agency_unit_price'],
                 'count' => $line['count'],
+                'apply_referral_commission' => $line['apply_referral_commission'] ?? true,
             ]]);
         }
 

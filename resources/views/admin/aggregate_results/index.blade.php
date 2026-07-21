@@ -50,7 +50,7 @@
         <form method="POST" action="{{ route('admin.aggregate-results.store', $selectedAgency) }}" class="p-4">
             @csrf
             <div class="tsn-lines space-y-2 mb-3">
-                <div class="grid grid-cols-6 gap-3 items-end text-sm tsn-line">
+                <div class="grid grid-cols-7 gap-3 items-end text-sm tsn-line">
                     <div>
                         <span class="text-gray-400 text-xs block">案件名</span>
                         <select name="lines[0][project_id]" required class="tsn-project-select w-full rounded-md border border-gray-300 text-sm">
@@ -78,6 +78,19 @@
                     <div>
                         <span class="text-gray-400 text-xs block">合計</span>
                         <span class="tsn-line-total font-medium">—</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 text-xs block">パートナー10%</span>
+                        @if ($selectedAgency->referred_by_agency_id)
+                            <label class="inline-flex items-center gap-1">
+                                <input type="hidden" name="lines[0][apply_referral_commission]" value="0" class="tsn-commission-hidden">
+                                <input type="checkbox" name="lines[0][apply_referral_commission]" value="1" checked
+                                       class="tsn-commission-checkbox rounded border-gray-300">
+                                <span class="text-xs text-gray-600">対象</span>
+                            </label>
+                        @else
+                            <span class="text-xs text-gray-400">対象外（紹介元なし）</span>
+                        @endif
                     </div>
                     <div>
                         <button type="button" class="tsn-remove-line text-gray-400 hover:text-red-600 text-sm px-1" title="削除">×</button>
@@ -155,11 +168,17 @@ if (addButton) {
 
         template.querySelectorAll('input, select').forEach(function (input) {
             input.name = input.name.replace(/lines\[\d+\]/, 'lines[' + newIndex + ']');
+            if (input.classList.contains('tsn-commission-checkbox') || input.classList.contains('tsn-commission-hidden')) {
+                return;
+            }
             if (input.tagName === 'SELECT') {
                 input.selectedIndex = 0;
             } else {
                 input.value = input.classList.contains('tsn-count-input') ? '1' : '';
             }
+        });
+        template.querySelectorAll('.tsn-commission-checkbox').forEach(function (cb) {
+            cb.checked = true;
         });
         template.querySelector('.tsn-line-total').textContent = '—';
 
