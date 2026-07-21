@@ -63,20 +63,9 @@
                                 \App\Enums\InquiryStatus::New => 'bg-blue-50 text-blue-700 border-blue-200',
                                 \App\Enums\InquiryStatus::Guided => 'bg-purple-50 text-purple-700 border-purple-200',
                                 \App\Enums\InquiryStatus::Contracted => 'bg-green-50 text-green-700 border-green-200',
-                                \App\Enums\InquiryStatus::Lost => 'bg-gray-100 text-gray-500 border-gray-200',
                             };
                         @endphp
                         <span class="text-xs font-medium border rounded-full px-2 py-1 {{ $statusColor }}">{{ $inquiry->status->label() }}</span>
-
-                        @if ($inquiry->status !== \App\Enums\InquiryStatus::Contracted)
-                            <form method="POST" action="{{ route('admin.inquiries.toggle-lost', $inquiry) }}" class="inline">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit" class="ml-1 text-xs text-gray-400 hover:text-gray-600 hover:underline">
-                                    {{ $inquiry->status === \App\Enums\InquiryStatus::Lost ? '取り消す' : '失注にする' }}
-                                </button>
-                            </form>
-                        @endif
                     </td>
                 </tr>
             @empty

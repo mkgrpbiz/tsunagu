@@ -112,7 +112,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::middleware('menu:inquiries')->group(function () {
                 Route::get('inquiries', [InquiryController::class, 'index'])->name('inquiries.index');
-                Route::patch('inquiries/{inquiry}/toggle-lost', [InquiryController::class, 'toggleLost'])->name('inquiries.toggle-lost');
             });
 
             Route::middleware('menu:deposit_links')->group(function () {

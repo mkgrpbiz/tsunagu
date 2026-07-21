@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\InquiryStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -43,18 +41,5 @@ class InquiryController extends Controller
             'months' => $months,
             'month' => $month,
         ]);
-    }
-
-    public function toggleLost(Inquiry $inquiry): RedirectResponse
-    {
-        if ($inquiry->status === InquiryStatus::Contracted) {
-            return back()->with('error', '着金済みの問い合わせのステータスは変更できません。');
-        }
-
-        $inquiry->update([
-            'status' => $inquiry->status === InquiryStatus::Lost ? InquiryStatus::New : InquiryStatus::Lost,
-        ]);
-
-        return redirect()->route('admin.inquiries.index')->with('status', 'ステータスを更新しました。');
     }
 }
