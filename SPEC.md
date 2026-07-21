@@ -1,4 +1,4 @@
-# TSUNAGU 仕様まとめ（2026-07-20時点）
+# TSUNAGU 仕様まとめ（2026-07-22時点）
 
 パートナー（旧・代理店）が案件を紹介し、紹介報酬・共創報酬を得られる審査制のビジネスプラットフォーム。Laravel 13 + Blade + SQLite（本番/STGはMySQL）。GitHub（`https://github.com/mkgrpbiz/tsunagu.git`, `main`ブランチ）で管理し、STG（`https://stg-tsunagu.mkgrp.biz`、Xserver `sv16576.xserver.jp`）へ`git pull`でデプロイ。本番ドメインは`tsunagu.mkgrp.biz`を予定（未稼働）。
 
@@ -52,10 +52,13 @@
   - どちらも`Agency.company_name`に保存（パートナー一覧・共創パートナー一覧の「会社名」列で表示）
 - `?ref=`付きリンクからの登録は紹介コード欄が読み取り専用になり「（任意）」表記が消える
 
-## 案件（Project）の紹介者
+## 案件（Project）の紹介者・単価・取引先
 
 - `Project.referrer_agency_id`の選択肢は**`is_collaboration_partner=true`のパートナーのみ**（検索ボックス付きプルダウン、外部ライブラリなしのvanilla JS）
 - 編集画面では、既に設定されている紹介者が共創パートナーでなくなっていても選択肢から消えないよう救済表示する
+- **単価は複数パターン対応**（2026-07-22）: `tsunagu_unit_price`/`agency_unit_price`（単一integer）を廃止し、`tsunagu_unit_prices`/`agency_unit_prices`（JSON配列、`array`キャスト）に変更。案件編集で「+」により金額を何個でも追加可能（ラベルは付けない、単純に複数の金額パターン）。`Project::singleTsunaguUnitPrice()`/`singleAgencyUnitPrice()`はパターンが1個の時だけその値を返す（着金紐付け画面の単価入力欄の自動プリフィル用、パターンが2個以上や変動制の場合はnullを返し手入力を促す）
+- `Project.is_recurring`（ストック系案件）・`Project.bulk_link_enabled`（一括紐付け対象）は着金紐付けセクション参照
+- **取引先名（`client_name`）はdatalistでサジェスト**（2026-07-22）: 既存の全案件から使われている`client_name`の一覧（`Project::whereNotNull('client_name')->distinct()`）を`<datalist>`として表示し、既存の取引先を選びやすくする一方、新規取引先の自由入力もそのまま可能（サーバー側で候補以外を拒否するような強制はしていない）。共創報酬の集計が`client_name`の文字列完全一致に依存しているため、表記ゆれ防止が目的
 
 ## 一覧画面の列構成
 
@@ -99,6 +102,36 @@
 ## 着金紐付け（`admin/deposit-links`）
 
 - 検索欄（名前・フリガナ・LINE名）単独で検索可能。カテゴリー・案件名は絞り込み専用のオプション項目（以前は「カテゴリー→案件→検索」の3段階が必須だったのを解消）
+- 候補カードは2行表示: 上段（`bg-blue-50`）に問い合わせ日時・パートナー・案件名・LINE名・名前・フリガナ、下段にTSUNAGU単価/パートナー単価（両方とも編集可能な入力欄。案件に単価パターンが1つだけならその値を自動プリフィル、複数パターンや変動制なら空欄で手入力必須）・件数・TSUNAGU合計/パートナー合計（自動計算・readonly）・TSUNAGU利益（表示のみ）・紐付けボタン
+- **合計金額はサーバー側で単価×件数から再計算する**（クライアントが送ってきた合計値は信用しない）
+- 「+ もう1パターン追加」で1回の紐付け送信に複数の（単価/単価/件数）ラインを追加可能。各ラインが個別の`Contract`になる（`ContractLinkingService::linkInquiry()`が配列で受け取り、ライン数分`Contract::create()`をループ）
+- **ストック系案件**（`Project.is_recurring`）: 案件編集のチェックボックスで有効化すると、同じ問い合わせに何度でも着金紐付けができる（`Inquiry.contract`のUNIQUE制約撤廃が前提）。OFFの案件は1回紐付けると候補から消える（誤って二重に紐付けるのを防止）
+  - `Inquiry::contract(): HasOne`は`->latestOfMany()`を使うが、**`whereDoesntHave('contract')`は`ofMany`リレーションに対して正しく動かない**（Laravel既知の制限）。既存契約の有無を判定する検索条件には必ず素の`Inquiry::contracts(): HasMany`を使うこと
+- **一括紐付け（貼り付け）**: `<details>`アコーディオン内に配置。案件を1つ選択（`bulk_link_enabled=true`の案件のみプルダウンに表示、案件編集の専用チェックボックスで対象を絞る）→ テキストエリアに「名前 フリガナ TSUNAGU単価 パートナー単価 件数（省略可、未入力は1件）」をタブまたは半角スペース2個以上区切りで貼り付け（`preg_split('/\t+| {2,}/', ...)`。単語内の単一スペース、例:「山田 太郎」は区切りとして扱わない）→ プレビュー画面（`admin.deposit-links.bulk-preview`）で一致/不一致を確認 →確定（`bulk-store`）
+  - マッチングは「同一案件×名前（フリガナ指定時はそれも一致）」で候補問い合わせを検索し、`whereDoesntHave('contracts')->orWhereHas('project', fn ($q) => $q->where('is_recurring', true))`で絞り込み、`inquired_at`昇順で先着一致・同一バッチ内の二重取得なしという単純なルールで割り当てる
+- **該当なし成果**: 「該当する問い合わせ候補」の検索結果画面から「該当なし成果」ボタンでインライン展開されるフォーム（案件・名前・フリガナ・TSUNAGU単価・件数のみ入力、パートナー単価は常に0＝全額TSUNAGU利益）。紹介元パートナーが存在しない成果（直接反響など）を表すため、`Agency::noReferralAgency()`（`is_system=true`の専用ダミーAgency、`firstOrCreate`で1件だけ作られるシングルトン）に紐付ける。ダミーAgencyは`admin/agencies`一覧・件数集計から除外（`Agency::where('is_system', false)`）
+- `ContractLinkingService::linkInquiry(Inquiry $inquiry, array $lines): bool`が着金紐付け・該当なし成果・合計成果反映（後述）で共用する中心ロジック。ライン単位で`Contract`作成（`deposit_date`=当日固定、`payment_due_date`=当月末締め翌月5日）＋`agency_reward_amount`に`agency_unit_price`・`count`も併せて保存（パートナー着金・支払いページの単価/件数列表示用）＋紹介元パートナーへの10%`ReferralCommission`自動計上。ライン単位で`apply_referral_commission`（省略時true）を指定すればこの10%計上を個別にスキップできる（後述の合計成果反映で使用）
+
+## 合計成果反映（`admin/aggregate-results`、着金紐付けメニューの直下）
+
+個別の問い合わせ（Inquiry）に紐づけずに、実在するパートナーへ成果をまとめて計上するための画面。BIMONIに直接ジョイントしている代理店など、経理・契約をTSUNAGU側で処理しているが個別の顧客問い合わせ単位のマッチングが不要なケース向け。
+
+- パートナー検索: 会員番号（`referral_code`、算出プロパティのためDBクエリではなくPHP側でフィルタ）・LINE名・名前・フリガナのいずれかで一致するAgency（`is_system=false`のみ）を検索→選択
+- 選択後、案件名（プルダウン）・TSUNAGU単価・パートナー単価・件数のラインを「+」で複数作成可能（各ラインごとに合計をリアルタイム表示、全体合計も表示）
+- パートナー10%対象/対象外の切替チェックボックスをライン単位に用意（紹介元パートナーが設定されているAgencyのみ表示。デフォルトは「対象」＝チェック済み、稀に10%なしのケースがあるため対象外にも切替可能）。紹介元がいないAgencyの場合はチェックボックス自体を出さず「対象外（紹介元なし）」の表示のみ
+- 送信すると、ラインごとに`Inquiry`（`name`/`name_kana`は固定文言「合計成果反映」、選択した実在Agencyに紐付け）を自動生成し、`ContractLinkingService::linkInquiry()`で着金紐付けと同じ`Contract`作成ロジックを共用
+- 選択中パートナーの反映履歴（案件名・TSUNAGU合計・パートナー合計・パートナー10%対象有無・支払状況）をページ下部に表示（`Contract.referralCommission`のHasOneリレーションで判定）
+- **`inquiries.is_bulk_reflection`（bool）フラグ**: この画面で作った`Inquiry`は実際の顧客問い合わせではないため、管理画面の通常の「問い合わせ一覧」（`admin/inquiries`）とその件数集計からは除外する（`is_bulk_reflection=false`でフィルタ）。除外しても合計成果反映画面自体の反映履歴では引き続き参照できる
+
+## 問い合わせステータス（`InquiryStatus`）
+
+2026-07-22に整理。現在の4値: `New`（案内待ち）/ `GuidanceFailed`（エラー）/ `Guided`（案内済）/ `Contracted`（着金）。
+
+- **`失注`（Lost）は廃止**した。運用上、失注後の追跡ができておらず不要と判断（廃止前の実データに`lost`ステータスの行は0件だったためデータ移行は不要だった）。管理画面の「失注にする」手動トグルボタン・`toggleLost()`・関連ルートも削除。着金以外は自動遷移のみになった
+- **`New`のラベルを「新規」→「案内待ち」に変更**。LINE友だち追加後に案内メッセージ（`Project.line_auto_message`）を自動送信する仕組み（`ApplyController::store()`/`LineWebhookController::handleFollow()`）があり、「新規のまま止まる」の大半は単に「まだLINE友だち追加していない」状態を指すため
+- **`GuidanceFailed`（エラー）を新設**: `LineMessagingService::sendPush()`がLINE Push APIの呼び出しに失敗した場合（トークン無効・レート制限・ブロック中・通信エラー等）に`false`を返す。従来はこの戻り値をチェックしておらず、送信に失敗しても気づかれずに「新規」のままサイレントに残っていた（`ApplyController::store()`側は戻り値を全くチェックしておらず、常にGuided扱いにしてしまうバグもここで合わせて修正）。送信失敗時は`GuidanceFailed`に遷移させ、管理画面の問い合わせ一覧でエラー行の横に「再送信」ボタン（`Admin\InquiryController::resendGuidance()`）を表示し、その場で再送信→成功すれば`Guided`に更新できるようにした
+- **パートナー向け表示ではエラーを隠す**: `InquiryStatus::partnerLabel()`を追加し、パートナー側の問い合わせ一覧（`agency/inquiries`）では`GuidanceFailed`も`New`と同じ「案内待ち」表示にする（送信エラーは運営側で対応すべき内部事情のため）。管理画面側の`label()`は従来通り「エラー」を表示する
+- `status`カラムはDBネイティブのENUM型ではなく単なる`string`のため、ステータスの追加・削除にDBマイグレーションは不要（PHP側のenum定義のみで完結）
 
 ## 過去の問い合わせデータのインポート（`inquiries:import-legacy`）
 
@@ -114,15 +147,21 @@
 
 ## パートナー着金・支払いページ（`agency/contracts`）
 
-- 3セクション: 紹介報酬（自分の着金、1行=1件）／パートナー10%（紹介先パートナー×支払予定日ごとに件数・合計額を集計した行）／共創パートナー30%（取引先ごとに案件数・着金数・合計額を集計、**承認済みのもののみ**表示）
-- ページ上部に支払いサイクルの案内文（月末締め翌月5日払い、¥1,000未満は繰り越し）
+- 3セクション: 紹介報酬（自分の着金、1行=1件、列は**着金日・案件名・名前・フリガナ・単価・件数・合計・支払予定日**。同一案件・同一人物でも単価パターンが違えば`Contract`が別々になるため複数行で表示される＝着金紐付けと同じ粒度）／パートナー10%（紹介先パートナー×支払予定日ごとに件数・合計額を集計した行）／共創パートナー30%（取引先ごとに案件数・着金数・合計額を集計、**承認済みのもののみ**表示）
+- `Contract`に`agency_unit_price`・`count`カラムを追加（2026-07-22）し、`ContractLinkingService`がライン作成時に保存。マイグレーション前の既存データはこの2カラムがnullのため「－」表示にフォールバック
+- ページ上部に支払いサイクルの案内文（月末締め翌月5日払い、**5日が土日祝の場合は明けの振り込み**、¥1,000未満は繰り越し）
 - 「繰り越し報酬」表示は**累計（全期間）の未払い合計が¥1,000未満の場合、その全額**（`Agency::totalPendingPayout()`が0円になるまで自然に繰り越り続ける仕組みで、繰り越し専用のDBカラムは無い）
 
 ## 支払い管理（`admin/payments`）と繰り越し予定
 
-- 4ブロック構成: 紹介報酬（`Contract`）／パートナー10%（`ReferralCommission`）／共創パートナー30%（`CollaborationReward`、承認済みのみ）／繰り越し予定
-- `CollaborationReward`にも`payment_status`/`payment_due_date`/`paid_at`を追加し、他の2種と同じ支払済み/未払いの管理ができるようになった（承認待ち/承認の`status`とは独立したカラム）
-- **パートナーの累計未払い合計（3種合算、`Agency::totalPendingPayout()`）が¥1,000未満の場合、そのパートナーの未払い分は上3ブロックの支払対象一覧から除外され「繰り越し予定」に回る**（支払済み済みの記録は除外されず、取り消しも従来通り可能）
+2026-07-22に「カテゴリー別内訳テーブル」方式から**パートナー別支払い一覧＋詳細ページ**方式に全面刷新（旧・4ブロック構成の説明は廃止）。
+
+- 一覧（`admin/payments`）: パートナー別に1行（会員番号・紹介報酬・パートナー10%・共創パートナー30%・合計・詳細ボタン）。集計は`Agency::pendingPayoutBreakdown()`
+  - **一括CSV抽出**: 振込指定日（デフォルト＝直近の5日、土日を考慮して調整可能な日付ピッカー）を指定し、全銀協形式の総合振込CSVをShift_JISでダウンロード（`ZenginTransferCsvBuilder`/`ZenginNameNormalizer`、BIMONIの本番GASスクリプトのロジックをPHPに移植。氏名の全角→半角カナ変換込み。半角中黒`ｦ-ﾟ`の文字フィルタ範囲が半角中点U+FF65を含まずストリップされる仕様もBIMONI本家と同じ挙動として踏襲）。振込元口座・委託者コード/名は`.env`の`ZENGIN_*`系（`config('services.zengin_transfer')`）
+  - **一括で支払済みにする**: 画面上の月フィルタに関係なく、その時点で支払対象になっている全パートナーの未払い分を一括で支払済みに更新
+- 詳細ページ（`admin/payments/{agency}`）: 該当パートナーの紹介報酬・パートナー10%・共創パートナー30%の3履歴を表示。**「まとめて支払済みにする」「まとめて未払いに戻す」の一括ボタンのみ**（個別行ごとの支払済み/未払いボタンはUIから削除済み。ルート・コントローラーメソッド自体は保守的に残してある＝UIから参照されていないだけ）
+- `CollaborationReward`にも`payment_status`/`payment_due_date`/`paid_at`があり、他の2種と同じ支払済み/未払いの管理ができる（承認待ち/承認の`status`とは独立したカラム）
+- **パートナーの累計未払い合計（3種合算、`Agency::totalPendingPayout()`）が¥1,000未満の場合、そのパートナーの未払い分は一覧の支払対象から除外され「繰り越し予定」に回る**（支払済みの記録は除外されず、取り消しも従来通り可能）
 - `Agency::carryOverSummary(int $threshold = 1000)`が繰り越し対象パートナー一覧と合計額を返す（支払い管理・ダッシュボードの両方から呼ばれる共通ロジック）
 - ダッシュボードにも「繰り越し予定合計」カードあり（「利益」カードの隣、月フィルタに関係なく常に現在の状態を表示）
 - **運用インパクトの注意**: 2026-07-19時点で契約同意（3文書）を提出済みのパートナーは244件中1件のみ。本番公開後、既存パートナーの大多数は次回ログイン時に案件一覧・紹介機能が使えなくなり「追加情報のご入力」への誘導が発生する（審査制導入時の意図通りだが、影響範囲は大きい）
@@ -168,6 +207,7 @@
 - PowerShellの`Get-Content`/`Set-Content`はPHP/Bladeファイルの読み書きに使わない
 - `public/build`（Viteのビルド成果物）はSTGにnode/npmが無いため`.gitignore`から外してGit管理している。**Blade側でTailwindクラスを新規追加・変更した際は`npm run build`を忘れずに実行してからコミットすること**（2026-07-19に一度、複数画面分のビルド忘れが発覚し再ビルドで修正した）
 - ローカルでのHTTPテスト（`php artisan serve`）は、ログイン直後に間を置かず次のリクエストを送るとSQLiteセッションの書き込みが間に合わず401/302になることがある（`sleep(1)`程度の間隔を空けると安定する）
+- **Bladeでのチェーンしたプロパティアクセスは`??`必須**: `{{ $model->relation->field }}`のように`??`フォールバックを挟まずに書くと、`relation`がnullの行が来た瞬間に「Attempt to read property on null」の警告が発生し、本番相当のリクエストパイプラインでは`ErrorException`に昇格して500になる（`agency/inquiries/index.blade.php`の`$inquiry->lineUser->display_name`で実際に発生。合計成果反映機能がLINEユーザー無しの`Inquiry`を作るようになったことで新たに顕在化した）。管理画面側の同等箇所は`?? $inquiry->legacy_line_display_name`のフォールバックが最初から入っており無事だった。新しいnull許容の関連付けを増やす変更をするときは、既存ビューでその関連を無条件にチェーンしている箇所がないか確認すること
 
 ## 未着手・今後の検討事項
 
