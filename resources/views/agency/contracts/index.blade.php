@@ -38,7 +38,27 @@
     </div>
 </div>
 
-<h2 class="text-sm font-semibold text-gray-700 mb-3">紹介報酬{{ $month ? '（'.$month.'）' : '' }}</h2>
+@php
+    $referralRewardTsv = collect([['着金日', '案件名', '名前', 'フリガナ', '単価', '件数', '合計', '支払予定日']])
+        ->concat($contracts->map(fn ($contract) => [
+            $contract->deposit_date->format('Y-m-d'),
+            $contract->inquiry->project->name,
+            $contract->inquiry->name,
+            $contract->inquiry->name_kana,
+            $contract->agency_unit_price ?? '',
+            $contract->count ?? '',
+            $contract->agency_reward_amount,
+            $contract->payment_due_date->format('Y-m-d'),
+        ]))
+        ->map(fn ($row) => implode("\t", $row))
+        ->implode("\n");
+@endphp
+
+<div class="flex items-center justify-between mb-3">
+    <h2 class="text-sm font-semibold text-gray-700">紹介報酬{{ $month ? '（'.$month.'）' : '' }}</h2>
+    <button type="button" onclick="copyToClipboard({{ Illuminate\Support\Js::from($referralRewardTsv) }})"
+            class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md px-3 py-1.5">コピー（スプレッド転記用）</button>
+</div>
 <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto mb-8">
     <table class="w-full text-sm min-w-max">
         <thead class="bg-gray-50 text-gray-500 text-left">
