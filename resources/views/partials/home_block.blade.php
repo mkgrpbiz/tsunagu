@@ -68,7 +68,6 @@
         <div class="cta-card">
             @if ($block->title)<div class="cta-title">{{ $block->title }}</div>@endif
             @if ($block->body)<div class="cta-body">{{ $block->body }}</div>@endif
-            <input type="text" readonly value="{{ $referralUrl ?? url('/agency/register?ref=B0000') }}">
             <button type="button" class="copy" @if($agency ?? null) onclick="copyToClipboard({{ Illuminate\Support\Js::from($referralUrl) }})" @endif>紹介リンクをコピー</button>
         </div>
     @endif
