@@ -85,11 +85,11 @@
             </div>
         </main>
         <footer class="border-t border-gray-200 bg-white py-4 text-center text-xs text-gray-500">
-            <a href="{{ route('legal.show', 'terms') }}" class="hover:text-blue-600 hover:underline" target="_blank" rel="noopener">利用規約</a>
+            <a href="{{ route('legal.show', 'terms') }}" class="hover:text-blue-600 hover:underline">利用規約</a>
             <span class="mx-2">|</span>
-            <a href="{{ route('legal.show', 'privacy') }}" class="hover:text-blue-600 hover:underline" target="_blank" rel="noopener">プライバシーポリシー</a>
+            <a href="{{ route('legal.show', 'privacy') }}" class="hover:text-blue-600 hover:underline">プライバシーポリシー</a>
             <span class="mx-2">|</span>
-            <a href="{{ route('company-profile.show') }}" class="hover:text-blue-600 hover:underline" target="_blank" rel="noopener">会社概要</a>
+            <a href="{{ route('company-profile.show') }}" class="hover:text-blue-600 hover:underline">会社概要</a>
         </footer>
     </div>
     @else
