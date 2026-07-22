@@ -14,6 +14,8 @@ class NotificationMessageSetting extends Model
 
     public const FEATURE_PAYMENT_COMPLETED = 'payment_completed';
 
+    public const FEATURE_AGENCY_REVIEW = 'agency_review';
+
     public static function forFeature(string $feature, string $defaultApprovedMessage, string $defaultRejectedMessage): self
     {
         return static::firstOrCreate(

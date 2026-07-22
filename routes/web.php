@@ -105,6 +105,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::post('agencies/{agency}/impersonate', [AgencyController::class, 'impersonate'])->name('agencies.impersonate');
                 Route::post('agencies-bulk-preview', [AgencyController::class, 'bulkPreview'])->name('agencies.bulk-preview');
                 Route::post('agencies-bulk-store', [AgencyController::class, 'bulkStore'])->name('agencies.bulk-store');
+
+                Route::get('agencies-notification-settings', [NotificationMessageSettingController::class, 'edit'])
+                    ->name('notification-message-settings.agencies.edit')
+                    ->defaults('feature', NotificationMessageSetting::FEATURE_AGENCY_REVIEW);
+                Route::put('agencies-notification-settings', [NotificationMessageSettingController::class, 'update'])
+                    ->name('notification-message-settings.agencies.update')
+                    ->defaults('feature', NotificationMessageSetting::FEATURE_AGENCY_REVIEW);
+
                 Route::resource('agencies', AgencyController::class);
             });
 

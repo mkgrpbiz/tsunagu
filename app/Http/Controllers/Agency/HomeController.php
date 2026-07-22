@@ -17,12 +17,14 @@ class HomeController extends Controller
     {
         $agency = Auth::guard('agency')->user();
 
-        $restrictedReason = match (true) {
-            $agency->status !== AgencyStatus::Approved => 'pending_review',
-            ! $agency->hasSubmittedAllConsents() => 'consent_required',
-            default => null,
-        };
+        if ($agency->status !== AgencyStatus::Approved) {
+            return view('agency.restricted', [
+                'agency' => $agency,
+                'liffId' => config('services.line.liff_id'),
+            ]);
+        }
 
+        $restrictedReason = ! $agency->hasSubmittedAllConsents() ? 'consent_required' : null;
         $bannerReason = $restrictedReason ?? (! $agency->line_uid ? 'line_required' : null);
 
         return view('agency.home.index', [

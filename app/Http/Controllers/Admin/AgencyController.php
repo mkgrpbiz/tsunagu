@@ -9,6 +9,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Agency;
 use App\Models\AgencyStatusHistory;
 use App\Models\LegalDocumentConsent;
+use App\Models\NotificationMessageSetting;
+use App\Services\LineMessagingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -97,7 +99,7 @@ class AgencyController extends Controller
         return redirect()->route('admin.agencies.index')->with('status', 'パートナー情報を更新しました。');
     }
 
-    public function updateStatus(Request $request, Agency $agency): RedirectResponse
+    public function updateStatus(Request $request, Agency $agency, LineMessagingService $lineMessaging): RedirectResponse
     {
         $data = $request->validate([
             'status' => ['required', Rule::enum(AgencyStatus::class)],
@@ -126,9 +128,34 @@ class AgencyController extends Controller
                 'to_status' => $toStatus,
                 'changed_by_user_id' => Auth::id(),
             ]);
+
+            $this->notifyAgencyOfReviewResult($agency, $toStatus, $lineMessaging);
         }
 
         return redirect()->route('admin.agencies.show', $agency)->with('status', '審査ステータスを更新しました。');
+    }
+
+    private function notifyAgencyOfReviewResult(Agency $agency, AgencyStatus $toStatus, LineMessagingService $lineMessaging): void
+    {
+        if (! $agency->line_uid) {
+            return;
+        }
+
+        $setting = NotificationMessageSetting::forFeature(
+            NotificationMessageSetting::FEATURE_AGENCY_REVIEW,
+            'パートナー登録の審査が完了し、承認となりました。案件一覧など各種機能がご利用いただけます。',
+            'パートナー登録の審査が完了し、今回は承認を見送らせていただきました。',
+        );
+
+        $message = match ($toStatus) {
+            AgencyStatus::Approved => $setting->approved_message,
+            AgencyStatus::Rejected => $setting->rejected_message,
+            default => null,
+        };
+
+        if ($message) {
+            $lineMessaging->sendPush($agency->line_uid, $message);
+        }
     }
 
     public function toggleCollaborationPartner(Agency $agency): RedirectResponse

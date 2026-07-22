@@ -39,6 +39,15 @@ class NotificationMessageSettingController extends Controller
             'rejected' => '',
             'single_message' => true,
         ],
+        NotificationMessageSetting::FEATURE_AGENCY_REVIEW => [
+            'title' => 'パートナー審査結果 - LINE通知設定',
+            'back_route' => 'admin.agencies.index',
+            'edit_route' => 'admin.notification-message-settings.agencies.edit',
+            'update_route' => 'admin.notification-message-settings.agencies.update',
+            'placeholder_hint' => null,
+            'approved' => 'パートナー登録の審査が完了し、承認となりました。案件一覧など各種機能がご利用いただけます。',
+            'rejected' => 'パートナー登録の審査が完了し、今回は承認を見送らせていただきました。',
+        ],
     ];
 
     public function edit(string $feature): View
