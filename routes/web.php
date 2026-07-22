@@ -115,6 +115,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::middleware('menu:inquiries')->group(function () {
                 Route::get('inquiries', [InquiryController::class, 'index'])->name('inquiries.index');
                 Route::patch('inquiries/{inquiry}/resend-guidance', [InquiryController::class, 'resendGuidance'])->name('inquiries.resend-guidance');
+                Route::post('inquiries/bulk-preview', [InquiryController::class, 'bulkPreview'])->name('inquiries.bulk-preview');
+                Route::post('inquiries/bulk-store', [InquiryController::class, 'bulkStore'])->name('inquiries.bulk-store');
             });
 
             Route::middleware('menu:deposit_links')->group(function () {

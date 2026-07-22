@@ -20,6 +20,19 @@
     </div>
 </form>
 
+<details class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+    <summary class="text-sm font-medium text-gray-700 cursor-pointer select-none">一括追加（スプレッドシートから貼り付け）</summary>
+    <p class="text-xs text-gray-500 mt-3 mb-3">
+        「タイムスタンプ　紹介コード　案件名　LINE名　お名前　フリガナ　メールアドレス」の順にタブ区切りで貼り付けてください（ヘッダー行を含めて貼り付けても自動的に無視されます）。紹介コードはパートナーの本人コード、案件名は登録済み案件の名称（旧表記も含む）と一致させます。追加された問い合わせは案内済みとして登録されます。
+    </p>
+    <form method="POST" action="{{ route('admin.inquiries.bulk-preview') }}">
+        @csrf
+        <textarea name="pasted_text" rows="8" required
+                  class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-xs"></textarea>
+        <button type="submit" class="mt-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md px-4 py-2">プレビュー</button>
+    </form>
+</details>
+
 <div class="grid md:grid-cols-2 gap-6 mb-6">
     <div class="bg-white border border-gray-200 rounded-lg p-6">
         <p class="text-sm text-gray-500">{{ $month ? $month.'の実績' : '全期間実績' }}</p>
