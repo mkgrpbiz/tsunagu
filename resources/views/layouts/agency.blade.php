@@ -9,15 +9,23 @@
 </head>
 <body class="bg-gray-50 text-gray-900">
     @auth('agency')
+    @php
+        $navAgency = auth('agency')->user();
+        $navFullyOnboarded = $navAgency->status === \App\Enums\AgencyStatus::Approved
+            && $navAgency->hasSubmittedAllConsents()
+            && $navAgency->line_uid;
+    @endphp
     <div class="min-h-screen flex flex-col">
         <header class="bg-white border-b border-gray-200">
             <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
                 <span class="font-semibold">TSUNAGU パートナーマイページ</span>
                 <nav class="hidden sm:flex items-center gap-4 text-sm">
                     <a href="{{ route('agency.home') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.home') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">ホーム</a>
-                    <a href="{{ route('agency.projects.index') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.projects.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">案件一覧</a>
-                    <a href="{{ route('agency.inquiries.index') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.inquiries.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">問い合わせ</a>
-                    <a href="{{ route('agency.contracts.index') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.contracts.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">着金・支払い</a>
+                    @if ($navFullyOnboarded)
+                        <a href="{{ route('agency.projects.index') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.projects.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">案件一覧</a>
+                        <a href="{{ route('agency.inquiries.index') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.inquiries.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">問い合わせ</a>
+                        <a href="{{ route('agency.contracts.index') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.contracts.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">着金・支払い</a>
+                    @endif
                     <a href="{{ route('agency.profile.edit') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.profile.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">プロフィール</a>
                     <a href="{{ route('agency.line-connection.edit') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.line-connection.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">LINE通知設定</a>
                     <form method="POST" action="{{ route('agency.logout') }}">
@@ -33,9 +41,11 @@
             </div>
             <nav id="agency-nav-mobile" class="hidden sm:hidden border-t border-gray-100 px-4 py-2 flex flex-col gap-1 text-sm">
                 <a href="{{ route('agency.home') }}" class="py-2 {{ request()->routeIs('agency.home') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">ホーム</a>
-                <a href="{{ route('agency.projects.index') }}" class="py-2 {{ request()->routeIs('agency.projects.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">案件一覧</a>
-                <a href="{{ route('agency.inquiries.index') }}" class="py-2 {{ request()->routeIs('agency.inquiries.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">問い合わせ</a>
-                <a href="{{ route('agency.contracts.index') }}" class="py-2 {{ request()->routeIs('agency.contracts.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">着金・支払い</a>
+                @if ($navFullyOnboarded)
+                    <a href="{{ route('agency.projects.index') }}" class="py-2 {{ request()->routeIs('agency.projects.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">案件一覧</a>
+                    <a href="{{ route('agency.inquiries.index') }}" class="py-2 {{ request()->routeIs('agency.inquiries.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">問い合わせ</a>
+                    <a href="{{ route('agency.contracts.index') }}" class="py-2 {{ request()->routeIs('agency.contracts.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">着金・支払い</a>
+                @endif
                 <a href="{{ route('agency.profile.edit') }}" class="py-2 {{ request()->routeIs('agency.profile.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">プロフィール</a>
                 <a href="{{ route('agency.line-connection.edit') }}" class="py-2 {{ request()->routeIs('agency.line-connection.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">LINE通知設定</a>
                 <form method="POST" action="{{ route('agency.logout') }}" class="py-2">

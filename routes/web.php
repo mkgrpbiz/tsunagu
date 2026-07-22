@@ -249,14 +249,14 @@ Route::prefix('agency')->name('agency.')->group(function () {
 
         Route::middleware('agency.password_changed')->group(function () {
             Route::get('home', [AgencyHomeController::class, 'index'])->name('home');
-            Route::get('inquiries', [AgencyInquiryController::class, 'index'])->name('inquiries.index');
-            Route::get('contracts', [AgencyContractController::class, 'index'])->name('contracts.index');
 
             Route::get('additional-info', [AgencyAdditionalInfoController::class, 'edit'])->name('additional-info.edit');
             Route::put('additional-info', [AgencyAdditionalInfoController::class, 'update'])->name('additional-info.update');
 
             Route::middleware(['agency.approved', 'agency.consents_submitted', 'agency.line_connected'])->group(function () {
                 Route::get('projects', [AgencyProjectController::class, 'index'])->name('projects.index');
+                Route::get('inquiries', [AgencyInquiryController::class, 'index'])->name('inquiries.index');
+                Route::get('contracts', [AgencyContractController::class, 'index'])->name('contracts.index');
 
                 Route::get('collaboration-referrals/create', [AgencyCollaborationReferralController::class, 'create'])->name('collaboration-referrals.create');
                 Route::post('collaboration-referrals', [AgencyCollaborationReferralController::class, 'store'])->name('collaboration-referrals.store');
