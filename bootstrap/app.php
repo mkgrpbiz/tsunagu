@@ -19,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(
-            fn (Request $request) => $request->is('agency/*') ? route('agency.login') : route('admin.login')
+            fn (Request $request) => $request->is('agency', 'agency/*') ? route('agency.login') : route('admin.login')
         );
 
         $middleware->alias([
