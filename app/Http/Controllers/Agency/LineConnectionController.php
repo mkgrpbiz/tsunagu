@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Agency;
 
+use App\Enums\LineChannel;
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
+use App\Services\LineMessagingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -60,7 +62,7 @@ class LineConnectionController extends Controller
         return (string) ($fromParams['connect_token'] ?? '');
     }
 
-    public function connect(Request $request): RedirectResponse|Response
+    public function connect(Request $request, LineMessagingService $lineMessaging): RedirectResponse|Response
     {
         $data = $request->validate([
             'connect_token' => ['required', 'string'],
@@ -82,6 +84,8 @@ class LineConnectionController extends Controller
         ]);
 
         Auth::guard('agency')->login($agency);
+
+        $lineMessaging->sendPush(LineChannel::Partner, $data['line_uid'], 'LINE連携が完了しました。今後、審査結果や各種お知らせをこちらのLINEにお届けします。');
 
         return redirect()->route('agency.home')->with('status', 'LINE連携が完了しました。');
     }
