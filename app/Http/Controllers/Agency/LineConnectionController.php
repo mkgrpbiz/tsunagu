@@ -44,7 +44,9 @@ class LineConnectionController extends Controller
         $agency = $this->resolveAgencyFromToken($data['connect_token']);
 
         if (! $agency) {
-            return response()->view('agency.line_connection.expired', [], 400);
+            return response()->view('agency.line_connection.expired', [
+                'liffId' => config('services.line.liff_id'),
+            ], 400);
         }
 
         $agency->update([
