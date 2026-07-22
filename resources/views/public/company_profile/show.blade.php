@@ -16,16 +16,16 @@
                 <dt class="text-gray-500">会社名</dt>
                 <dd class="col-span-2 text-gray-900">{{ $profile->company_name }}</dd>
             </div>
-            @if ($profile->representative_name)
-                <div class="py-3 grid grid-cols-3 gap-4">
-                    <dt class="text-gray-500">代表者</dt>
-                    <dd class="col-span-2 text-gray-900">{{ $profile->representative_title }}　{{ $profile->representative_name }}</dd>
-                </div>
-            @endif
             @if ($profile->address)
                 <div class="py-3 grid grid-cols-3 gap-4">
                     <dt class="text-gray-500">所在地</dt>
                     <dd class="col-span-2 text-gray-900">{{ $profile->address }}</dd>
+                </div>
+            @endif
+            @if ($profile->representative_name)
+                <div class="py-3 grid grid-cols-3 gap-4">
+                    <dt class="text-gray-500">代表者</dt>
+                    <dd class="col-span-2 text-gray-900">{{ $profile->representative_title }}　{{ $profile->representative_name }}</dd>
                 </div>
             @endif
             @if ($profile->business_description)
@@ -42,7 +42,7 @@
             @endif
             @if ($profile->email)
                 <div class="py-3 grid grid-cols-3 gap-4">
-                    <dt class="text-gray-500">メールアドレス</dt>
+                    <dt class="text-gray-500">お問い合わせ</dt>
                     <dd class="col-span-2 text-gray-900">{{ $profile->email }}</dd>
                 </div>
             @endif

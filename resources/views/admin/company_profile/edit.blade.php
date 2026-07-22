@@ -35,6 +35,13 @@
             @error('company_name')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
         </div>
 
+        <div class="mb-4">
+            <label for="address" class="block text-sm font-medium text-gray-700 mb-1">所在地</label>
+            <input type="text" name="address" id="address" value="{{ old('address', $profile->address) }}"
+                   class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            @error('address')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+        </div>
+
         <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
                 <label for="representative_title" class="block text-sm font-medium text-gray-700 mb-1">代表者肩書き</label>
@@ -48,13 +55,6 @@
                        class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 @error('representative_name')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
             </div>
-        </div>
-
-        <div class="mb-4">
-            <label for="address" class="block text-sm font-medium text-gray-700 mb-1">所在地</label>
-            <input type="text" name="address" id="address" value="{{ old('address', $profile->address) }}"
-                   class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            @error('address')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
         </div>
 
         <div class="mb-4">
@@ -74,7 +74,7 @@
         </div>
 
         <div class="mb-4">
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">お問い合わせ（メールアドレス）</label>
             <input type="email" name="email" id="email" value="{{ old('email', $profile->email) }}"
                    class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             @error('email')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
