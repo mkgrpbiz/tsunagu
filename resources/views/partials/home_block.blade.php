@@ -2,6 +2,7 @@
     $salesMaterials ??= collect();
     $announcements ??= collect();
     $restrictedReason ??= null;
+    $agency ??= null;
     $restrictedMessages = [
         'pending_review' => ['審査中のため利用できません', '承認後にご利用いただけます。'],
         'consent_required' => ['契約書類へのご同意が必要です', '追加情報のご入力よりご同意いただくとご利用いただけます。'],
@@ -72,7 +73,11 @@
         <div class="cta-card" style="text-align: center;">
             <div class="cta-title">🔒 パートナー専用LINEへの登録が必要です。</div>
             <div style="margin-top: 12px;">
-                @include('partials.agency_line_connect_button', ['agency' => $agency])
+                @if ($agency)
+                    @include('partials.agency_line_connect_button', ['agency' => $agency])
+                @else
+                    <span class="inline-block bg-green-500 text-white text-sm font-medium rounded-md px-6 py-2 opacity-60">LINE連携する</span>
+                @endif
             </div>
         </div>
     @else
@@ -94,7 +99,11 @@
         <div class="cta-card" style="text-align: center;">
             <div class="cta-title">🔒 パートナー専用LINEへの登録が必要です。</div>
             <div style="margin-top: 12px;">
-                @include('partials.agency_line_connect_button', ['agency' => $agency])
+                @if ($agency)
+                    @include('partials.agency_line_connect_button', ['agency' => $agency])
+                @else
+                    <span class="inline-block bg-green-500 text-white text-sm font-medium rounded-md px-6 py-2 opacity-60">LINE連携する</span>
+                @endif
             </div>
         </div>
     @else
