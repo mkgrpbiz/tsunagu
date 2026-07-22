@@ -38,6 +38,7 @@ class AdminManagerController extends Controller
             'legal_documents' => '契約管理',
             'home' => 'ホーム',
             'landing_page_content' => 'LP',
+            'company_profile' => '会社概要',
         ];
     }
 

@@ -37,6 +37,7 @@
                 'home' => ['label' => 'ホーム編集', 'route' => 'admin.home-blocks.index', 'active' => ['admin.home-blocks.*', 'admin.home-content.*', 'admin.sales-materials.*']],
                 'landing_page_content' => ['label' => 'LP編集', 'route' => 'admin.landing-page-content.edit', 'active' => 'admin.landing-page-content.*'],
                 'legal_documents' => ['label' => '契約管理', 'route' => 'admin.legal-documents.index', 'active' => 'admin.legal-documents.*'],
+                'company_profile' => ['label' => '会社概要編集', 'route' => 'admin.company-profile.edit', 'active' => 'admin.company-profile.*'],
             ],
         ];
     @endphp

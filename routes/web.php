@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\CollaborationPartnerApplicationController as Admi
 use App\Http\Controllers\Admin\CollaborationPartnerController;
 use App\Http\Controllers\Admin\CollaborationReferralController;
 use App\Http\Controllers\Admin\CollaborationRewardController;
+use App\Http\Controllers\Admin\CompanyProfileController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DepositLinkController;
 use App\Http\Controllers\Admin\HomeBlockController;
@@ -34,6 +35,7 @@ use App\Http\Controllers\Agency\ProfileController as AgencyProfileController;
 use App\Http\Controllers\Agency\ProjectController as AgencyProjectController;
 use App\Http\Controllers\Public\AgencyRegistrationController;
 use App\Http\Controllers\Public\ApplyController;
+use App\Http\Controllers\Public\CompanyProfileController as PublicCompanyProfileController;
 use App\Http\Controllers\Public\LegalDocumentController as PublicLegalDocumentController;
 use App\Http\Controllers\Public\LineWebhookController;
 use App\Http\Controllers\Public\OshigotoController;
@@ -68,6 +70,8 @@ Route::post('line/webhook', [LineWebhookController::class, 'handle'])->name('lin
 Route::pattern('type', 'terms|privacy|partner_agreement');
 
 Route::get('legal/{type}', [PublicLegalDocumentController::class, 'show'])->name('legal.show');
+
+Route::get('company-profile', [PublicCompanyProfileController::class, 'show'])->name('company-profile.show');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('login', [AuthController::class, 'showLogin'])->name('login');
@@ -218,6 +222,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('legal-documents/{type}/edit', [AdminLegalDocumentController::class, 'edit'])->name('legal-documents.edit');
                 Route::put('legal-documents/{type}', [AdminLegalDocumentController::class, 'update'])->name('legal-documents.update');
                 Route::get('legal-documents/{type}/history', [AdminLegalDocumentController::class, 'history'])->name('legal-documents.history');
+            });
+
+            Route::middleware('menu:company_profile')->group(function () {
+                Route::get('company-profile', [CompanyProfileController::class, 'edit'])->name('company-profile.edit');
+                Route::put('company-profile', [CompanyProfileController::class, 'update'])->name('company-profile.update');
             });
         });
     });
