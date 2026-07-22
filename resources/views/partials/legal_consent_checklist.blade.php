@@ -1,5 +1,6 @@
 @php
     $typesNeedingConsent = $typesNeedingConsent ?? collect(array_keys($legalDocuments->toArray()));
+    $showChangeNotes ??= true;
 @endphp
 
 <p class="text-xs text-gray-500 mb-2">各文書名をクリックして内容をご確認いただくと、同意のチェックができるようになります。</p>
@@ -10,7 +11,7 @@
             <input type="checkbox" name="{{ $type }}_agreed" value="1" required disabled data-agree-checkbox="{{ $type }}" class="mt-0.5">
             <span><button type="button" class="text-blue-600 hover:underline" data-legal-open="{{ $type }}">{{ \App\Enums\LegalDocumentType::from($type)->label() }}</button>に同意します</span>
         </label>
-        @if ($document?->change_notes)
+        @if ($document?->change_notes && $showChangeNotes)
             <div class="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-md px-3 py-2 mt-1 mb-2">
                 <p class="font-semibold mb-1">今回の変更点</p>
                 <p style="white-space: pre-line">{{ $document->change_notes }}</p>

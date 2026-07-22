@@ -165,7 +165,7 @@
             </div>
 
             <div class="border-t border-gray-100 pt-6 space-y-2">
-                @include('partials.legal_consent_checklist', ['legalDocuments' => $legalDocuments])
+                @include('partials.legal_consent_checklist', ['legalDocuments' => $legalDocuments, 'showChangeNotes' => false])
             </div>
 
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md py-2">
