@@ -35,12 +35,16 @@ return [
         ],
     ],
 
-    'line' => [
-        'channel_id' => env('LINE_CHANNEL_ID'),
-        'channel_secret' => env('LINE_CHANNEL_SECRET'),
-        'channel_access_token' => env('LINE_CHANNEL_ACCESS_TOKEN'),
-        'liff_id' => env('LIFF_ID'),
-        'official_account_id' => env('LINE_OFFICIAL_ACCOUNT_ID'),
+    'line_partner' => [
+        'liff_id' => env('LINE_PARTNER_LIFF_ID'),
+        'channel_access_token' => env('LINE_PARTNER_CHANNEL_ACCESS_TOKEN'),
+    ],
+
+    'line_customer' => [
+        'channel_secret' => env('LINE_CUSTOMER_CHANNEL_SECRET'),
+        'channel_access_token' => env('LINE_CUSTOMER_CHANNEL_ACCESS_TOKEN'),
+        'liff_id' => env('LINE_CUSTOMER_LIFF_ID'),
+        'official_account_id' => env('LINE_CUSTOMER_OFFICIAL_ACCOUNT_ID'),
     ],
 
     'zengin_transfer' => [

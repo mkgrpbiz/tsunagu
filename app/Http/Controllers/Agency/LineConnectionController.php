@@ -17,7 +17,7 @@ class LineConnectionController extends Controller
     {
         return view('agency.line_connection.edit', [
             'agency' => Auth::guard('agency')->user(),
-            'liffId' => config('services.line.liff_id'),
+            'liffId' => config('services.line_partner.liff_id'),
         ]);
     }
 
@@ -28,7 +28,7 @@ class LineConnectionController extends Controller
     public function liffCallback(Request $request): View
     {
         return view('agency.line_connection.liff_callback', [
-            'liffId' => config('services.line.liff_id'),
+            'liffId' => config('services.line_partner.liff_id'),
             'connectToken' => (string) $request->query('connect_token', ''),
         ]);
     }
@@ -45,7 +45,7 @@ class LineConnectionController extends Controller
 
         if (! $agency) {
             return response()->view('agency.line_connection.expired', [
-                'liffId' => config('services.line.liff_id'),
+                'liffId' => config('services.line_partner.liff_id'),
             ], 400);
         }
 

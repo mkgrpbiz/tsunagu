@@ -16,7 +16,7 @@
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script>
 document.getElementById('tsn-back-button').addEventListener('click', function () {
-    liff.init({ liffId: @json(config('services.line.liff_id')) })
+    liff.init({ liffId: @json(config('services.line_customer.liff_id')) })
         .then(function () {
             if (liff.isInClient()) {
                 liff.closeWindow();

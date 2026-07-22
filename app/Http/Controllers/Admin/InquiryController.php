@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\InquiryStatus;
+use App\Enums\LineChannel;
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
 use App\Models\Inquiry;
@@ -62,7 +63,7 @@ class InquiryController extends Controller
             return back()->with('error', 'LINEユーザーまたは案内メッセージが未設定のため再送信できません。');
         }
 
-        $sent = $lineMessaging->sendPush($inquiry->lineUser->line_uid, $inquiry->project->line_auto_message);
+        $sent = $lineMessaging->sendPush(LineChannel::Customer, $inquiry->lineUser->line_uid, $inquiry->project->line_auto_message);
 
         if (! $sent) {
             return back()->with('error', '再送信に失敗しました。しばらくしてから再度お試しください。');

@@ -2,14 +2,15 @@
 
 namespace App\Services;
 
+use App\Enums\LineChannel;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class LineMessagingService
 {
-    public function sendPush(string $lineUid, string $message): bool
+    public function sendPush(LineChannel $channel, string $lineUid, string $message): bool
     {
-        $token = config('services.line.channel_access_token');
+        $token = config($channel->configKey().'.channel_access_token');
 
         if (blank($token)) {
             Log::info('LINE push message skipped (no channel access token configured).', [

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\AnnouncementCategory;
+use App\Enums\LineChannel;
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
 use App\Models\Announcement;
@@ -75,6 +76,6 @@ class AnnouncementController extends Controller
             $query->where('line_notify_project_info', true);
         }
 
-        $query->pluck('line_uid')->each(fn (string $lineUid) => $lineMessaging->sendPush($lineUid, $message));
+        $query->pluck('line_uid')->each(fn (string $lineUid) => $lineMessaging->sendPush(LineChannel::Partner, $lineUid, $message));
     }
 }

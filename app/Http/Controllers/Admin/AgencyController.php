@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\AgencyStatus;
 use App\Enums\BankAccountType;
 use App\Enums\Gender;
+use App\Enums\LineChannel;
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
 use App\Models\AgencyStatusHistory;
@@ -154,7 +155,7 @@ class AgencyController extends Controller
         };
 
         if ($message) {
-            $lineMessaging->sendPush($agency->line_uid, $message);
+            $lineMessaging->sendPush(LineChannel::Partner, $agency->line_uid, $message);
         }
     }
 

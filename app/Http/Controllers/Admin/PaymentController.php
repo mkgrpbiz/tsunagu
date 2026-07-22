@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\BankAccountType;
 use App\Enums\CollaborationRewardStatus;
+use App\Enums\LineChannel;
 use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
@@ -439,6 +440,6 @@ class PaymentController extends Controller
 
         $message = str_replace('{amount}', number_format($amount), $setting->approved_message);
 
-        $lineMessaging->sendPush($agency->line_uid, $message);
+        $lineMessaging->sendPush(LineChannel::Partner, $agency->line_uid, $message);
     }
 }

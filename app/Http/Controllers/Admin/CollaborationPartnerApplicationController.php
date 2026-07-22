@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\CollaborationPartnerApplicationStatus;
+use App\Enums\LineChannel;
 use App\Http\Controllers\Controller;
 use App\Models\CollaborationPartnerApplication;
 use App\Models\NotificationMessageSetting;
@@ -79,7 +80,7 @@ class CollaborationPartnerApplicationController extends Controller
         };
 
         if ($message) {
-            $lineMessaging->sendPush($agency->line_uid, $message);
+            $lineMessaging->sendPush(LineChannel::Partner, $agency->line_uid, $message);
         }
     }
 }

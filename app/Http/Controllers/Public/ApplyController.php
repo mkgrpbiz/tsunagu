@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Enums\InquiryStatus;
+use App\Enums\LineChannel;
 use App\Enums\ProjectStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
@@ -22,8 +23,8 @@ class ApplyController extends Controller
         return view('public.apply.show', [
             'inviteLink' => $inviteLink,
             'project' => $inviteLink->project,
-            'liffId' => config('services.line.liff_id'),
-            'officialAccountId' => config('services.line.official_account_id'),
+            'liffId' => config('services.line_customer.liff_id'),
+            'officialAccountId' => config('services.line_customer.official_account_id'),
             'result' => $inviteLink->project->status === ProjectStatus::Published ? null : 'unavailable',
             'offerText' => $this->offerText($inviteLink->project),
         ]);
@@ -76,7 +77,7 @@ class ApplyController extends Controller
         $result = 'not_friend';
 
         if ($isFriend && filled($inviteLink->project->line_auto_message)) {
-            $sent = $lineMessaging->sendPush($lineUser->line_uid, $inviteLink->project->line_auto_message);
+            $sent = $lineMessaging->sendPush(LineChannel::Customer, $lineUser->line_uid, $inviteLink->project->line_auto_message);
 
             if ($sent) {
                 $inquiry->update(['guidance_sent_at' => now(), 'status' => InquiryStatus::Guided]);
@@ -90,8 +91,8 @@ class ApplyController extends Controller
         return view('public.apply.show', [
             'inviteLink' => $inviteLink,
             'project' => $inviteLink->project,
-            'liffId' => config('services.line.liff_id'),
-            'officialAccountId' => config('services.line.official_account_id'),
+            'liffId' => config('services.line_customer.liff_id'),
+            'officialAccountId' => config('services.line_customer.official_account_id'),
             'result' => $result,
             'offerText' => $this->offerText($inviteLink->project),
         ]);

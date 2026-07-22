@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Enums\InquiryStatus;
+use App\Enums\LineChannel;
 use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
 use App\Models\LineUser;
@@ -40,7 +41,7 @@ class LineWebhookController extends Controller
 
     private function hasValidSignature(Request $request): bool
     {
-        $secret = config('services.line.channel_secret');
+        $secret = config(LineChannel::Customer->configKey().'.channel_secret');
 
         if (blank($secret)) {
             return true;
@@ -71,7 +72,7 @@ class LineWebhookController extends Controller
                 continue;
             }
 
-            $sent = $lineMessaging->sendPush($lineUid, $inquiry->project->line_auto_message);
+            $sent = $lineMessaging->sendPush(LineChannel::Customer, $lineUid, $inquiry->project->line_auto_message);
 
             if ($sent) {
                 $inquiry->update(['guidance_sent_at' => now(), 'status' => InquiryStatus::Guided]);

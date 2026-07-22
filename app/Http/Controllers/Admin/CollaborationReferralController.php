@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\CollaborationReferralStatus;
+use App\Enums\LineChannel;
 use App\Http\Controllers\Controller;
 use App\Models\CollaborationReferral;
 use App\Models\NotificationMessageSetting;
@@ -78,7 +79,7 @@ class CollaborationReferralController extends Controller
 
         if ($template) {
             $message = str_replace('{referred_name}', $collaborationReferral->referred_name, $template);
-            $lineMessaging->sendPush($agency->line_uid, $message);
+            $lineMessaging->sendPush(LineChannel::Partner, $agency->line_uid, $message);
         }
     }
 }

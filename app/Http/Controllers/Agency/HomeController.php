@@ -20,7 +20,7 @@ class HomeController extends Controller
         if ($agency->status !== AgencyStatus::Approved) {
             return view('agency.restricted', [
                 'agency' => $agency,
-                'liffId' => config('services.line.liff_id'),
+                'liffId' => config('services.line_partner.liff_id'),
             ]);
         }
 
@@ -36,7 +36,7 @@ class HomeController extends Controller
             'referralUrl' => url('/agency/register?ref='.$agency->referral_code),
             'restrictedReason' => $restrictedReason,
             'bannerReason' => $bannerReason,
-            'liffId' => config('services.line.liff_id'),
+            'liffId' => config('services.line_partner.liff_id'),
         ]);
     }
 }
