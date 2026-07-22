@@ -52,7 +52,7 @@
                 @if (\Illuminate\Support\Facades\Storage::disk('public')->exists('oshigoto/oshigoto4.png'))
                     <div class="box">
                         <p class="box-title">✅ 集客画像</p>
-                        <p class="muted">※文字以外の部分を長押しで保存できます。</p>
+                        <p class="muted">※携帯は文字以外の部分を長押しで保存できます。</p>
                         <div class="mkp-photo">
                             <img src="{{ \Illuminate\Support\Facades\Storage::url('oshigoto/oshigoto4.png') }}" alt="おしごとナビ" loading="lazy">
                         </div>
@@ -96,7 +96,7 @@
                         @if ($project->image_path)
                             <div class="box">
                                 <p class="box-title">✅ 集客画像</p>
-                                <p class="muted">※文字以外の部分を長押しで保存できます。</p>
+                                <p class="muted">※携帯は文字以外の部分を長押しで保存できます。</p>
                                 <div class="mkp-photo">
                                     <img src="{{ \Illuminate\Support\Facades\Storage::url($project->image_path) }}" alt="{{ $project->name }} 集客画像" loading="lazy">
                                 </div>
