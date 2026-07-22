@@ -176,9 +176,8 @@ class DepositLinkController extends Controller
     private function parseBulkText(int $projectId, string $text): array
     {
         $lines = preg_split('/\r\n|\r|\n/', trim($text)) ?: [];
-        $matched = [];
+        $parsedLines = [];
         $unmatched = [];
-        $claimedIds = [];
 
         foreach ($lines as $lineText) {
             $lineText = trim($lineText);
@@ -206,10 +205,41 @@ class DepositLinkController extends Controller
             $count = $countRaw !== '' ? (int) preg_replace('/[^\d]/', '', $countRaw) : 1;
             $count = max($count, 1);
 
+            $parsedLines[] = [
+                'raw' => $lineText,
+                'name' => $name,
+                'name_kana' => $nameKana,
+                'tsunagu_price' => $tsunaguPrice,
+                'agency_price' => $agencyPrice,
+                'count' => $count,
+            ];
+        }
+
+        // 同じ人・同じ単価の行は、紐づけ前にまとめる（同じ人が複数行に分かれて貼り付けられるケースがあるため）
+        $combinedLines = collect($parsedLines)
+            ->groupBy(fn (array $line) => implode('|', [$line['name'], $line['name_kana'], $line['tsunagu_price'], $line['agency_price']]))
+            ->map(function ($group) {
+                $first = $group->first();
+
+                return [
+                    'raw' => $group->pluck('raw')->implode(' / '),
+                    'name' => $first['name'],
+                    'name_kana' => $first['name_kana'],
+                    'tsunagu_price' => $first['tsunagu_price'],
+                    'agency_price' => $first['agency_price'],
+                    'count' => $group->sum('count'),
+                ];
+            })
+            ->values();
+
+        $matched = [];
+        $claimedIds = [];
+
+        foreach ($combinedLines as $line) {
             $candidateInquiries = Inquiry::with(['project', 'agency'])
                 ->where('project_id', $projectId)
-                ->where('name', $name)
-                ->when($nameKana !== '', fn ($q) => $q->where('name_kana', $nameKana))
+                ->where('name', $line['name'])
+                ->when($line['name_kana'] !== '', fn ($q) => $q->where('name_kana', $line['name_kana']))
                 ->where(function ($q) {
                     $q->whereDoesntHave('contracts')
                         ->orWhereHas('project', fn ($q2) => $q2->where('is_recurring', true));
@@ -220,7 +250,7 @@ class DepositLinkController extends Controller
             $inquiry = $candidateInquiries->first(fn (Inquiry $c) => ! in_array($c->id, $claimedIds, true));
 
             if (! $inquiry) {
-                $unmatched[] = ['raw' => $lineText, 'reason' => '一致する問い合わせ候補が見つかりません（名前・フリガナをご確認ください）'];
+                $unmatched[] = ['raw' => $line['raw'], 'reason' => '一致する問い合わせ候補が見つかりません（名前・フリガナをご確認ください）'];
 
                 continue;
             }
@@ -228,11 +258,11 @@ class DepositLinkController extends Controller
             $claimedIds[] = $inquiry->id;
 
             $matched[] = [
-                'raw' => $lineText,
+                'raw' => $line['raw'],
                 'inquiry' => $inquiry,
-                'tsunagu_price' => $tsunaguPrice,
-                'agency_price' => $agencyPrice,
-                'count' => $count,
+                'tsunagu_price' => $line['tsunagu_price'],
+                'agency_price' => $line['agency_price'],
+                'count' => $line['count'],
             ];
         }
 
