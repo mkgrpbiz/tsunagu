@@ -8,6 +8,19 @@
     <a href="{{ route('admin.agencies.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md px-4 py-2">新規作成</a>
 </div>
 
+<details class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+    <summary class="text-sm font-medium text-gray-700 cursor-pointer select-none">一括追加（スプレッドシートから貼り付け）</summary>
+    <p class="text-xs text-gray-500 mt-3 mb-3">
+        「タイムスタンプ　本人コード　紹介コード　LINE名　お名前（フルネーム）　フリガナ　お住まい（都道府県）　ご職業　活動内容　電話番号　メールアドレス」の順にタブ区切りで貼り付けてください（ヘッダー行を含めて貼り付けても自動的に無視されます）。初期パスワードは全員 pass1234 になります。
+    </p>
+    <form method="POST" action="{{ route('admin.agencies.bulk-preview') }}">
+        @csrf
+        <textarea name="pasted_text" rows="8" required
+                  class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-xs"></textarea>
+        <button type="submit" class="mt-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md px-4 py-2">プレビュー</button>
+    </form>
+</details>
+
 @php
     $statusTabs = [
         'all' => ['label' => 'すべて', 'color' => 'bg-gray-500'],

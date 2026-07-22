@@ -103,6 +103,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::patch('agencies/{agency}/status', [AgencyController::class, 'updateStatus'])->name('agencies.update-status');
                 Route::patch('agencies/{agency}/collaboration-partner', [AgencyController::class, 'toggleCollaborationPartner'])->name('agencies.toggle-collaboration-partner');
                 Route::post('agencies/{agency}/impersonate', [AgencyController::class, 'impersonate'])->name('agencies.impersonate');
+                Route::post('agencies-bulk-preview', [AgencyController::class, 'bulkPreview'])->name('agencies.bulk-preview');
+                Route::post('agencies-bulk-store', [AgencyController::class, 'bulkStore'])->name('agencies.bulk-store');
                 Route::resource('agencies', AgencyController::class);
             });
 

@@ -11,6 +11,7 @@ use App\Models\AgencyStatusHistory;
 use App\Models\LegalDocumentConsent;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -149,6 +150,197 @@ class AgencyController extends Controller
         $request->session()->regenerate();
 
         return redirect()->route('agency.home')->with('status', "{$agency->name} としてログインしました。");
+    }
+
+    public function bulkPreview(Request $request): View
+    {
+        $data = $request->validate([
+            'pasted_text' => ['required', 'string'],
+        ]);
+
+        $result = $this->parseBulkText($data['pasted_text']);
+
+        return view('admin.agencies.bulk_preview', [
+            'pastedText' => $data['pasted_text'],
+            'valid' => $result['valid'],
+            'invalid' => $result['invalid'],
+        ]);
+    }
+
+    public function bulkStore(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'pasted_text' => ['required', 'string'],
+        ]);
+
+        $result = $this->parseBulkText($data['pasted_text']);
+
+        $createdIdsByLegacyCode = [];
+        $createdCount = 0;
+
+        foreach ($result['valid'] as $row) {
+            $referredByAgencyId = $row['referrer_agency']?->id
+                ?? ($row['referral_code'] !== '' ? ($createdIdsByLegacyCode[$row['referral_code']] ?? null) : null);
+
+            $agency = Agency::create([
+                'name' => $row['name'],
+                'name_kana' => $row['name_kana'],
+                'gender' => Gender::Other,
+                'prefecture' => $row['prefecture'],
+                'occupation' => $row['occupation'],
+                'phone' => $row['phone'],
+                'email' => $row['email'],
+                'password' => 'pass1234',
+                'must_change_password' => true,
+                'status' => AgencyStatus::Approved,
+                'approved_at' => now(),
+                'approved_by_user_id' => Auth::id(),
+                'line_display_name' => $row['line_display_name'],
+                'current_activity' => $row['current_activity'],
+                'referred_by_agency_id' => $referredByAgencyId,
+                ...($row['legacy_code'] ? ['legacy_code' => $row['legacy_code']] : []),
+            ]);
+
+            if ($row['timestamp']) {
+                $agency->forceFill(['created_at' => $row['timestamp'], 'updated_at' => $row['timestamp']])->save();
+            }
+
+            AgencyStatusHistory::create([
+                'agency_id' => $agency->id,
+                'from_status' => null,
+                'to_status' => AgencyStatus::Approved,
+                'changed_by_user_id' => Auth::id(),
+            ]);
+
+            if ($row['legacy_code']) {
+                $createdIdsByLegacyCode[$row['legacy_code']] = $agency->id;
+            }
+
+            $createdCount++;
+        }
+
+        $invalidCount = count($result['invalid']);
+        $status = "{$createdCount}件のパートナーを追加しました。";
+        if ($invalidCount > 0) {
+            $status .= "{$invalidCount}件はエラーのためスキップしました。";
+        }
+
+        return redirect()->route('admin.agencies.index')->with('status', $status);
+    }
+
+    /**
+     * @return array{valid: array<int, array<string, mixed>>, invalid: array<int, array<string, mixed>>}
+     */
+    private function parseBulkText(string $text): array
+    {
+        $lines = preg_split('/\r\n|\r|\n/', trim($text)) ?: [];
+        $valid = [];
+        $invalid = [];
+        $seenEmails = [];
+        $seenLegacyCodes = [];
+        $batchLegacyCodes = [];
+
+        foreach ($lines as $lineText) {
+            if (trim($lineText) === '') {
+                continue;
+            }
+
+            $columns = explode("\t", $lineText);
+            $timestampRaw = trim($columns[0] ?? '');
+
+            if ($timestampRaw === 'タイムスタンプ') {
+                continue;
+            }
+
+            $legacyCode = trim($columns[1] ?? '');
+            $referralCode = trim($columns[2] ?? '');
+            $lineDisplayName = trim($columns[3] ?? '');
+            $name = trim($columns[4] ?? '');
+            $nameKana = trim($columns[5] ?? '');
+            $prefecture = trim($columns[6] ?? '');
+            $occupation = trim($columns[7] ?? '');
+            $currentActivity = trim($columns[8] ?? '');
+            $phone = trim($columns[9] ?? '');
+            $email = trim($columns[10] ?? '');
+
+            $errors = [];
+
+            if ($name === '') {
+                $errors[] = 'お名前が空です';
+            }
+            if ($nameKana === '') {
+                $errors[] = 'フリガナが空です';
+            }
+            if ($prefecture === '') {
+                $errors[] = '都道府県が空です';
+            }
+            if ($phone === '') {
+                $errors[] = '電話番号が空です';
+            }
+
+            if ($email === '') {
+                $errors[] = 'メールアドレスが空です';
+            } elseif (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'メールアドレスの形式が不正です';
+            } elseif (Agency::where('email', $email)->exists()) {
+                $errors[] = '既に登録済みのメールアドレスです';
+            } elseif (isset($seenEmails[$email])) {
+                $errors[] = '貼り付け内でメールアドレスが重複しています';
+            }
+
+            if ($legacyCode !== '') {
+                if (Agency::where('legacy_code', $legacyCode)->exists()) {
+                    $errors[] = "本人コード「{$legacyCode}」は既に使われています";
+                } elseif (isset($seenLegacyCodes[$legacyCode])) {
+                    $errors[] = "本人コード「{$legacyCode}」が貼り付け内で重複しています";
+                }
+            }
+
+            $referrerAgency = $referralCode !== '' ? Agency::where('legacy_code', $referralCode)->first() : null;
+            $referrerInBatch = ! $referrerAgency && $referralCode !== '' && isset($batchLegacyCodes[$referralCode]);
+
+            $timestamp = null;
+            if ($timestampRaw !== '') {
+                try {
+                    $timestamp = Carbon::parse($timestampRaw);
+                } catch (\Throwable) {
+                    $timestamp = null;
+                }
+            }
+
+            $row = [
+                'raw' => $lineText,
+                'timestamp' => $timestamp,
+                'legacy_code' => $legacyCode !== '' ? $legacyCode : null,
+                'referral_code' => $referralCode,
+                'referrer_agency' => $referrerAgency,
+                'referrer_in_batch' => $referrerInBatch,
+                'line_display_name' => $lineDisplayName !== '' ? $lineDisplayName : null,
+                'name' => $name,
+                'name_kana' => $nameKana,
+                'prefecture' => $prefecture,
+                'occupation' => $occupation !== '' ? $occupation : null,
+                'current_activity' => $currentActivity !== '' ? $currentActivity : null,
+                'phone' => $phone,
+                'email' => $email,
+                'errors' => $errors,
+            ];
+
+            if (empty($errors)) {
+                if ($email !== '') {
+                    $seenEmails[$email] = true;
+                }
+                if ($legacyCode !== '') {
+                    $seenLegacyCodes[$legacyCode] = true;
+                    $batchLegacyCodes[$legacyCode] = true;
+                }
+                $valid[] = $row;
+            } else {
+                $invalid[] = $row;
+            }
+        }
+
+        return ['valid' => $valid, 'invalid' => $invalid];
     }
 
     public function destroy(Agency $agency): RedirectResponse
