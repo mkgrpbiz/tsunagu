@@ -8,7 +8,6 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CollaborationPartnerApplicationController as AdminCollaborationPartnerApplicationController;
 use App\Http\Controllers\Admin\CollaborationPartnerController;
-use App\Http\Controllers\Admin\CollaborationReferralController;
 use App\Http\Controllers\Admin\CollaborationRewardController;
 use App\Http\Controllers\Admin\CompanyProfileController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -26,7 +25,6 @@ use App\Http\Controllers\Admin\SalesMaterialController;
 use App\Http\Controllers\Agency\AdditionalInfoController as AgencyAdditionalInfoController;
 use App\Http\Controllers\Agency\AuthController as AgencyAuthController;
 use App\Http\Controllers\Agency\CollaborationPartnerApplicationController as AgencyCollaborationPartnerApplicationController;
-use App\Http\Controllers\Agency\CollaborationReferralController as AgencyCollaborationReferralController;
 use App\Http\Controllers\Agency\ContractController as AgencyContractController;
 use App\Http\Controllers\Agency\HomeController as AgencyHomeController;
 use App\Http\Controllers\Agency\InquiryController as AgencyInquiryController;
@@ -177,19 +175,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::resource('announcements', AnnouncementController::class)->except('show');
             });
 
-            Route::middleware('menu:collaboration_referrals')->group(function () {
-                Route::get('collaboration-referrals', [CollaborationReferralController::class, 'index'])->name('collaboration-referrals.index');
-                Route::get('collaboration-referrals/{collaborationReferral}', [CollaborationReferralController::class, 'show'])->name('collaboration-referrals.show');
-                Route::patch('collaboration-referrals/{collaborationReferral}/status', [CollaborationReferralController::class, 'updateStatus'])->name('collaboration-referrals.update-status');
-
-                Route::get('collaboration-referrals-notification-settings', [NotificationMessageSettingController::class, 'edit'])
-                    ->name('notification-message-settings.collaboration-referrals.edit')
-                    ->defaults('feature', NotificationMessageSetting::FEATURE_COLLABORATION_REFERRAL);
-                Route::put('collaboration-referrals-notification-settings', [NotificationMessageSettingController::class, 'update'])
-                    ->name('notification-message-settings.collaboration-referrals.update')
-                    ->defaults('feature', NotificationMessageSetting::FEATURE_COLLABORATION_REFERRAL);
-            });
-
             Route::middleware('menu:collaboration_partner_applications')->group(function () {
                 Route::get('collaboration-partner-applications', [AdminCollaborationPartnerApplicationController::class, 'index'])->name('collaboration-partner-applications.index');
                 Route::get('collaboration-partner-applications/{collaborationPartnerApplication}', [AdminCollaborationPartnerApplicationController::class, 'show'])->name('collaboration-partner-applications.show');
@@ -273,9 +258,6 @@ Route::prefix('agency')->name('agency.')->group(function () {
                 Route::get('projects', [AgencyProjectController::class, 'index'])->name('projects.index');
                 Route::get('inquiries', [AgencyInquiryController::class, 'index'])->name('inquiries.index');
                 Route::get('contracts', [AgencyContractController::class, 'index'])->name('contracts.index');
-
-                Route::get('collaboration-referrals/create', [AgencyCollaborationReferralController::class, 'create'])->name('collaboration-referrals.create');
-                Route::post('collaboration-referrals', [AgencyCollaborationReferralController::class, 'store'])->name('collaboration-referrals.store');
 
                 Route::get('collaboration-partner-applications/create', [AgencyCollaborationPartnerApplicationController::class, 'create'])->name('collaboration-partner-applications.create');
                 Route::post('collaboration-partner-applications', [AgencyCollaborationPartnerApplicationController::class, 'store'])->name('collaboration-partner-applications.store');

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
-use App\Models\CollaborationReferral;
 use App\Models\Contract;
 use App\Models\Inquiry;
 use App\Models\ReferralCommission;
@@ -17,13 +16,13 @@ class DashboardController extends Controller
     public function index(Request $request): View
     {
         $agencies = Agency::all();
-        $collaborationReferrals = CollaborationReferral::all();
+        $collaborationPartners = Agency::where('is_collaboration_partner', true)->get();
         $inquiries = Inquiry::all();
         $contracts = Contract::all();
         $referralCommissions = ReferralCommission::with('contract')->get();
 
         $months = $agencies->map(fn (Agency $agency) => $agency->created_at->format('Y-m'))->toBase()
-            ->merge($collaborationReferrals->map(fn (CollaborationReferral $referral) => $referral->created_at->format('Y-m')))
+            ->merge($collaborationPartners->map(fn (Agency $agency) => ($agency->collaboration_partner_at ?? $agency->created_at)->format('Y-m')))
             ->merge($inquiries->map(fn (Inquiry $inquiry) => $inquiry->inquired_at->format('Y-m')))
             ->merge($contracts->map(fn (Contract $contract) => $contract->deposit_date->format('Y-m')))
             ->unique()->sortDesc()->values();
@@ -34,7 +33,7 @@ class DashboardController extends Controller
 
         $countResolvers = [
             'referral_partners' => [$agencies, fn (Agency $a) => $a->created_at->format('Y-m')],
-            'collaboration_partners' => [$collaborationReferrals, fn (CollaborationReferral $r) => $r->created_at->format('Y-m')],
+            'collaboration_partners' => [$collaborationPartners, fn (Agency $a) => ($a->collaboration_partner_at ?? $a->created_at)->format('Y-m')],
             'inquiries' => [$inquiries, fn (Inquiry $i) => $i->inquired_at->format('Y-m')],
             'deposits' => [$contracts, fn (Contract $c) => $c->deposit_date->format('Y-m')],
         ];

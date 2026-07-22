@@ -124,11 +124,6 @@ class Agency extends Authenticatable
         return $this->hasMany(ReferralCommission::class, 'referrer_agency_id');
     }
 
-    public function collaborationReferrals(): HasMany
-    {
-        return $this->hasMany(CollaborationReferral::class);
-    }
-
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class, 'referrer_agency_id');

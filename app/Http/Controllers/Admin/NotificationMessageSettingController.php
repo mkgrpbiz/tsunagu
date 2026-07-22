@@ -11,15 +11,6 @@ use Illuminate\View\View;
 class NotificationMessageSettingController extends Controller
 {
     private const DEFAULTS = [
-        NotificationMessageSetting::FEATURE_COLLABORATION_REFERRAL => [
-            'title' => '共創パートナー紹介 - LINE通知設定',
-            'back_route' => 'admin.collaboration-referrals.index',
-            'edit_route' => 'admin.notification-message-settings.collaboration-referrals.edit',
-            'update_route' => 'admin.notification-message-settings.collaboration-referrals.update',
-            'placeholder_hint' => '{referred_name} と書くと、紹介先のお名前に置き換わります。',
-            'approved' => '共創先紹介（{referred_name}様）の審査が完了し、承認となりました。',
-            'rejected' => '共創先紹介（{referred_name}様）の審査が完了し、今回は見送りとなりました。',
-        ],
         NotificationMessageSetting::FEATURE_COLLABORATION_PARTNER_APPLICATION => [
             'title' => '共創パートナー申請 - LINE通知設定',
             'back_route' => 'admin.collaboration-partner-applications.index',

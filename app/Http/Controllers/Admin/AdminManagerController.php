@@ -32,7 +32,6 @@ class AdminManagerController extends Controller
             'aggregate_results' => '合計成果反映',
             'payments' => '支払い管理',
             'announcements' => 'お知らせ管理',
-            'collaboration_referrals' => '共創紹介',
             'collaboration_partner_applications' => '共創パートナー申請',
             'collaboration_rewards' => '共創報酬管理',
             'legal_documents' => '契約管理',

@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable(['feature', 'approved_message', 'rejected_message'])]
 class NotificationMessageSetting extends Model
 {
-    public const FEATURE_COLLABORATION_REFERRAL = 'collaboration_referral';
-
     public const FEATURE_COLLABORATION_PARTNER_APPLICATION = 'collaboration_partner_application';
 
     public const FEATURE_PAYMENT_COMPLETED = 'payment_completed';

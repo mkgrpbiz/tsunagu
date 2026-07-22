@@ -10,7 +10,6 @@
         'benefits' => 'メリット一覧（番号付きカードで表示）',
         'cta' => 'CTA（ボタン付き）',
         'referral_cta' => 'パートナー紹介',
-        'collaboration_cta' => '共創パートナー紹介',
         'collaboration_partner_application_cta' => '共創パートナー申請',
         'sales_materials' => '営業素材（位置のみ）',
         'announcements' => 'お知らせ（位置のみ）',
