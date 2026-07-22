@@ -29,8 +29,35 @@ class LineConnectionController extends Controller
     {
         return view('agency.line_connection.liff_callback', [
             'liffId' => config('services.line_partner.liff_id'),
-            'connectToken' => (string) $request->query('connect_token', ''),
+            'connectToken' => $this->resolveConnectToken($request),
         ]);
+    }
+
+    /**
+     * LIFFの起動URLに?from=...で渡したconnect_tokenは、LINEアプリ内ログインを経由すると
+     * ?liff.state=...（さらにURLエンコードされた形）でラップされて戻ってくるため、
+     * トップレベルのクエリだけでなくfrom/liff.state内も見て取り出す必要がある。
+     */
+    private function resolveConnectToken(Request $request): string
+    {
+        if ($request->filled('connect_token')) {
+            return (string) $request->query('connect_token');
+        }
+
+        $from = $request->query('from');
+
+        if (! $from && $request->filled('liff_state')) {
+            parse_str(ltrim((string) $request->query('liff_state'), '?'), $liffStateParams);
+            $from = $liffStateParams['from'] ?? null;
+        }
+
+        if (! $from) {
+            return '';
+        }
+
+        parse_str((string) parse_url((string) $from, PHP_URL_QUERY), $fromParams);
+
+        return (string) ($fromParams['connect_token'] ?? '');
     }
 
     public function connect(Request $request): RedirectResponse|Response
