@@ -16,6 +16,8 @@ class NotificationMessageSetting extends Model
 
     public const FEATURE_AGENCY_REVIEW = 'agency_review';
 
+    public const FEATURE_LINE_CONNECTED = 'line_connected';
+
     public static function forFeature(string $feature, string $defaultApprovedMessage, string $defaultRejectedMessage): self
     {
         return static::firstOrCreate(

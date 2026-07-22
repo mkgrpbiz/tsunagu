@@ -6,7 +6,8 @@
 <div class="flex items-center justify-between mb-6">
     <h1 class="text-xl font-semibold">パートナー一覧</h1>
     <div class="flex items-center gap-4">
-        <a href="{{ route('admin.notification-message-settings.agencies.edit') }}" class="text-sm text-blue-600 hover:underline">LINE通知設定</a>
+        <a href="{{ route('admin.notification-message-settings.agencies.edit') }}" class="text-sm text-blue-600 hover:underline">LINE通知設定（審査結果）</a>
+        <a href="{{ route('admin.notification-message-settings.line-connected.edit') }}" class="text-sm text-blue-600 hover:underline">LINE通知設定（連携完了）</a>
         <a href="{{ route('admin.agencies.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md px-4 py-2">新規作成</a>
     </div>
 </div>

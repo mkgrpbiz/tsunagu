@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Agency;
 use App\Enums\LineChannel;
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
+use App\Models\NotificationMessageSetting;
 use App\Services\LineMessagingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -85,7 +86,15 @@ class LineConnectionController extends Controller
 
         Auth::guard('agency')->login($agency);
 
-        $lineMessaging->sendPush(LineChannel::Partner, $data['line_uid'], 'LINE連携が完了しました。今後、審査結果や各種お知らせをこちらのLINEにお届けします。');
+        $setting = NotificationMessageSetting::forFeature(
+            NotificationMessageSetting::FEATURE_LINE_CONNECTED,
+            'LINE連携が完了しました。今後、審査結果や各種お知らせをこちらのLINEにお届けします。',
+            '',
+        );
+
+        if ($setting->approved_message) {
+            $lineMessaging->sendPush(LineChannel::Partner, $data['line_uid'], $setting->approved_message);
+        }
 
         return redirect()->route('agency.home')->with('status', 'LINE連携が完了しました。');
     }

@@ -117,6 +117,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
                     ->name('notification-message-settings.agencies.update')
                     ->defaults('feature', NotificationMessageSetting::FEATURE_AGENCY_REVIEW);
 
+                Route::get('agencies-line-connected-settings', [NotificationMessageSettingController::class, 'edit'])
+                    ->name('notification-message-settings.line-connected.edit')
+                    ->defaults('feature', NotificationMessageSetting::FEATURE_LINE_CONNECTED);
+                Route::put('agencies-line-connected-settings', [NotificationMessageSettingController::class, 'update'])
+                    ->name('notification-message-settings.line-connected.update')
+                    ->defaults('feature', NotificationMessageSetting::FEATURE_LINE_CONNECTED);
+
                 Route::resource('agencies', AgencyController::class);
             });
 
