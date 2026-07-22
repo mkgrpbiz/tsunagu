@@ -53,7 +53,7 @@
             <p class="restricted-title">{{ $restrictedTitle }}</p>
             <p class="restricted-body">{{ $restrictedBody }}</p>
         </div>
-    @elseif (! ($agency->line_uid ?? null))
+    @elseif ($agency && ! $agency->line_uid)
         <div class="cta-card" style="text-align: center;">
             <div class="cta-title">🔒 パートナー専用LINEへの登録が必要です。</div>
             <div style="margin-top: 12px;">
@@ -80,7 +80,7 @@
             <p class="restricted-title">{{ $restrictedTitle }}</p>
             <p class="restricted-body">{{ $restrictedBody }}</p>
         </div>
-    @elseif (! ($agency->line_uid ?? null))
+    @elseif ($agency && ! $agency->line_uid)
         <div class="cta-card" style="text-align: center;">
             <div class="cta-title">🔒 パートナー専用LINEへの登録が必要です。</div>
             <div style="margin-top: 12px;">
