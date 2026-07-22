@@ -23,6 +23,8 @@ class HomeController extends Controller
             default => null,
         };
 
+        $bannerReason = $restrictedReason ?? (! $agency->line_uid ? 'line_required' : null);
+
         return view('agency.home.index', [
             'agency' => $agency,
             'content' => HomePageContent::current(),
@@ -31,6 +33,7 @@ class HomeController extends Controller
             'salesMaterials' => SalesMaterial::latest()->get(),
             'referralUrl' => url('/agency/register?ref='.$agency->referral_code),
             'restrictedReason' => $restrictedReason,
+            'bannerReason' => $bannerReason,
             'liffId' => config('services.line.liff_id'),
         ]);
     }
