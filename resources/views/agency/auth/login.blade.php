@@ -37,7 +37,7 @@
         </form>
 
         <p class="text-center text-sm text-gray-500 mt-6">
-            パートナーとして登録がまだの方は
+            パートナーとして登録がまだの方は<br>
             <a href="{{ route('agency.register') }}" class="text-blue-600 hover:underline">新規登録はこちら</a>
         </p>
     </div>
