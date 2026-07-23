@@ -15,18 +15,30 @@
 
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script>
+function tsnGoBack() {
+    if (liff.isInClient()) {
+        liff.closeWindow();
+    } else {
+        history.back();
+    }
+}
+
+liff.init({ liffId: @json(config('services.line_customer.liff_id')) })
+    .then(function () {
+        // liff.init()がliff.stateのラップを解いた後は、location.searchに元のfromがそのまま復元されている
+        var from = new URLSearchParams(window.location.search).get('from');
+        if (from) {
+            window.location.href = from;
+        }
+    })
+    .catch(function (error) {
+        console.error(error);
+    });
+
 document.getElementById('tsn-back-button').addEventListener('click', function () {
     liff.init({ liffId: @json(config('services.line_customer.liff_id')) })
-        .then(function () {
-            if (liff.isInClient()) {
-                liff.closeWindow();
-            } else {
-                history.back();
-            }
-        })
-        .catch(function () {
-            history.back();
-        });
+        .then(tsnGoBack)
+        .catch(tsnGoBack);
 });
 </script>
 @endsection
