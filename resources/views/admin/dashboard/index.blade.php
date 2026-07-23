@@ -21,6 +21,21 @@
 </form>
 
 @php
+    $activeAlerts = array_filter($alerts, fn ($alert) => $alert['count'] > 0);
+@endphp
+
+@if (count($activeAlerts) > 0)
+<div class="grid md:grid-cols-2 gap-4 mb-8">
+    @foreach ($activeAlerts as $alert)
+        <a href="{{ $alert['route'] }}" class="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 hover:bg-amber-100">
+            <span class="text-sm font-medium text-amber-800">⚠️ {{ $alert['label'] }}</span>
+            <span class="text-sm font-semibold text-amber-800">{{ $alert['count'] }}件</span>
+        </a>
+    @endforeach
+</div>
+@endif
+
+@php
     $cards = [
         ['label' => 'パートナー数', 'data' => $summary['referral_partners'], 'unit' => '件'],
         ['label' => '共創パートナー数', 'data' => $summary['collaboration_partners'], 'unit' => '件'],

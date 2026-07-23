@@ -2,8 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AgencyStatus;
+use App\Enums\CollaborationPartnerApplicationStatus;
+use App\Enums\InquiryStatus;
+use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
+use App\Models\CollaborationPartnerApplication;
+use App\Models\CollaborationReward;
 use App\Models\Contract;
 use App\Models\Inquiry;
 use App\Models\ReferralCommission;
@@ -82,7 +88,46 @@ class DashboardController extends Controller
             'summary' => $summary,
             'chartData' => $chartData,
             'carryOverTotal' => $carryOverTotal,
+            'alerts' => $this->alerts(),
         ]);
+    }
+
+    private function alerts(): array
+    {
+        $overdueThreshold = now()->subDays(5)->toDateString();
+
+        $overduePayments = Contract::where('payment_status', PaymentStatus::Unpaid)
+            ->where('payment_due_date', '<=', $overdueThreshold)
+            ->count()
+            + ReferralCommission::where('payment_status', PaymentStatus::Unpaid)
+                ->where('payment_due_date', '<=', $overdueThreshold)
+                ->count()
+            + CollaborationReward::where('payment_status', PaymentStatus::Unpaid)
+                ->where('payment_due_date', '<=', $overdueThreshold)
+                ->count();
+
+        return [
+            [
+                'label' => 'パートナー登録審査待ち',
+                'count' => Agency::where('status', AgencyStatus::Pending)->count(),
+                'route' => route('admin.agencies.index', ['status' => AgencyStatus::Pending->value]),
+            ],
+            [
+                'label' => '共創パートナー申請審査待ち',
+                'count' => CollaborationPartnerApplication::where('status', CollaborationPartnerApplicationStatus::Pending)->count(),
+                'route' => route('admin.collaboration-partner-applications.index', ['status' => CollaborationPartnerApplicationStatus::Pending->value]),
+            ],
+            [
+                'label' => '問い合わせエラー',
+                'count' => Inquiry::where('status', InquiryStatus::GuidanceFailed)->count(),
+                'route' => route('admin.inquiries.index'),
+            ],
+            [
+                'label' => '支払日から5日経過した未払い',
+                'count' => $overduePayments,
+                'route' => route('admin.payments.index'),
+            ],
+        ];
     }
 
     private function revenueAndPayout($contracts, $referralCommissions, ?string $ym): array
