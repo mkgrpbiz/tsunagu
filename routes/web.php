@@ -61,12 +61,6 @@ Route::get('apply', function (\Illuminate\Http\Request $request) {
 Route::get('apply/{inviteLink:token}', [ApplyController::class, 'show'])->name('apply.show');
 Route::post('apply/{inviteLink:token}', [ApplyController::class, 'store'])->name('apply.store');
 
-Route::post('debug-log', function (\Illuminate\Http\Request $request) {
-    \Illuminate\Support\Facades\Log::info('debug: client', $request->all());
-
-    return response('', 204);
-})->name('debug-log');
-
 Route::get('oshigoto', [OshigotoController::class, 'index'])->name('oshigoto.index');
 
 Route::post('line/webhook', [LineWebhookController::class, 'handle'])->name('line.webhook');
@@ -238,10 +232,9 @@ Route::prefix('agency')->name('agency.')->group(function () {
     Route::get('register/form', [AgencyRegistrationController::class, 'form'])->name('register.form');
     Route::post('register/form', [AgencyRegistrationController::class, 'store'])->name('register.store');
 
-    // LIFF経由でLINEアプリ内に開き直されると元のログインセッションが引き継がれないため、
-    // このコールバックはトークン(connect_token)だけを頼りにパートナーを特定する未ログイン専用エンドポイント
-    Route::get('line-connection/callback', [AgencyLineConnectionController::class, 'liffCallback'])->name('line-connection.callback');
-    Route::post('line-connection/callback', [AgencyLineConnectionController::class, 'connect'])->name('line-connection.connect');
+    // LINEアプリ内ブラウザ経由だと元のログインセッションが引き継がれないことがあるため、
+    // このコールバックはstateに埋め込んだagency_idだけを頼りにパートナーを特定する未ログイン専用エンドポイント
+    Route::get('line-connection/oauth-callback', [AgencyLineConnectionController::class, 'oauthCallback'])->name('line-connection.oauth-callback');
 
     Route::middleware('auth:agency')->group(function () {
         Route::post('logout', [AgencyAuthController::class, 'logout'])->name('logout');

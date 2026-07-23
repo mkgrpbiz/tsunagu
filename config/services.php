@@ -38,6 +38,8 @@ return [
     'line_partner' => [
         'liff_id' => env('LINE_PARTNER_LIFF_ID'),
         'channel_access_token' => env('LINE_PARTNER_CHANNEL_ACCESS_TOKEN'),
+        'channel_id' => env('LINE_PARTNER_CHANNEL_ID'),
+        'channel_secret' => env('LINE_PARTNER_CHANNEL_SECRET'),
     ],
 
     'line_customer' => [

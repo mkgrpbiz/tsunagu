@@ -10,10 +10,10 @@ use App\Services\LineMessagingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class LineConnectionController extends Controller
 {
@@ -21,82 +21,45 @@ class LineConnectionController extends Controller
     {
         return view('agency.line_connection.edit', [
             'agency' => Auth::guard('agency')->user(),
-            'liffId' => config('services.line_partner.liff_id'),
         ]);
     }
 
     /**
-     * LIFF経由でLINEアプリ内に開き直されると元のログインセッションが引き継がれないため、
-     * この着地ページはログイン状態に依存せず、connect_tokenだけでパートナーを特定する。
+     * LINEアプリ内ブラウザ経由だと元のログインセッションが引き継がれないことがあるため、
+     * この着地ページはログイン状態に依存せず、stateに埋め込んだagency_idだけで特定する。
+     * stateの検証もブラウザのCookie/ストレージに依存せず、サーバー側の暗号化のみで完結させている。
      */
-    public function liffCallback(Request $request): View
+    public function oauthCallback(Request $request, LineMessagingService $lineMessaging): RedirectResponse|Response
     {
-        $connectToken = $this->resolveConnectToken($request);
+        $agency = $this->resolveAgencyFromState((string) $request->query('state', ''));
+        $code = (string) $request->query('code', '');
 
-        Log::info('debug: line-connection liffCallback hit', [
-            'full_url' => $request->fullUrl(),
-            'all_query' => $request->query(),
-            'resolved_connect_token' => $connectToken,
-        ]);
-
-        return view('agency.line_connection.liff_callback', [
-            'liffId' => config('services.line_partner.liff_id'),
-            'connectToken' => $connectToken,
-        ]);
-    }
-
-    /**
-     * LIFFの起動URLに?from=...で渡したconnect_tokenは、LINEアプリ内ログインを経由すると
-     * ?liff.state=...（さらにURLエンコードされた形）でラップされて戻ってくるため、
-     * トップレベルのクエリだけでなくfrom/liff.state内も見て取り出す必要がある。
-     */
-    private function resolveConnectToken(Request $request): string
-    {
-        if ($request->filled('connect_token')) {
-            return (string) $request->query('connect_token');
+        if (! $agency || $code === '') {
+            return response()->view('agency.line_connection.expired', [], 400);
         }
 
-        $from = $request->query('from');
-
-        if (! $from && $request->filled('liff_state')) {
-            parse_str(ltrim((string) $request->query('liff_state'), '?'), $liffStateParams);
-            $from = $liffStateParams['from'] ?? null;
-        }
-
-        if (! $from) {
-            return '';
-        }
-
-        parse_str((string) parse_url((string) $from, PHP_URL_QUERY), $fromParams);
-
-        return (string) ($fromParams['connect_token'] ?? '');
-    }
-
-    public function connect(Request $request, LineMessagingService $lineMessaging): RedirectResponse|Response
-    {
-        $data = $request->validate([
-            'connect_token' => ['required', 'string'],
-            'line_uid' => ['required', 'string', 'max:255'],
-            'line_display_name' => ['nullable', 'string', 'max:255'],
+        $tokenResponse = Http::asForm()->post('https://api.line.me/oauth2/v2.1/token', [
+            'grant_type' => 'authorization_code',
+            'code' => $code,
+            'redirect_uri' => route('agency.line-connection.oauth-callback'),
+            'client_id' => config('services.line_partner.channel_id'),
+            'client_secret' => config('services.line_partner.channel_secret'),
         ]);
 
-        $agency = $this->resolveAgencyFromToken($data['connect_token']);
+        if (! $tokenResponse->successful()) {
+            return response()->view('agency.line_connection.expired', [], 400);
+        }
 
-        Log::info('debug: line-connection connect() called', [
-            'connect_token' => $data['connect_token'],
-            'resolved_agency_id' => $agency?->id,
-            'line_uid' => $data['line_uid'],
-        ]);
+        $profileResponse = Http::withToken($tokenResponse->json('access_token'))
+            ->get('https://api.line.me/v2/profile');
 
-        if (! $agency) {
-            return response()->view('agency.line_connection.expired', [
-                'liffId' => config('services.line_partner.liff_id'),
-            ], 400);
+        if (! $profileResponse->successful()) {
+            return response()->view('agency.line_connection.expired', [], 400);
         }
 
         $agency->update([
-            'line_uid' => $data['line_uid'],
-            'line_display_name' => $data['line_display_name'] ?? null,
+            'line_uid' => $profileResponse->json('userId'),
+            'line_display_name' => $profileResponse->json('displayName'),
         ]);
 
         Auth::guard('agency')->login($agency);
@@ -108,10 +71,25 @@ class LineConnectionController extends Controller
         );
 
         if ($setting->approved_message) {
-            $lineMessaging->sendPush(LineChannel::Partner, $data['line_uid'], $setting->approved_message);
+            $lineMessaging->sendPush(LineChannel::Partner, $profileResponse->json('userId'), $setting->approved_message);
         }
 
         return redirect()->route('agency.home')->with('status', 'LINE連携が完了しました。');
+    }
+
+    private function resolveAgencyFromState(string $state): ?Agency
+    {
+        try {
+            $payload = decrypt($state);
+        } catch (Throwable) {
+            return null;
+        }
+
+        if (! is_array($payload) || ($payload['expires_at'] ?? 0) < now()->timestamp) {
+            return null;
+        }
+
+        return Agency::find($payload['agency_id'] ?? null);
     }
 
     public function destroy(): RedirectResponse
@@ -135,21 +113,5 @@ class LineConnectionController extends Controller
         ]);
 
         return redirect()->route('agency.line-connection.edit')->with('status', 'LINE通知設定を更新しました。');
-    }
-
-    private function resolveAgencyFromToken(string $token): ?Agency
-    {
-        $agencyId = Cache::pull(self::cacheKey($token));
-
-        if (! $agencyId) {
-            return null;
-        }
-
-        return Agency::find($agencyId);
-    }
-
-    public static function cacheKey(string $token): string
-    {
-        return 'agency_line_connect_token:'.$token;
     }
 }
