@@ -11,6 +11,8 @@ use App\Models\Project;
 use App\Services\LineMessagingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
@@ -42,8 +44,18 @@ class InquiryController extends Controller
             'contracted' => $inquiries->filter(fn (Inquiry $inquiry) => $inquiry->contract !== null)->count(),
         ];
 
+        $perPage = 100;
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $pagedInquiries = new LengthAwarePaginator(
+            $monthInquiries->values()->forPage($page, $perPage)->values(),
+            $monthInquiries->count(),
+            $perPage,
+            $page,
+            ['path' => Paginator::resolveCurrentPath(), 'query' => $request->query()],
+        );
+
         return view('admin.inquiries.index', [
-            'inquiries' => $monthInquiries->values(),
+            'inquiries' => $pagedInquiries,
             'monthlyTotal' => $monthlyTotal,
             'cumulativeTotal' => $cumulativeTotal,
             'months' => $months,

@@ -45,7 +45,8 @@ class AgencyController extends Controller
                 }
             }))
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate(100)
+            ->withQueryString();
 
         return view('admin.agencies.index', [
             'agencies' => $agencies,
