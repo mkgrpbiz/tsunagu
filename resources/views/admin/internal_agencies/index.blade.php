@@ -40,23 +40,32 @@
             <tr>
                 <th class="px-4 py-3 font-medium">名前</th>
                 <th class="px-4 py-3 font-medium">会員番号</th>
-                <th class="px-4 py-3 font-medium">紹介URL</th>
-                <th class="px-4 py-3 font-medium">紹介人数</th>
-                <th class="px-4 py-3 font-medium">社内処理累計額</th>
+                <th class="px-4 py-3 font-medium">パートナー紹介URL</th>
+                <th class="px-4 py-3 font-medium">パートナー数</th>
+                <th class="px-4 py-3 font-medium">先月（社内処理）</th>
+                <th class="px-4 py-3 font-medium">今月（社内処理）</th>
+                <th class="px-4 py-3 font-medium">累計（社内処理）</th>
                 <th class="px-4 py-3 font-medium w-32 text-center">操作</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($internalAgencies as $agency)
+                @php $referralUrl = url('/agency/register?ref='.$agency->referral_code); @endphp
                 <tr>
                     <td class="px-4 py-3">{{ $agency->name }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $agency->referral_code }}</td>
                     <td class="px-4 py-3">
-                        <input type="text" readonly value="{{ url('/agency/register?ref='.$agency->referral_code) }}"
-                               class="w-full max-w-xs rounded-md border border-gray-300 text-xs px-2 py-1 bg-gray-50">
+                        <div class="flex items-center gap-1">
+                            <input type="text" readonly value="{{ $referralUrl }}"
+                                   class="w-full max-w-xs rounded-md border border-gray-300 text-xs px-2 py-1 bg-gray-50">
+                            <button type="button" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded shrink-0"
+                                    onclick="copyToClipboard({{ Illuminate\Support\Js::from($referralUrl) }})">コピー</button>
+                        </div>
                     </td>
                     <td class="px-4 py-3">{{ $agency->referrals_count }}</td>
-                    <td class="px-4 py-3">¥{{ number_format($agency->internal_processing_total) }}</td>
+                    <td class="px-4 py-3">¥{{ number_format($agency->last_month_total) }}</td>
+                    <td class="px-4 py-3">¥{{ number_format($agency->this_month_total) }}</td>
+                    <td class="px-4 py-3">¥{{ number_format($agency->cumulative_total) }}</td>
                     <td class="px-4 py-3 text-center">
                         <form method="POST" action="{{ route('admin.internal-agencies.toggle', $agency) }}" onsubmit="return confirm('社内運用アカウントの指定を解除しますか？');">
                             @csrf
@@ -67,7 +76,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="px-4 py-6 text-center text-gray-400">社内運用アカウントはまだありません。</td>
+                    <td colspan="8" class="px-4 py-6 text-center text-gray-400">社内運用アカウントはまだありません。</td>
                 </tr>
             @endforelse
         </tbody>

@@ -13,6 +13,8 @@ use App\Models\Project;
 use App\Models\ReferralCommission;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -45,26 +47,21 @@ class InternalAgencyController extends Controller
                 ->get();
         }
 
+        $thisMonthStart = now()->copy()->startOfMonth();
+        $lastMonthStart = now()->copy()->subMonthNoOverflow()->startOfMonth();
+
         $internalAgencies = Agency::withCount('referrals')
             ->where('is_internal_use', true)
             ->orderByDesc('created_at')
             ->get()
-            ->map(function (Agency $agency) {
+            ->map(function (Agency $agency) use ($thisMonthStart, $lastMonthStart) {
                 $clientNames = Project::where('referrer_agency_id', $agency->id)
                     ->whereNotNull('client_name')
                     ->pluck('client_name');
 
-                $agency->internal_processing_total = Contract::whereHas('inquiry', fn ($query) => $query->where('agency_id', $agency->id))
-                    ->where('payment_status', PaymentStatus::InternalProcessing)
-                    ->sum('agency_reward_amount')
-                    + ReferralCommission::where('referrer_agency_id', $agency->id)
-                        ->where('payment_status', PaymentStatus::InternalProcessing)
-                        ->sum('amount')
-                    + ($clientNames->isNotEmpty()
-                        ? CollaborationReward::whereIn('client_name', $clientNames)
-                            ->where('payment_status', PaymentStatus::InternalProcessing)
-                            ->sum('reward_amount')
-                        : 0);
+                $agency->last_month_total = $this->internalProcessingTotal($agency, $clientNames, $lastMonthStart);
+                $agency->this_month_total = $this->internalProcessingTotal($agency, $clientNames, $thisMonthStart);
+                $agency->cumulative_total = $this->internalProcessingTotal($agency, $clientNames, null);
 
                 return $agency;
             });
@@ -120,6 +117,36 @@ class InternalAgencyController extends Controller
             'status',
             $agency->is_internal_use ? '社内運用アカウントに設定しました。' : '社内運用アカウントの指定を解除しました。'
         );
+    }
+
+    /**
+     * @param  Collection<int, string>  $clientNames
+     */
+    private function internalProcessingTotal(Agency $agency, Collection $clientNames, ?Carbon $monthStart): int
+    {
+        $monthEnd = $monthStart?->copy()->endOfMonth();
+
+        $contractTotal = Contract::whereHas('inquiry', fn ($query) => $query->where('agency_id', $agency->id))
+            ->where('payment_status', PaymentStatus::InternalProcessing)
+            ->when($monthStart, fn ($query) => $query->whereBetween('deposit_date', [$monthStart->toDateString(), $monthEnd->toDateString()]))
+            ->sum('agency_reward_amount');
+
+        $commissionTotal = ReferralCommission::where('referrer_agency_id', $agency->id)
+            ->where('payment_status', PaymentStatus::InternalProcessing)
+            ->when($monthStart, fn ($query) => $query->whereHas(
+                'contract',
+                fn ($q) => $q->whereBetween('deposit_date', [$monthStart->toDateString(), $monthEnd->toDateString()])
+            ))
+            ->sum('amount');
+
+        $rewardTotal = $clientNames->isNotEmpty()
+            ? CollaborationReward::whereIn('client_name', $clientNames)
+                ->where('payment_status', PaymentStatus::InternalProcessing)
+                ->when($monthStart, fn ($query) => $query->whereBetween('month', [$monthStart->toDateString(), $monthEnd->toDateString()]))
+                ->sum('reward_amount')
+            : 0;
+
+        return $contractTotal + $commissionTotal + $rewardTotal;
     }
 
     /**
