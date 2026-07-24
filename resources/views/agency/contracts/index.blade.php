@@ -25,6 +25,9 @@
             <button type="submit" name="month" value="all" class="text-sm font-medium rounded-md px-3 {{ ! $month ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">累計</button>
         </div>
     </div>
+    @if ($month)
+        <a href="{{ route('agency.contracts.statement', ['month' => $month]) }}" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md px-4 py-2">支払通知書ダウンロード</a>
+    @endif
 </form>
 
 <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">

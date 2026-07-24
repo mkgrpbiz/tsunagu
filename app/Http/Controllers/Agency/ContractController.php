@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Agency;
 use App\Enums\CollaborationRewardStatus;
 use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Agency;
 use App\Models\CollaborationReward;
 use App\Models\Contract;
 use App\Models\Project;
 use App\Models\ReferralCommission;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -19,6 +22,39 @@ class ContractController extends Controller
     {
         $agency = Auth::guard('agency')->user();
 
+        $data = $this->buildMonthData($agency, $request->query('month'));
+
+        // 累計未払い合計が¥1,000未満の場合、支払い対象にならず翌月以降へ繰り越される。
+        $cumulativeTotal = $agency->totalPendingPayout();
+        $carryOverAmount = $cumulativeTotal < 1000 ? $cumulativeTotal : 0;
+
+        return view('agency.contracts.index', [
+            ...$data,
+            'carryOverAmount' => $carryOverAmount,
+        ]);
+    }
+
+    public function downloadStatement(Request $request): Response
+    {
+        $agency = Auth::guard('agency')->user();
+
+        $month = $request->query('month');
+        $data = $this->buildMonthData($agency, $month, forceMonth: true);
+
+        $statementNumber = str_replace('-', '', $data['month']).'-'.str_pad((string) $agency->id, 4, '0', STR_PAD_LEFT);
+
+        $pdf = Pdf::loadView('agency.contracts.statement_pdf', [
+            ...$data,
+            'agency' => $agency,
+            'issuedAt' => now(),
+            'statementNumber' => $statementNumber,
+        ])->setPaper('a4');
+
+        return $pdf->download("支払通知書_{$data['month']}.pdf");
+    }
+
+    private function buildMonthData(Agency $agency, ?string $month, bool $forceMonth = false): array
+    {
         $contracts = $agency->contracts()
             ->with('inquiry.project')
             ->orderByDesc('deposit_date')
@@ -48,8 +84,8 @@ class ContractController extends Controller
             ->merge($collaborationRewards->map(fn (CollaborationReward $reward) => $reward->month->format('Y-m')))
             ->unique()->sortDesc()->values();
 
-        $month = $request->query('month', $months->first());
-        $month = $month === 'all' ? null : $month;
+        $month = $month ?? $months->first();
+        $month = ($month === 'all' && ! $forceMonth) ? null : $month;
 
         $monthContracts = $contracts->when($month, fn ($collection) => $collection->filter(
             fn (Contract $contract) => $contract->deposit_date->format('Y-m') === $month
@@ -98,11 +134,7 @@ class ContractController extends Controller
         $monthlyCollaborationRewardTotal = $monthCollaborationRewards->where('payment_status', PaymentStatus::Unpaid)->sum('reward_amount');
         $monthlyTotal = $monthlyPayoutTotal + $monthlyReferralTotal + $monthlyCollaborationRewardTotal;
 
-        // 累計未払い合計が¥1,000未満の場合、支払い対象にならず翌月以降へ繰り越される。
-        $cumulativeTotal = $agency->totalPendingPayout();
-        $carryOverAmount = $cumulativeTotal < 1000 ? $cumulativeTotal : 0;
-
-        return view('agency.contracts.index', [
+        return [
             'contracts' => $monthContracts,
             'monthlyPayoutTotal' => $monthlyPayoutTotal,
             'referralCommissionGroups' => $referralCommissionGroups,
@@ -110,9 +142,8 @@ class ContractController extends Controller
             'collaborationRewardRows' => $collaborationRewardRows,
             'monthlyCollaborationRewardTotal' => $monthlyCollaborationRewardTotal,
             'monthlyTotal' => $monthlyTotal,
-            'carryOverAmount' => $carryOverAmount,
             'months' => $months,
             'month' => $month,
-        ]);
+        ];
     }
 }

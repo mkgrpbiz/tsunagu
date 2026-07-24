@@ -266,6 +266,7 @@ Route::prefix('agency')->name('agency.')->group(function () {
                 Route::get('projects', [AgencyProjectController::class, 'index'])->name('projects.index');
                 Route::get('inquiries', [AgencyInquiryController::class, 'index'])->name('inquiries.index');
                 Route::get('contracts', [AgencyContractController::class, 'index'])->name('contracts.index');
+                Route::get('contracts/statement', [AgencyContractController::class, 'downloadStatement'])->name('contracts.statement');
 
                 Route::get('collaboration-partner-applications/create', [AgencyCollaborationPartnerApplicationController::class, 'create'])->name('collaboration-partner-applications.create');
                 Route::post('collaboration-partner-applications', [AgencyCollaborationPartnerApplicationController::class, 'store'])->name('collaboration-partner-applications.store');
