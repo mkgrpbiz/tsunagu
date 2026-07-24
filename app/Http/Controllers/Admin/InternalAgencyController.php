@@ -73,7 +73,7 @@ class InternalAgencyController extends Controller
         ]);
     }
 
-    public function show(Agency $agency): View
+    public function show(Request $request, Agency $agency): View
     {
         $contracts = $agency->contracts()
             ->with(['inquiry.project'])
@@ -82,28 +82,60 @@ class InternalAgencyController extends Controller
             ->get();
 
         $commissions = $agency->referralCommissions()
-            ->with('sourceAgency')
+            ->with(['sourceAgency', 'contract'])
             ->where('payment_status', PaymentStatus::InternalProcessing)
-            ->orderByDesc('payment_due_date')
             ->get();
 
         $clientNames = $agency->projects()->whereNotNull('client_name')->distinct()->pluck('client_name');
 
         $collaborationRewards = CollaborationReward::whereIn('client_name', $clientNames)
             ->where('payment_status', PaymentStatus::InternalProcessing)
-            ->orderByDesc('payment_due_date')
             ->get();
 
-        $total = $contracts->sum('agency_reward_amount')
-            + $commissions->sum('amount')
-            + $collaborationRewards->sum('reward_amount');
+        $months = $contracts->map(fn (Contract $contract) => $contract->deposit_date->format('Y-m'))
+            ->merge($commissions->map(fn (ReferralCommission $commission) => optional($commission->contract?->deposit_date)->format('Y-m')))
+            ->merge($collaborationRewards->map(fn (CollaborationReward $reward) => $reward->month->format('Y-m')))
+            ->filter()
+            ->unique()
+            ->sortDesc()
+            ->values();
+
+        $month = $request->query('month', $months->first());
+        $month = $month === 'all' ? null : $month;
+
+        $filteredContracts = $contracts
+            ->when($month, fn ($collection) => $collection->filter(
+                fn (Contract $contract) => $contract->deposit_date->format('Y-m') === $month
+            ))
+            ->sortByDesc('deposit_date')
+            ->values();
+
+        $filteredCommissions = $commissions
+            ->when($month, fn ($collection) => $collection->filter(
+                fn (ReferralCommission $commission) => optional($commission->contract?->deposit_date)->format('Y-m') === $month
+            ))
+            ->sortByDesc('payment_due_date')
+            ->values();
+
+        $filteredCollaborationRewards = $collaborationRewards
+            ->when($month, fn ($collection) => $collection->filter(
+                fn (CollaborationReward $reward) => $reward->month->format('Y-m') === $month
+            ))
+            ->sortByDesc('payment_due_date')
+            ->values();
+
+        $total = $filteredContracts->sum('agency_reward_amount')
+            + $filteredCommissions->sum('amount')
+            + $filteredCollaborationRewards->sum('reward_amount');
 
         return view('admin.internal_agencies.show', [
             'agency' => $agency,
-            'contracts' => $contracts,
-            'commissions' => $commissions,
-            'collaborationRewards' => $collaborationRewards,
+            'contracts' => $filteredContracts,
+            'commissions' => $filteredCommissions,
+            'collaborationRewards' => $filteredCollaborationRewards,
             'total' => $total,
+            'months' => $months,
+            'month' => $month,
         ]);
     }
 

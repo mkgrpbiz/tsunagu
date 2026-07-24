@@ -13,9 +13,24 @@
         <div><dt class="text-gray-500">名前</dt><dd>{{ $agency->name }}</dd></div>
         <div><dt class="text-gray-500">会員番号</dt><dd>{{ $agency->referral_code }}</dd></div>
     </dl>
-    <div class="mt-6 pt-4 border-t border-gray-100 text-sm text-gray-700">
-        社内処理 合計: <span class="font-semibold">¥{{ number_format($total) }}</span>
-    </div>
+
+    <form method="GET" action="{{ route('admin.internal-agencies.show', $agency) }}" class="mt-6 pt-4 border-t border-gray-100 flex flex-wrap gap-4 items-end">
+        <div>
+            <label for="month" class="block text-xs font-medium text-gray-700 mb-1">対象月で絞り込み</label>
+            <div class="flex gap-2">
+                <select name="month" id="month" onchange="this.form.submit()" class="rounded-md border border-gray-300 text-sm">
+                    <option value="" disabled @selected(! $month)>月を選択</option>
+                    @foreach ($months as $ym)
+                        <option value="{{ $ym }}" @selected($month === $ym)>{{ $ym }}</option>
+                    @endforeach
+                </select>
+                <button type="submit" name="month" value="all" class="text-sm font-medium rounded-md px-3 {{ ! $month ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">累計</button>
+            </div>
+        </div>
+        <p class="text-sm text-gray-700">
+            {{ $month ? $month.'の社内処理合計' : '累計 社内処理合計' }}: <span class="font-semibold">¥{{ number_format($total) }}</span>
+        </p>
+    </form>
 </div>
 
 <h2 class="text-sm font-semibold text-gray-700 mb-3">パートナー本体（Contract）</h2>
