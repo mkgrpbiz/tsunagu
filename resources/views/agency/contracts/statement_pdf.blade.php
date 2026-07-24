@@ -16,8 +16,9 @@
     @page { margin: 30px 40px; }
     body { font-family: 'NotoSansJP', sans-serif; font-size: 11px; color: #1f2937; }
     h1 { text-align: center; font-size: 28px; letter-spacing: 8px; margin-bottom: 24px; }
-    .header { display: flex; justify-content: space-between; margin-bottom: 16px; }
-    .header .right { text-align: left; }
+    .header-table { width: 100%; margin-bottom: 16px; }
+    .header-table td { border: none; padding: 0; vertical-align: top; }
+    .header-table td.right { width: 55%; padding-left: 24px; }
     .amount-box { border-top: 1px solid #333; border-bottom: 1px solid #333; padding: 10px 0; margin: 16px 0; }
     .amount-box .label { margin-right: 32px; }
     .amount-box .amount { font-size: 22px; font-weight: bold; }
@@ -31,21 +32,23 @@
 <body>
     <h1>支払通知書</h1>
 
-    <div class="header">
-        <div>
-            @if ($agency->company_name)
-                <p>{{ $agency->company_name }}</p>
-            @endif
-            <p>{{ $agency->name }} 様</p>
-        </div>
-        <div class="right">
-            <p>発行日：{{ $issuedAt->format('Y/m/d') }}</p>
-            <p>支払通知番号：{{ $statementNumber }}</p>
-            <p>集計期間：{{ \Illuminate\Support\Carbon::parse($month.'-01')->format('Y/m/d') }}〜{{ \Illuminate\Support\Carbon::parse($month.'-01')->endOfMonth()->format('Y/m/d') }}</p>
-            <p>{{ $companyProfile->company_name }}</p>
-            <p>{{ $companyProfile->address }}</p>
-        </div>
-    </div>
+    <table class="header-table">
+        <tr>
+            <td>
+                @if ($agency->company_name)
+                    <p>{{ $agency->company_name }}</p>
+                @endif
+                <p>{{ $agency->name }} 様</p>
+            </td>
+            <td class="right">
+                <p>発行日：{{ $issuedAt->format('Y/m/d') }}</p>
+                <p>支払通知番号：{{ $statementNumber }}</p>
+                <p>集計期間：{{ \Illuminate\Support\Carbon::parse($month.'-01')->format('Y/m/d') }}〜{{ \Illuminate\Support\Carbon::parse($month.'-01')->endOfMonth()->format('Y/m/d') }}</p>
+                <p>{{ $companyProfile->company_name }}</p>
+                <p>{{ $companyProfile->address }}</p>
+            </td>
+        </tr>
+    </table>
 
     <p>摘要：{{ $month }}分</p>
     <p>振込予定日：{{ \Illuminate\Support\Carbon::parse($month.'-01')->addMonthNoOverflow()->day(5)->format('Y/m/d') }}</p>
