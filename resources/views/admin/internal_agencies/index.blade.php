@@ -42,7 +42,7 @@
                 <th class="px-4 py-3 font-medium">会員番号</th>
                 <th class="px-4 py-3 font-medium">紹介URL</th>
                 <th class="px-4 py-3 font-medium">紹介人数</th>
-                <th class="px-4 py-3 font-medium">紹介報酬累計（社内処理）</th>
+                <th class="px-4 py-3 font-medium">社内処理累計額</th>
                 <th class="px-4 py-3 font-medium w-32 text-center">操作</th>
             </tr>
         </thead>
@@ -56,7 +56,7 @@
                                class="w-full max-w-xs rounded-md border border-gray-300 text-xs px-2 py-1 bg-gray-50">
                     </td>
                     <td class="px-4 py-3">{{ $agency->referrals_count }}</td>
-                    <td class="px-4 py-3">¥{{ number_format($agency->referral_commission_total) }}</td>
+                    <td class="px-4 py-3">¥{{ number_format($agency->internal_processing_total) }}</td>
                     <td class="px-4 py-3 text-center">
                         <form method="POST" action="{{ route('admin.internal-agencies.toggle', $agency) }}" onsubmit="return confirm('社内運用アカウントの指定を解除しますか？');">
                             @csrf

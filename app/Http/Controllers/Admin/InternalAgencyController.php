@@ -50,7 +50,21 @@ class InternalAgencyController extends Controller
             ->orderByDesc('created_at')
             ->get()
             ->map(function (Agency $agency) {
-                $agency->referral_commission_total = ReferralCommission::where('referrer_agency_id', $agency->id)->sum('amount');
+                $clientNames = Project::where('referrer_agency_id', $agency->id)
+                    ->whereNotNull('client_name')
+                    ->pluck('client_name');
+
+                $agency->internal_processing_total = Contract::whereHas('inquiry', fn ($query) => $query->where('agency_id', $agency->id))
+                    ->where('payment_status', PaymentStatus::InternalProcessing)
+                    ->sum('agency_reward_amount')
+                    + ReferralCommission::where('referrer_agency_id', $agency->id)
+                        ->where('payment_status', PaymentStatus::InternalProcessing)
+                        ->sum('amount')
+                    + ($clientNames->isNotEmpty()
+                        ? CollaborationReward::whereIn('client_name', $clientNames)
+                            ->where('payment_status', PaymentStatus::InternalProcessing)
+                            ->sum('reward_amount')
+                        : 0);
 
                 return $agency;
             });
