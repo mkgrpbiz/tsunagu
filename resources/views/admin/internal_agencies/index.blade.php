@@ -67,11 +67,14 @@
                     <td class="px-4 py-3">¥{{ number_format($agency->this_month_total) }}</td>
                     <td class="px-4 py-3">¥{{ number_format($agency->cumulative_total) }}</td>
                     <td class="px-4 py-3 text-center">
-                        <form method="POST" action="{{ route('admin.internal-agencies.toggle', $agency) }}" onsubmit="return confirm('社内運用アカウントの指定を解除しますか？');">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded">解除</button>
-                        </form>
+                        <div class="flex gap-1 justify-center flex-wrap">
+                            <a href="{{ route('admin.internal-agencies.show', $agency) }}" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded">詳細</a>
+                            <form method="POST" action="{{ route('admin.internal-agencies.toggle', $agency) }}" onsubmit="return confirm('社内運用アカウントの指定を解除しますか？');">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded">解除</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             @empty

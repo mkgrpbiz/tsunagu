@@ -73,6 +73,40 @@ class InternalAgencyController extends Controller
         ]);
     }
 
+    public function show(Agency $agency): View
+    {
+        $contracts = $agency->contracts()
+            ->with(['inquiry.project'])
+            ->where('payment_status', PaymentStatus::InternalProcessing)
+            ->orderByDesc('deposit_date')
+            ->get();
+
+        $commissions = $agency->referralCommissions()
+            ->with('sourceAgency')
+            ->where('payment_status', PaymentStatus::InternalProcessing)
+            ->orderByDesc('payment_due_date')
+            ->get();
+
+        $clientNames = $agency->projects()->whereNotNull('client_name')->distinct()->pluck('client_name');
+
+        $collaborationRewards = CollaborationReward::whereIn('client_name', $clientNames)
+            ->where('payment_status', PaymentStatus::InternalProcessing)
+            ->orderByDesc('payment_due_date')
+            ->get();
+
+        $total = $contracts->sum('agency_reward_amount')
+            + $commissions->sum('amount')
+            + $collaborationRewards->sum('reward_amount');
+
+        return view('admin.internal_agencies.show', [
+            'agency' => $agency,
+            'contracts' => $contracts,
+            'commissions' => $commissions,
+            'collaborationRewards' => $collaborationRewards,
+            'total' => $total,
+        ]);
+    }
+
     public function create(): View
     {
         return view('admin.internal_agencies.create');

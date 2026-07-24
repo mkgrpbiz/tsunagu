@@ -134,6 +134,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('internal-agencies', [InternalAgencyController::class, 'index'])->name('internal-agencies.index');
                 Route::get('internal-agencies/create', [InternalAgencyController::class, 'create'])->name('internal-agencies.create');
                 Route::post('internal-agencies', [InternalAgencyController::class, 'store'])->name('internal-agencies.store');
+                Route::get('internal-agencies/{agency}', [InternalAgencyController::class, 'show'])->name('internal-agencies.show');
                 Route::patch('internal-agencies/{agency}/toggle', [InternalAgencyController::class, 'toggle'])->name('internal-agencies.toggle');
             });
 
