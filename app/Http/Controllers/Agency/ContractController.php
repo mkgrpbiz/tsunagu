@@ -39,6 +39,11 @@ class ContractController extends Controller
         $agency = Auth::guard('agency')->user();
 
         $month = $request->query('month');
+
+        if (! $month || $month === 'all' || ! preg_match('/^\d{4}-\d{2}$/', $month)) {
+            abort(404);
+        }
+
         $data = $this->buildMonthData($agency, $month, forceMonth: true);
 
         $statementNumber = str_replace('-', '', $data['month']).'-'.str_pad((string) $agency->id, 4, '0', STR_PAD_LEFT);
