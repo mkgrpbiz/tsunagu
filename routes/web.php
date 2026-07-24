@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\DepositLinkController;
 use App\Http\Controllers\Admin\HomeBlockController;
 use App\Http\Controllers\Admin\HomePageContentController;
 use App\Http\Controllers\Admin\InquiryController;
+use App\Http\Controllers\Admin\InternalAgencyController;
 use App\Http\Controllers\Admin\LandingPageContentController;
 use App\Http\Controllers\Admin\LegalDocumentController as AdminLegalDocumentController;
 use App\Http\Controllers\Admin\NotificationMessageSettingController;
@@ -127,6 +128,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::middleware('menu:collaboration_partners')->group(function () {
                 Route::get('collaboration-partners', [CollaborationPartnerController::class, 'index'])->name('collaboration-partners.index');
+            });
+
+            Route::middleware('menu:internal_agencies')->group(function () {
+                Route::get('internal-agencies', [InternalAgencyController::class, 'index'])->name('internal-agencies.index');
+                Route::get('internal-agencies/create', [InternalAgencyController::class, 'create'])->name('internal-agencies.create');
+                Route::post('internal-agencies', [InternalAgencyController::class, 'store'])->name('internal-agencies.store');
+                Route::patch('internal-agencies/{agency}/toggle', [InternalAgencyController::class, 'toggle'])->name('internal-agencies.toggle');
             });
 
             Route::middleware('menu:inquiries')->group(function () {

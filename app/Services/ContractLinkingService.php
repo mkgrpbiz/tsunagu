@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\InquiryStatus;
 use App\Enums\PaymentStatus;
+use App\Models\Agency;
 use App\Models\Contract;
 use App\Models\Inquiry;
 use App\Models\ReferralCommission;
@@ -38,13 +39,15 @@ class ContractLinkingService
             $applyReferralCommission = (bool) ($line['apply_referral_commission'] ?? true);
 
             if ($applyReferralCommission && $inquiry->agency->referred_by_agency_id) {
+                $referrerAgency = Agency::find($inquiry->agency->referred_by_agency_id);
+
                 ReferralCommission::create([
                     'contract_id' => $contract->id,
                     'referrer_agency_id' => $inquiry->agency->referred_by_agency_id,
                     'source_agency_id' => $inquiry->agency_id,
                     'amount' => (int) round($contract->agency_reward_amount * 0.1),
                     'payment_due_date' => $paymentDueDate,
-                    'payment_status' => PaymentStatus::Unpaid,
+                    'payment_status' => $referrerAgency?->is_internal_use ? PaymentStatus::InternalProcessing : PaymentStatus::Unpaid,
                 ]);
             }
         }

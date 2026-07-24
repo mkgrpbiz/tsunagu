@@ -64,7 +64,7 @@
                     <td class="px-4 py-3">¥{{ number_format($contract->agency_reward_amount) }}</td>
                     <td class="px-4 py-3">{{ $contract->payment_due_date->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">
-                        <span class="{{ $contract->payment_status === \App\Enums\PaymentStatus::Paid ? 'text-green-700' : 'text-amber-700' }}">
+                        <span class="{{ match ($contract->payment_status) { \App\Enums\PaymentStatus::Paid => 'text-green-700', \App\Enums\PaymentStatus::InternalProcessing => 'text-gray-500', default => 'text-amber-700' } }}">
                             {{ $contract->payment_status->label() }}
                         </span>
                     </td>
@@ -98,7 +98,7 @@
                     <td class="px-4 py-3">¥{{ number_format($commission->amount) }}</td>
                     <td class="px-4 py-3">{{ $commission->payment_due_date->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">
-                        <span class="{{ $commission->payment_status === \App\Enums\PaymentStatus::Paid ? 'text-green-700' : 'text-amber-700' }}">
+                        <span class="{{ match ($commission->payment_status) { \App\Enums\PaymentStatus::Paid => 'text-green-700', \App\Enums\PaymentStatus::InternalProcessing => 'text-gray-500', default => 'text-amber-700' } }}">
                             {{ $commission->payment_status->label() }}
                         </span>
                     </td>
@@ -134,7 +134,7 @@
                     <td class="px-4 py-3">¥{{ number_format($reward->reward_amount) }}</td>
                     <td class="px-4 py-3">{{ $reward->payment_due_date->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">
-                        <span class="{{ $reward->payment_status === \App\Enums\PaymentStatus::Paid ? 'text-green-700' : 'text-amber-700' }}">
+                        <span class="{{ match ($reward->payment_status) { \App\Enums\PaymentStatus::Paid => 'text-green-700', \App\Enums\PaymentStatus::InternalProcessing => 'text-gray-500', default => 'text-amber-700' } }}">
                             {{ $reward->payment_status->label() }}
                         </span>
                     </td>

@@ -21,6 +21,7 @@
             'パートナー管理' => [
                 'agencies' => ['label' => 'パートナー一覧', 'route' => 'admin.agencies.index', 'active' => 'admin.agencies.*'],
                 'collaboration_partners' => ['label' => '共創パートナー一覧', 'route' => 'admin.collaboration-partners.index', 'active' => 'admin.collaboration-partners.*'],
+                'internal_agencies' => ['label' => '社内運用アカウント', 'route' => 'admin.internal-agencies.index', 'active' => 'admin.internal-agencies.*'],
             ],
             '問い合わせ管理' => [
                 'inquiries' => ['label' => '問い合わせ一覧', 'route' => 'admin.inquiries.index', 'active' => 'admin.inquiries.*'],

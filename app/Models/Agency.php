@@ -59,6 +59,7 @@ use Illuminate\Support\Str;
     'self_pr',
     'is_collaboration_partner',
     'collaboration_partner_at',
+    'is_internal_use',
 ])]
 #[Hidden(['password', 'remember_token'])]
 class Agency extends Authenticatable
@@ -89,6 +90,7 @@ class Agency extends Authenticatable
             'desired_activities' => 'array',
             'is_collaboration_partner' => 'boolean',
             'collaboration_partner_at' => 'datetime',
+            'is_internal_use' => 'boolean',
             'line_notify_project_info' => 'boolean',
             'line_notify_payment' => 'boolean',
         ];

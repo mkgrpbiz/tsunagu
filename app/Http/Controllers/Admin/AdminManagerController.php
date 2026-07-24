@@ -27,6 +27,7 @@ class AdminManagerController extends Controller
             'categories' => 'カテゴリー',
             'agencies' => 'パートナー',
             'collaboration_partners' => '共創パートナー',
+            'internal_agencies' => '社内運用アカウント',
             'inquiries' => '問い合わせ',
             'deposit_links' => '着金紐付け',
             'aggregate_results' => '合計成果反映',
