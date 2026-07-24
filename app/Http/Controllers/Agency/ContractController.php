@@ -47,10 +47,16 @@ class ContractController extends Controller
 
         $data = $this->buildMonthData($agency, $month, forceMonth: true);
 
+        // 支払通知書はその月の確定実績を示すものなので、未払い/支払済みを問わず全額を合計する。
+        $statementTotal = $data['contracts']->sum('agency_reward_amount')
+            + $data['referralCommissionGroups']->sum('total')
+            + $data['collaborationRewardRows']->sum('rewardAmount');
+
         $statementNumber = str_replace('-', '', $data['month']).'-'.str_pad((string) $agency->id, 4, '0', STR_PAD_LEFT);
 
         $pdf = Pdf::loadView('agency.contracts.statement_pdf', [
             ...$data,
+            'monthlyTotal' => $statementTotal,
             'agency' => $agency,
             'companyProfile' => CompanyProfile::current(),
             'issuedAt' => now(),

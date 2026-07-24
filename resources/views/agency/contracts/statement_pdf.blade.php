@@ -18,7 +18,7 @@
     h1 { text-align: center; font-size: 28px; letter-spacing: 8px; margin-bottom: 24px; }
     .header-table { width: 100%; margin-bottom: 16px; }
     .header-table td { border: none; padding: 0; vertical-align: top; }
-    .header-table td.right { width: 55%; padding-left: 24px; }
+    .header-table td.right { width: 195px; white-space: nowrap; }
     .amount-box { border-top: 1px solid #333; border-bottom: 1px solid #333; padding: 10px 0; margin: 16px 0; }
     .amount-box .label { margin-right: 32px; }
     .amount-box .amount { font-size: 22px; font-weight: bold; }
