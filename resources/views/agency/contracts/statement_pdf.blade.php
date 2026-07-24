@@ -38,6 +38,9 @@
             <p>発行日：{{ $issuedAt->format('Y/m/d') }}</p>
             <p>支払通知番号：{{ $statementNumber }}</p>
             <p>集計期間：{{ \Illuminate\Support\Carbon::parse($month.'-01')->format('Y/m/d') }}〜{{ \Illuminate\Support\Carbon::parse($month.'-01')->endOfMonth()->format('Y/m/d') }}</p>
+            <p>{{ $companyProfile->company_name }}</p>
+            <p>{{ $companyProfile->address }}</p>
+            <p>{{ $companyProfile->email }}</p>
         </div>
     </div>
 

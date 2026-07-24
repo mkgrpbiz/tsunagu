@@ -7,6 +7,7 @@ use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
 use App\Models\CollaborationReward;
+use App\Models\CompanyProfile;
 use App\Models\Contract;
 use App\Models\Project;
 use App\Models\ReferralCommission;
@@ -51,6 +52,7 @@ class ContractController extends Controller
         $pdf = Pdf::loadView('agency.contracts.statement_pdf', [
             ...$data,
             'agency' => $agency,
+            'companyProfile' => CompanyProfile::current(),
             'issuedAt' => now(),
             'statementNumber' => $statementNumber,
         ])->setPaper('a4');
