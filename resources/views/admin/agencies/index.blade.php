@@ -37,7 +37,7 @@
 <div class="flex border-b border-gray-200 mb-4">
     @foreach ($statusTabs as $key => $tab)
         @php $count = $key === 'all' ? $totalCount : $statusCounts->get($key, 0); @endphp
-        <a href="{{ route('admin.agencies.index', $key === 'all' ? [] : ['status' => $key]) }}"
+        <a href="{{ route('admin.agencies.index', array_filter(['status' => $key === 'all' ? null : $key, 'search' => $search ?: null])) }}"
            class="flex items-center gap-1.5 px-5 py-2.5 text-sm font-medium border-b-2 transition-colors
                   {{ $status === $key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
             {{ $tab['label'] }}
@@ -45,6 +45,18 @@
         </a>
     @endforeach
 </div>
+
+<form method="GET" action="{{ route('admin.agencies.index') }}" class="mb-4 flex gap-2">
+    @if ($status !== 'all')
+        <input type="hidden" name="status" value="{{ $status }}">
+    @endif
+    <input type="text" name="search" value="{{ $search }}" placeholder="会員番号・名前・フリガナで検索"
+           class="w-72 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+    <button type="submit" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md px-4 py-2">検索</button>
+    @if ($search)
+        <a href="{{ route('admin.agencies.index', array_filter(['status' => $status !== 'all' ? $status : null])) }}" class="text-sm text-gray-500 hover:underline self-center">クリア</a>
+    @endif
+</form>
 
 <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
     <table class="w-full text-sm">

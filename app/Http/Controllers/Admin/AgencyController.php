@@ -24,6 +24,7 @@ class AgencyController extends Controller
     public function index(Request $request): View
     {
         $status = $request->query('status', 'all');
+        $search = trim((string) $request->query('search', ''));
 
         $statusCounts = Agency::where('is_system', false)->selectRaw('status, count(*) as count')->groupBy('status')->pluck('count', 'status');
 
@@ -31,12 +32,25 @@ class AgencyController extends Controller
             ->with('referredBy')
             ->where('is_system', false)
             ->when($status !== 'all', fn ($query) => $query->where('status', $status))
+            ->when($search !== '', fn ($query) => $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('name_kana', 'like', "%{$search}%")
+                    ->orWhere('legacy_code', 'like', "%{$search}%");
+
+                // 会員番号（デフォルト表記のB0001形式、または素の数字）にも対応
+                if (preg_match('/^b0*(\d+)$/i', $search, $matches)) {
+                    $q->orWhere('id', (int) $matches[1]);
+                } elseif (ctype_digit($search)) {
+                    $q->orWhere('id', (int) $search);
+                }
+            }))
             ->orderByDesc('created_at')
             ->get();
 
         return view('admin.agencies.index', [
             'agencies' => $agencies,
             'status' => $status,
+            'search' => $search,
             'statusCounts' => $statusCounts,
             'totalCount' => Agency::where('is_system', false)->count(),
         ]);
