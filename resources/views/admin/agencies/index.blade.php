@@ -19,7 +19,7 @@
     </p>
     <form method="POST" action="{{ route('admin.agencies.bulk-preview') }}">
         @csrf
-        <textarea name="pasted_text" rows="8" required
+        <textarea name="pasted_text" rows="20" required
                   class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-xs"></textarea>
         <button type="submit" class="mt-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md px-4 py-2">プレビュー</button>
     </form>
