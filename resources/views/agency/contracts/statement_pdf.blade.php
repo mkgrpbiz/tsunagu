@@ -15,10 +15,11 @@
     }
     @page { margin: 30px 40px; }
     body { font-family: 'NotoSansJP', sans-serif; font-size: 11px; color: #1f2937; }
-    h1 { text-align: center; font-size: 20px; letter-spacing: 8px; margin-bottom: 24px; }
+    h1 { text-align: center; font-size: 28px; letter-spacing: 8px; margin-bottom: 24px; }
     .header { display: flex; justify-content: space-between; margin-bottom: 16px; }
-    .header .right { text-align: right; }
+    .header .right { text-align: left; }
     .amount-box { border-top: 1px solid #333; border-bottom: 1px solid #333; padding: 10px 0; margin: 16px 0; }
+    .amount-box .label { margin-right: 32px; }
     .amount-box .amount { font-size: 22px; font-weight: bold; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
     th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #e5e7eb; }
@@ -32,7 +33,10 @@
 
     <div class="header">
         <div>
-            <p>{{ $agency->company_name ?: $agency->name }} 様</p>
+            @if ($agency->company_name)
+                <p>{{ $agency->company_name }}</p>
+            @endif
+            <p>{{ $agency->name }} 様</p>
         </div>
         <div class="right">
             <p>発行日：{{ $issuedAt->format('Y/m/d') }}</p>
@@ -40,7 +44,6 @@
             <p>集計期間：{{ \Illuminate\Support\Carbon::parse($month.'-01')->format('Y/m/d') }}〜{{ \Illuminate\Support\Carbon::parse($month.'-01')->endOfMonth()->format('Y/m/d') }}</p>
             <p>{{ $companyProfile->company_name }}</p>
             <p>{{ $companyProfile->address }}</p>
-            <p>{{ $companyProfile->email }}</p>
         </div>
     </div>
 
@@ -48,73 +51,73 @@
     <p>振込予定日：{{ \Illuminate\Support\Carbon::parse($month.'-01')->addMonthNoOverflow()->day(5)->format('Y/m/d') }}</p>
 
     <div class="amount-box">
-        報酬金額　<span class="amount">¥{{ number_format($monthlyTotal) }}</span>（税込）
+        <span class="label">報酬金額</span><span class="amount">¥{{ number_format($monthlyTotal) }}</span>（税込）
     </div>
 
-    <div class="section-title">パートナー報酬</div>
-    <table>
-        <thead>
-            <tr>
-                <th>着金日</th>
-                <th>案件名</th>
-                <th class="text-right">金額</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($contracts as $contract)
+    @if ($contracts->isNotEmpty())
+        <div class="section-title">パートナー報酬</div>
+        <table>
+            <thead>
                 <tr>
-                    <td>{{ $contract->deposit_date->format('Y/m/d') }}</td>
-                    <td>{{ $contract->inquiry->project->name }}</td>
-                    <td class="text-right">¥{{ number_format($contract->agency_reward_amount) }}</td>
+                    <th>着金日</th>
+                    <th>案件名</th>
+                    <th class="text-right">金額</th>
                 </tr>
-            @empty
-                <tr><td colspan="3">対象データはありません。</td></tr>
-            @endforelse
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach ($contracts as $contract)
+                    <tr>
+                        <td>{{ $contract->deposit_date->format('Y/m/d') }}</td>
+                        <td>{{ $contract->inquiry->project->name }}</td>
+                        <td class="text-right">¥{{ number_format($contract->agency_reward_amount) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
 
-    <div class="section-title">紹介報酬10%</div>
-    <table>
-        <thead>
-            <tr>
-                <th>紹介先パートナー</th>
-                <th>着金数</th>
-                <th class="text-right">金額</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($referralCommissionGroups as $group)
+    @if ($referralCommissionGroups->isNotEmpty())
+        <div class="section-title">紹介報酬10%</div>
+        <table>
+            <thead>
                 <tr>
-                    <td>{{ $group['sourceAgency']->name }}</td>
-                    <td>{{ $group['count'] }}</td>
-                    <td class="text-right">¥{{ number_format($group['total']) }}</td>
+                    <th>紹介先パートナー</th>
+                    <th>着金数</th>
+                    <th class="text-right">金額</th>
                 </tr>
-            @empty
-                <tr><td colspan="3">対象データはありません。</td></tr>
-            @endforelse
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach ($referralCommissionGroups as $group)
+                    <tr>
+                        <td>{{ $group['sourceAgency']->name }}</td>
+                        <td>{{ $group['count'] }}</td>
+                        <td class="text-right">¥{{ number_format($group['total']) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
 
-    <div class="section-title">共創パートナー30%</div>
-    <table>
-        <thead>
-            <tr>
-                <th>取引先名</th>
-                <th>着金数</th>
-                <th class="text-right">金額</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($collaborationRewardRows as $row)
+    @if ($collaborationRewardRows->isNotEmpty())
+        <div class="section-title">共創パートナー30%</div>
+        <table>
+            <thead>
                 <tr>
-                    <td>{{ $row['clientName'] }}</td>
-                    <td>{{ $row['depositCount'] }}</td>
-                    <td class="text-right">¥{{ number_format($row['rewardAmount']) }}</td>
+                    <th>取引先名</th>
+                    <th>着金数</th>
+                    <th class="text-right">金額</th>
                 </tr>
-            @empty
-                <tr><td colspan="3">対象データはありません。</td></tr>
-            @endforelse
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach ($collaborationRewardRows as $row)
+                    <tr>
+                        <td>{{ $row['clientName'] }}</td>
+                        <td>{{ $row['depositCount'] }}</td>
+                        <td class="text-right">¥{{ number_format($row['rewardAmount']) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
 </body>
 </html>
