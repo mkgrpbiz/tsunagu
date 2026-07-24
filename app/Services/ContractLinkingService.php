@@ -33,7 +33,7 @@ class ContractLinkingService
                 'agency_unit_price' => $line['agency_unit_price'],
                 'count' => $line['count'],
                 'payment_due_date' => $paymentDueDate,
-                'payment_status' => PaymentStatus::Unpaid,
+                'payment_status' => $inquiry->agency->is_internal_use ? PaymentStatus::InternalProcessing : PaymentStatus::Unpaid,
             ]);
 
             $applyReferralCommission = (bool) ($line['apply_referral_commission'] ?? true);

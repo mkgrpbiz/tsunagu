@@ -4,8 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\AgencyStatus;
 use App\Enums\Gender;
+use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
+use App\Models\CollaborationReward;
+use App\Models\Contract;
+use App\Models\Project;
 use App\Models\ReferralCommission;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -94,9 +98,38 @@ class InternalAgencyController extends Controller
     {
         $agency->update(['is_internal_use' => ! $agency->is_internal_use]);
 
+        if ($agency->is_internal_use) {
+            $this->convertExistingUnpaidToInternalProcessing($agency);
+        }
+
         return redirect()->route('admin.internal-agencies.index')->with(
             'status',
             $agency->is_internal_use ? '社内運用アカウントに設定しました。' : '社内運用アカウントの指定を解除しました。'
         );
+    }
+
+    /**
+     * フラグを立てた時点で、パートナー10%（Contract）・紹介報酬10%（ReferralCommission）・
+     * 共創報酬30%（CollaborationReward）のうち未払いのものは、まとめて社内処理扱いにする。
+     */
+    private function convertExistingUnpaidToInternalProcessing(Agency $agency): void
+    {
+        Contract::whereHas('inquiry', fn ($query) => $query->where('agency_id', $agency->id))
+            ->where('payment_status', PaymentStatus::Unpaid)
+            ->update(['payment_status' => PaymentStatus::InternalProcessing]);
+
+        ReferralCommission::where('referrer_agency_id', $agency->id)
+            ->where('payment_status', PaymentStatus::Unpaid)
+            ->update(['payment_status' => PaymentStatus::InternalProcessing]);
+
+        $clientNames = Project::where('referrer_agency_id', $agency->id)
+            ->whereNotNull('client_name')
+            ->pluck('client_name');
+
+        if ($clientNames->isNotEmpty()) {
+            CollaborationReward::whereIn('client_name', $clientNames)
+                ->where('payment_status', PaymentStatus::Unpaid)
+                ->update(['payment_status' => PaymentStatus::InternalProcessing]);
+        }
     }
 }

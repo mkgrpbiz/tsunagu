@@ -82,7 +82,7 @@ class CollaborationRewardController extends Controller
                             'month' => $month->toDateString(),
                             'reward_amount' => (int) round($profit * 0.3),
                             'status' => CollaborationRewardStatus::PendingApproval,
-                            'payment_status' => PaymentStatus::Unpaid,
+                            'payment_status' => $referrer->is_internal_use ? PaymentStatus::InternalProcessing : PaymentStatus::Unpaid,
                             'payment_due_date' => $month->copy()->addMonthNoOverflow()->day(5),
                         ]);
                     }
