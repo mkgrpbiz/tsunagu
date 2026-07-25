@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'legacy_names',
     'description',
     'image_path',
+    'sales_material_path',
     'status',
     'is_recurring',
     'bulk_link_enabled',

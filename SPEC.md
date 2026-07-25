@@ -59,6 +59,8 @@
 - **単価は複数パターン対応**（2026-07-22）: `tsunagu_unit_price`/`agency_unit_price`（単一integer）を廃止し、`tsunagu_unit_prices`/`agency_unit_prices`（JSON配列、`array`キャスト）に変更。案件編集で「+」により金額を何個でも追加可能（ラベルは付けない、単純に複数の金額パターン）。`Project::singleTsunaguUnitPrice()`/`singleAgencyUnitPrice()`はパターンが1個の時だけその値を返す（着金紐付け画面の単価入力欄の自動プリフィル用、パターンが2個以上や変動制の場合はnullを返し手入力を促す）
 - `Project.is_recurring`（ストック系案件）・`Project.bulk_link_enabled`（一括紐付け対象）は着金紐付けセクション参照
 - **取引先名（`client_name`）はdatalistでサジェスト**（2026-07-22）: 既存の全案件から使われている`client_name`の一覧（`Project::whereNotNull('client_name')->distinct()`）を`<datalist>`として表示し、既存の取引先を選びやすくする一方、新規取引先の自由入力もそのまま可能（サーバー側で候補以外を拒否するような強制はしていない）。共創報酬の集計が`client_name`の文字列完全一致に依存しているため、表記ゆれ防止が目的
+- **管理画面ラベルのリネーム**（2026-07-25）: `description`フィールドの表示ラベルを「紹介報酬」→「成果単価」に変更（パートナー自身の紹介報酬〈`ReferralCommission`〉と紛らわしかったため）。`recruitment_template`フィールドの表示ラベルを「募集文テンプレ」→「案件概要」に変更。どちらもカラム名・DB上の意味は変更なし、表示ラベルのみの変更
+- **営業資料PDF**（2026-07-25追加）: `Project.sales_material_path`（nullable string、案件編集フォームで案件概要欄の直上にアップロード欄あり、`projects/sales-materials/`に保存）。パートナー向け案件一覧（`agency/projects/index.blade.php`）にも設定されていれば「営業資料」ダウンロードリンクとして表示（集客画像・成果単価に続く位置）
 
 ## 一覧画面の列構成
 

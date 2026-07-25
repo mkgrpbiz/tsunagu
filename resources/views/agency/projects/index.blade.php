@@ -104,7 +104,7 @@
                         @endif
 
                         <div class="box">
-                            <p class="box-title">✅ 紹介報酬</p>
+                            <p class="box-title">✅ 成果単価</p>
                             <p>{{ $project->description }}</p>
                         </div>
 
@@ -112,6 +112,15 @@
                             <p class="box-title">✅ 着金タイミング</p>
                             <p>{{ $project->payment_timing }}</p>
                         </div>
+
+                        @if ($project->sales_material_path)
+                            <div class="box">
+                                <p class="box-title">✅ 営業資料</p>
+                                <a href="{{ \Illuminate\Support\Facades\Storage::url($project->sales_material_path) }}" target="_blank" rel="noopener" class="copy">
+                                    資料をダウンロード
+                                </a>
+                            </div>
+                        @endif
 
                         <div class="box">
                             <p class="box-title">✅ 招待リンク・募集文</p>

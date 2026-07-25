@@ -87,6 +87,10 @@ class ProjectController extends Controller
             $data['image_path'] = $request->file('image')->store('projects', 'public');
         }
 
+        if ($request->hasFile('sales_material')) {
+            $data['sales_material_path'] = $request->file('sales_material')->store('projects/sales-materials', 'public');
+        }
+
         $project = Project::create($data);
 
         Announcement::create([
@@ -128,6 +132,13 @@ class ProjectController extends Controller
             $data['image_path'] = $request->file('image')->store('projects', 'public');
         }
 
+        if ($request->hasFile('sales_material')) {
+            if ($project->sales_material_path) {
+                Storage::disk('public')->delete($project->sales_material_path);
+            }
+            $data['sales_material_path'] = $request->file('sales_material')->store('projects/sales-materials', 'public');
+        }
+
         $project->update($data);
 
         return redirect()->route('admin.projects.index')->with('status', '案件を更新しました。');
@@ -152,6 +163,10 @@ class ProjectController extends Controller
 
         if ($project->image_path) {
             Storage::disk('public')->delete($project->image_path);
+        }
+
+        if ($project->sales_material_path) {
+            Storage::disk('public')->delete($project->sales_material_path);
         }
 
         $project->delete();
@@ -183,6 +198,7 @@ class ProjectController extends Controller
             'legacy_names' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'max:4096'],
+            'sales_material' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
             'status' => ['required', Rule::enum(ProjectStatus::class)],
             'is_recurring' => ['nullable', 'boolean'],
             'bulk_link_enabled' => ['nullable', 'boolean'],

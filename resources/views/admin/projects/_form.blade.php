@@ -32,7 +32,7 @@
             <input type="checkbox" name="oshigoto_listed" value="1" @checked(old('oshigoto_listed', $project->oshigoto_listed))>
             おしごとナビに掲載する
         </label>
-        <p class="text-xs text-gray-500 mt-1">ONにすると、下の「集客画像」「募集文テンプレ」の内容がおしごとナビ（全案件まとめページ）にそのまま表示されます。</p>
+        <p class="text-xs text-gray-500 mt-1">ONにすると、下の「集客画像」「案件概要」の内容がおしごとナビ（全案件まとめページ）にそのまま表示されます。</p>
         @error('oshigoto_listed')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
@@ -167,7 +167,7 @@
     </div>
 
     <div class="col-span-2">
-        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">紹介報酬</label>
+        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">成果単価</label>
         <textarea name="description" id="description" rows="3"
                   class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description', $project->description) }}</textarea>
         @error('description')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
@@ -181,7 +181,20 @@
     </div>
 
     <div class="col-span-2">
-        <label for="recruitment_template" class="block text-sm font-medium text-gray-700 mb-1">募集文テンプレ（招待リンクはパートナーマイページで自動挿入されます）</label>
+        <label for="sales_material" class="block text-sm font-medium text-gray-700 mb-1">営業資料（PDF）</label>
+        @if ($project->sales_material_path)
+            <p class="text-xs text-gray-500 mb-2">
+                現在の資料:
+                <a href="{{ \Illuminate\Support\Facades\Storage::url($project->sales_material_path) }}" target="_blank" rel="noopener" class="text-blue-600 hover:underline">確認する</a>
+            </p>
+        @endif
+        <input type="file" name="sales_material" id="sales_material" accept="application/pdf"
+               class="w-full text-sm">
+        @error('sales_material')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+    </div>
+
+    <div class="col-span-2">
+        <label for="recruitment_template" class="block text-sm font-medium text-gray-700 mb-1">案件概要（招待リンクはパートナーマイページで自動挿入されます）</label>
         <textarea name="recruitment_template" id="recruitment_template" rows="4"
                   class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('recruitment_template', $project->recruitment_template) }}</textarea>
         @error('recruitment_template')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
