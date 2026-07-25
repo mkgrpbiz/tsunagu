@@ -1,6 +1,6 @@
-# TSUNAGU 仕様まとめ（2026-07-22時点）
+# TSUNAGU 仕様まとめ（2026-07-25時点）
 
-パートナー（旧・代理店）が案件を紹介し、紹介報酬・共創報酬を得られる審査制のビジネスプラットフォーム。Laravel 13 + Blade + SQLite（本番/STGはMySQL）。GitHub（`https://github.com/mkgrpbiz/tsunagu.git`, `main`ブランチ）で管理し、STG（`https://stg-tsunagu.mkgrp.biz`、Xserver `sv16576.xserver.jp`）へ`git pull`でデプロイ。本番ドメインは`tsunagu.mkgrp.biz`を予定（未稼働）。
+パートナー（旧・代理店）が案件を紹介し、紹介報酬・共創報酬を得られる審査制のビジネスプラットフォーム。Laravel 13 + Blade + SQLite（本番/STGはMySQL）。GitHub（`https://github.com/mkgrpbiz/tsunagu.git`, `main`ブランチ）で管理し、同じXserverアカウント（`sv16576.xserver.jp`）上にSTG（`https://stg-tsunagu.mkgrp.biz`、`~/tsunagu`）と本番（`https://tsunagu.mkgrp.biz`、`~/tsunagu_prod`、**2026-07-24に稼働開始**）の2環境を用意。`main`へのpushでSTGは自動デプロイ、本番は都度ユーザーへの確認を経てから`git pull`する運用。
 
 ## 用語
 
@@ -63,13 +63,17 @@
 ## 一覧画面の列構成
 
 - パートナー一覧（`admin/agencies/index`）: 会社名 / 名前 / フリガナ / 審査ステータス / 登録申請日時 / 承認日時 / 問い合わせ数 / パートナー紹介数
+  - **検索欄あり**（2026-07-24追加）: 名前・フリガナ・`legacy_code`のLIKE検索に加え、「B0053」形式や素の数字での会員番号検索にも対応（正規表現`^b0*(\d+)$`で数値部分を抽出、またはそのまま数値一致）。243件全件が非ページング表示だと`created_at`降順で古い登録が探しにくかったための対応
+  - **100件ごとのページネーション**（`->paginate(100)->withQueryString()`）
 - 共創パートナー一覧（`admin/collaboration-partners/index`）: 会社名 / 名前 / フリガナ / 公開案件数 / 詳細を表示
+- 問い合わせ一覧（`admin/inquiries`）も同様に**100件ごとのページネーション**（元々全件をメモリに読み込み月フィルタをPHP側でかけている実装のため、`LengthAwarePaginator`で`Collection::forPage()`スライスを手動ラップ）
 
 ## ダッシュボード（`admin/dashboard`）
 
 - 月次・累計の切替、カード下は前月比（差分＋％、累計モードのみ累計表示にフォールバック）
 - 指標: 紹介パートナー数（→表示は「パートナー数」）、共創パートナー数、問い合わせ数、着金数、売上、支払い、利益
 - 折れ線グラフ2種（パートナー数×問い合わせ数、売上×利益）、外部チャートライブラリなしの自前SVG実装（`partials/line_chart.blade.php`）
+- **アラート4種**（2026-07-24追加、`DashboardController::alerts()`、件数0の時は非表示）: パートナー登録審査待ち / 共創パートナー申請審査待ち / 問い合わせエラー（`InquiryStatus::GuidanceFailed`）/ 支払期日（振込指定日の5日前＝実質「振込日から5日経過」）超過の未払い（`Contract`+`ReferralCommission`+`CollaborationReward`合算）。それぞれ該当の管理画面へのリンク付き黄色バナー
 
 ## ホーム・LP編集機能
 
@@ -149,8 +153,22 @@
 
 - 3セクション: 紹介報酬（自分の着金、1行=1件、列は**着金日・案件名・名前・フリガナ・単価・件数・合計・支払予定日**。同一案件・同一人物でも単価パターンが違えば`Contract`が別々になるため複数行で表示される＝着金紐付けと同じ粒度）／パートナー10%（紹介先パートナー×支払予定日ごとに件数・合計額を集計した行）／共創パートナー30%（取引先ごとに案件数・着金数・合計額を集計、**承認済みのもののみ**表示）
 - `Contract`に`agency_unit_price`・`count`カラムを追加（2026-07-22）し、`ContractLinkingService`がライン作成時に保存。マイグレーション前の既存データはこの2カラムがnullのため「－」表示にフォールバック
-- ページ上部に支払いサイクルの案内文（月末締め翌月5日払い、**5日が土日祝の場合は明けの振り込み**、¥1,000未満は繰り越し）
+- ページ上部に支払いサイクルの案内文（月末締め翌月5日払い、**5日が土日祝日の場合は翌営業日のお振り込み**、¥1,000未満は繰り越し）
 - 「繰り越し報酬」表示は**累計（全期間）の未払い合計が¥1,000未満の場合、その全額**（`Agency::totalPendingPayout()`が0円になるまで自然に繰り越り続ける仕組みで、繰り越し専用のDBカラムは無い）
+- **支払通知書PDFダウンロード**（2026-07-24追加、`agency/contracts/statement`、`barryvdh/laravel-dompdf`使用）: 月選択（`?month=YYYY-MM`必須、それ以外は404）で、その月の紹介報酬・パートナー10%・共創パートナー30%を**支払済み/未払いに関わらず全件**itemizeしたPDFをダウンロード（画面上のUnpaid集計とは別に、PDF専用で全ステータス合計を再計算）。会社情報（`CompanyProfile::current()`）・書類番号（`YYYYMM-{agency_id 4桁0埋め}`）付き
+  - 日本語表示には同梱のNoto Sans JPフォント（OFLライセンス、`resources/fonts/`にコミット済み）を`@font-face`で読み込む。dompdf組み込みフォントは非CJK対応のため必須
+  - `storage/fonts/`はdompdfのフォントキャッシュ置き場。空ディレクトリはgit管理できないため`storage/fonts/.gitignore`（`*`＋`!.gitignore`）でディレクトリの存在だけを担保している
+  - **dompdfのflexboxは信頼できない**（`display:flex; justify-content:space-between`の2カラムヘッダーが同じ行に並ばないことがある）。左右ブロックの行揃えが必要なレイアウトは素の`<table>`を使うこと
+
+## 社内運用アカウント（`admin/internal-agencies`、`Agency.is_internal_use`）
+
+営業・運営が使う社内用の紹介コードを、実際に支払い処理せず記録だけ残すための機能。既存の`Agency`モデルをそのまま流用し、`is_internal_use`（bool）フラグで区別する設計（別エンティティは作らない）。
+
+- `Admin\InternalAgencyController`: 既存の非内部パートナーを検索してフラグを立てる／コードを選んで新規に社内用アカウントを直接作成する、の両方に対応。新規作成時は名前・フリガナ・会員番号のみの最小フォーム（性別=その他・都道府県="社内"・電話=00000000000・メール=`internal-{slug}@internal.tsunagu.local`・初期パスワード`pass1234`・`status=Approved`を自動設定）
+- 一覧では通常のパートナー詳細ページは持たせず、**パートナー紹介URLと実績（パートナー数・紹介報酬累計）のみ**表示。フラグON時、既存の`Unpaid`な`Contract`/`ReferralCommission`/`CollaborationReward`を`PaymentStatus::InternalProcessing`（表示ラベル「社内処理」）へ**遡って一括変換**する
+- `PaymentStatus::InternalProcessing`は`admin/payments`の集計対象（`=== Unpaid`のみ抽出）に含まれないため、支払予定額には自然に反映されない
+- 詳細ページ（`show`）で月次/累計切替の内訳表示あり（`admin/payments/show`と同じUIパターン）
+- **注意**: `is_internal_use`を立てる/新規作成する処理は、`ContractLinkingService::linkInquiry()`（着金紐付け・該当なし成果・合計成果反映の共通ロジック）と`Admin\CollaborationRewardController::buildClientSummary()`の両方で`$referrer->is_internal_use`を見て`InternalProcessing`にする分岐が必要。**Contract・ReferralCommission・CollaborationRewardの3種すべてを対象にすること**（一度、`Contract`だけ変換漏れがあり実データで発覚した事故がある）
 
 ## 支払い管理（`admin/payments`）と繰り越し予定
 
@@ -166,39 +184,38 @@
 - ダッシュボードにも「繰り越し予定合計」カードあり（「利益」カードの隣、月フィルタに関係なく常に現在の状態を表示）
 - **運用インパクトの注意**: 2026-07-19時点で契約同意（3文書）を提出済みのパートナーは244件中1件のみ。本番公開後、既存パートナーの大多数は次回ログイン時に案件一覧・紹介機能が使えなくなり「追加情報のご入力」への誘導が発生する（審査制導入時の意図通りだが、影響範囲は大きい）
 
-## LINE/LIFF連携（申し込みフォーム、`public/apply/show.blade.php`）
+## LINEチャンネル設定（`config/services.php`、パートナー用／お客様用の2系統）
 
-**設計方針**: LIFFログイン画面のような専用フローは作らず、通常の申し込みフォーム1枚に集約。LINEとの連携（ユーザーのLINE ID取得・友だち状態確認）は**「案内を受け取る」ボタンを押した瞬間にだけ**行う（ページを開いた時点では何もLIFF関連の処理をしない＝フォームは常に即表示）。
+本番ではパートナー向けとお客様向けで**別々のLINEチャンネル**（それぞれMessaging APIチャンネル＋ペアのLINE Loginチャンネル）を使う（STGは歴史的経緯で1チャンネルを両方に共用しているが、コードは常に2系統前提で書く）。
 
-### 送信時の流れ（`liffReady = liff.init()`は事前に非同期で開始しておく）
+- `App\Enums\LineChannel`（`Partner`/`Customer`）の`configKey()`で`services.line_partner`/`services.line_customer`を切り替え、`LineMessagingService::sendPush(LineChannel $channel, ...)`の第一引数で送信先チャンネルを毎回明示させる（誤送信事故防止）
+- **重要な区別**: 1つの「チャンネルペア」の中でも、Messaging APIチャンネル（公式アカウント本体、Webhook署名検証・プッシュ送信用の`channel_secret`を持つ）と、LIFFが所属するLINE Loginチャンネル（OAuthのトークン交換用に**別の**`channel_id`/`channel_secret`を持つ）は別物。LIFFアプリはLINE Loginチャンネルにしか作成できない
+  - `services.line_customer`は`channel_secret`/`channel_access_token`/`liff_id`/`official_account_id`（Messaging API側）と`oauth_channel_id`/`oauth_channel_secret`（LINE Login/OAuth側）を別キーで持つ。**この2つを同じキーに混ぜて使い回すと、片方を直すともう片方（Webhook署名検証か、OAuthログインか）が壊れる**という実際の事故が起きた（2026-07-25、本番）ため、恒久的に分離しておくこと
+  - `services.line_partner`はWebhookを使わないため`channel_id`/`channel_secret`をそのままOAuth用として使ってよい（分離不要）
 
-1. ボタン押下 → `liffReady`解決を待ち、`liff.isLoggedIn()`をチェック
-2. **未ログインの場合**: 入力済みの名前・フリガナ・メールアドレスを**URLクエリパラメータ**に載せ（`tsn_resume=1&name=...`等）、`https://liff.line.me/{LIFF_ID}?from=` + そのパス全体をURLエンコードしたもの、へ`window.location.href`で遷移
-3. LINEがログイン処理後、`from`で指定した通りのURL（クエリ含む）にそのまま戻ってくる（アクセストークン等は`#`以降のフラグメントとして付与されるので、こちらのクエリパラメータ部分には影響しない）
-4. 戻り先ページで、URLクエリの`tsn_resume`を見て入力内容を復元し、`resumingSubmit=true`として`requestSubmit()`を自動発火 → 今度は`liff.isLoggedIn()`がtrueになっているので、`liff.getProfile()`/`liff.getFriendship()`を取得してから実際にサーバーへPOST
-5. **既にログイン済みの場合**（２回目の申込みや、别のLIFFセッションが生きている場合）: 上記2〜4を経由せず、その場で`getProfile()`/`getFriendship()`を取って即座に送信
+## お客様申し込みフロー（`public/apply/show.blade.php`、`Public\ApplyController`）
 
-### ハマったポイント（時系列で得た教訓）
+**現在の設計（2026-07-25、サーバー側OAuthに全面移行済み）**: LIFF SDKクライアント側の処理（`liff.init`/`isLoggedIn`/`getProfile`/`getFriendship`や、URLクエリ経由で入力内容を持ち回す`tsn_resume`再送信の仕組み）は**すべて撤去**した。以下は撤去に至った経緯と現行フローの記録。
 
-- **`sessionStorage`は使えない**: `liff.line.me`経由でログインすると、LINEアプリの**中の**専用LIFFブラウザとして開き直される（`liff.isInClient()`が`false`→`true`に変わる）。これは別のブラウジングコンテキスト扱いになるため、`sessionStorage`は引き継がれない。入力内容は**URLクエリパラメータ**に乗せて渡すこと（`sessionStorage`ではなく）
-- **`liff.login()`の`redirectUri`は信用しない**: 素のURL（`/apply/{token}`のようなプレーンなリンクをLINEのトーク上でタップして開く形）は`isInClient: false`（LIFFの正規起動ではなく外部ブラウザ扱い）になり、この状態では`liff.login({ redirectUri: ... })`を指定しても無視されて**必ずエンドポイントURLちょうどに戻る**（LINE公式ドキュメントにも「動作は保証されない」と明記あり）。確実にログイン→元のページに戻したい場合は、SDKの`liff.login()`ではなく、**素の`window.location.href = 'https://liff.line.me/{LIFF_ID}?from=...'`遷移**を使うこと（これは`isInClient: true`の正規LIFF起動になり、`from`で指定した通りのURLに確実に戻ってくる）
-- **エンドポイントURLは実在するルートにする**: `liff.login()`はエンドポイントURLちょうどに戻ることがあるため、そのURLは「トークン必須の`/apply/{token}`」のような動的ルートではなく、パラメータ無しでも200を返す実在ルートにする必要がある（`Route::get('apply', ...)`を追加して対応。中身は「元の画面に戻ってください」という中継用の簡素な文言のみ）
-- **エンドポイントURLの着地先は対象読者に注意**: 最初トップページ（`/`）をエンドポイントURLにしていたが、`/`は元々パートナー登録LP（`/agency/register`）にリダイレクトする設定だったため、**申し込みユーザーが誤ってパートナー向けLPに着地する**事故になった。ユーザー向けの中継先は必ず専用ページ（`public.line_login_complete`ビュー）にすること
-- **「ボットリンク」設定を忘れずに**: LIFFアプリをLINE Loginチャンネルで作成した場合、そのチャンネルとMessaging APIチャンネル（公式アカウント）を**明示的に紐付けないと**`liff.getFriendship()`が`There is no login bot linked to this channel.`エラーで失敗する。LINE Developersコンソールで、LINE Loginチャンネル側の設定にある「Linked LINE Official Account（ボットリンク）」で紐付けが必要
-- **原因調査は最終的に「サーバーログに直接書く」方式が有効だった**: 実機LINEでしか再現しない不具合を都度ユーザーに言葉で説明してもらうのは非効率・不正確になりがち。`navigator.sendBeacon()`で自前の`/debug-log`エンドポイント（CSRF除外、Laravelログに書くだけ）に各ステップを送り、開発側が直接ログを`tail`する方式に切り替えたところ、一度で正確な原因（上記のボットリンク未設定）まで特定できた。同種の「外部アプリ経由でしか再現しない」不具合はこの手法を早めに使うとよい
-- **`LineWebhookController`（follow/unfollowイベント）は実際に使われている**: 友だち未追加のままフォーム送信した場合、後から友だち追加された時点で`handleFollow()`が保留中の`Inquiry`（`guidance_sent_at`が空のもの）を検知し自動で案内メッセージを送る、という実装が既にあった。一見DBフィールドの読み書きだけに見えても、メソッド全体を読まずに「未使用」と判断しないこと
+- **撤去理由**: LIFFのクライアント側セッション状態（`sessionStorage`/`localStorage`）が、外部のLINEログイン画面を経由する往復の間で維持されないことがある（特にPCブラウザ）。この不確実性が原因で、「案内を受け取る」を押していないのに同じ内容の申し込みが自動的に何度も再送信され、`Inquiry`が同一`line_user_id`+`project_id`で6〜7件も重複作成される実バグとして発現した。パートナー側LINE連携で先に同種の問題（無限リロード）を経験済みだったため、同じ根治策（サーバー側OAuthへの全面書き換え）を適用した
+- **現行フロー**:
+  1. `show()` — 申し込みフォームを表示（変更なし）
+  2. `redirectToLine()`（POST）— 名前・フリガナ・メールアドレスをバリデーション後、`encrypt(['invite_link_id'=>..., 'name'=>..., 'name_kana'=>..., 'email'=>..., 'expires_at'=>...])`を`state`としてLINEの認可エンドポイント（`https://access.line.me/oauth2/v2.1/authorize`）へリダイレクト。入力内容はブラウザに一切持ち回らせず、暗号化された`state`だけがサーバーとLINEの間を往復する
+  3. `oauthCallback()`（GET、`apply.oauth-callback`）— `state`を復号し、認可コード(`code`)を`https://api.line.me/oauth2/v2.1/token`でアクセストークンに交換 → `https://api.line.me/v2/profile`でLINEプロフィール取得 → `LineUser::firstOrCreate()` → `completeInquiry()`で`Inquiry`作成
+  4. 友だち状態は`liff.getFriendship()`のようなその場の呼び出しではなく、**Webhookのfollow/unfollowイベントで更新され続けている`LineUser.is_friend`カラム**を信頼する（友だちなら即プッシュ、そうでなければ「友だち追加してください」画面）
+- **重複防止についての運用方針（ユーザー確認済み）**: 認可コードは1回しか使えないため、コールバック画面をリロードしても2回目はLINE側でエラーになり`Inquiry`は作られない＝「何もしていないのに勝手に複数回送信される」バグは構造的に解消済み。一方、**本人が意図して招待リンクをもう一度開き改めて送信する**ケースについては、`completeInquiry()`は今も重複防止チェックをせず毎回新規`Inquiry`を作る（あえて対応していない、意図したスコープ）
+- `store()`（POST、`apply.store`）はLIFF未設定のローカル開発環境専用フォールバックとしてのみ残っている（手入力の`line_uid`等をそのまま使う旧来の経路）。`config('services.line_customer.liff_id')`が設定されていればフォーム側は自動的に`redirectToLine()`経路を使う
+- `LineWebhookController::handleFollow()`は実際に使われている: 友だち未追加のままフォーム送信した場合、後から友だち追加された時点で保留中の`Inquiry`（`guidance_sent_at`が空のもの）を検知し自動で案内メッセージを送る
 
-## パートナー側LINE連携（`Agency\LineConnectionController`、ログイン済みユーザーがLIFF経由で連携する場合）
+## パートナー側LINE連携（`Agency\LineConnectionController`）
 
-**申し込みフォームの「未ログインゲスト」ケースとは別の問題がある**: 既にマイページにログイン済みのパートナーが「LINE連携する」ボタンを押して`https://liff.line.me/{LIFF_ID}?from=...`に遷移すると、上記の申し込みフォームと同様に**LINEアプリ内の別ブラウジングコンテキストとして開き直される**。この時、元のブラウザのログインセッションCookieは引き継がれない（`sessionStorage`が引き継がれないのと同じ原理）。そのため、連携ボタンを押した後の着地ページが`auth:agency`ミドルウェア配下のルートだと、LINEから戻った瞬間にログイン画面へ飛ばされてしまい、連携そのものが成立しない。
+こちらも同じ理由（ログイン済みパートナーがLIFF/LINEログインの外部往復を経由すると、元のブラウザのセッションCookieが引き継がれないことがある）でサーバー側OAuthに書き換え済み。
 
-**解決策（採用した設計）**: ログイン中のセッションに依存せず、使い捨てトークンだけでパートナーを特定する方式にした。
-1. 連携ボタンを描画する時点（まだ元のブラウザセッション内）で、`encrypt(['agency_id' => ..., 'expires_at' => ...])`で15分限定の署名付きトークンを生成し、LIFFの`from`パラメータに埋め込む（`partials/agency_line_connect_button.blade.php`）
-2. LINEから戻ってくる着地ページ（`agency/line-connection/callback`のGET/POST）は`auth:agency`の外に置き、ログイン状態を一切前提にしない
-3. 着地ページで`liff.getProfile()`取得後、トークン＋LINEプロフィールをPOSTし、コントローラ側はトークンを復号してAgencyを特定→`line_uid`を保存→`Auth::guard('agency')->login($agency)`でその場（LIFF内ブラウザ）に新しいセッションを張ってから`/agency/home`へリダイレクトする
-4. 連携解除（`destroy`）はマイページ内の通常フォーム送信のみで完結するため、LIFF遷移が発生せずこの問題の対象外（`auth:agency`のままでよい）
+- 連携ボタン押下時、`encrypt(['agency_id'=>..., 'expires_at'=>...])`を`state`としてLINE認可エンドポイントへリダイレクト（ログイン状態そのものはstateに依存しないので、着地ページを`auth:agency`の外に置ける）
+- `oauthCallback()`（`agency/line-connection/oauth-callback`、認証不要ルート）が`state`からAgencyを特定 → 認可コードをトークン交換 → プロフィール取得 → `line_uid`/`line_display_name`保存 → `Auth::guard('agency')->login($agency)`でその場に新しいセッションを張ってから`/agency/home`へリダイレクト
+- 連携完了時、`NotificationMessageSetting::FEATURE_LINE_CONNECTED`の文言（管理画面「LINE通知設定（連携完了）」で編集可）をLINEプッシュで送信
 
-**注意**: 同様に「ログイン済みユーザーがLIFFを経由する」新機能を作る場合は、着地ページを認証必須ルートにしないこと。認証が必要な処理は必ずトークン等セッション非依存の手段で本人確認すること。
+**同様の設計原則（新機能を作る際の注意）**: ログイン済みユーザーがLINEログイン/LIFFの外部往復を経由する画面を新たに作る場合、着地ページを認証必須ルートにしないこと。認証が必要な処理は必ずセッション非依存の`state`（`encrypt()`されたペイロード）等で本人確認すること。
 
 ## 開発環境の注意点
 
@@ -211,7 +228,10 @@
 
 ## 未着手・今後の検討事項
 
-- mkgrp.bizの本番ドメイン（`tsunagu.mkgrp.biz`）への切り替え・デプロイ方法は未検討（BIMONIはSTG自動デプロイ・本番は確認ありのGitベースのフローを使っている）
-- `legal_documents`のシーダー内容はプレースホルダーテキストのため、本番公開前に実際の利用規約・プライバシーポリシー・パートナー業務委託契約書の文言に差し替えが必要
 - 旧問い合わせデータのインポート（`Project.legacy_names`を使う想定）は未着手
 - 共創報酬（`CollaborationReward`）は`client_name`の文字列一致でパートナーに紐付いており、同じ取引先名を別パートナーが別案件で使うと報酬が二重計上される可能性がある（既存の設計、今回のスコープ外）
+
+## 完了済み（旧・未着手項目）
+
+- **本番稼働**（2026-07-24）: `tsunagu.mkgrp.biz`へ切り替え済み。STGからマスターデータ・アップロード済みファイルを移行、本番専用のLINEチャンネルペア（パートナー用／お客様用）を設定。デプロイはSTG自動・本番は都度確認のBIMONI同様のGitベースフロー
+- `legal_documents`の内容はユーザー確認済みの完成形（差し替え不要）
