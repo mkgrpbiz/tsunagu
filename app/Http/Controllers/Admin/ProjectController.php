@@ -202,7 +202,6 @@ class ProjectController extends Controller
             'status' => ['required', Rule::enum(ProjectStatus::class)],
             'is_recurring' => ['nullable', 'boolean'],
             'bulk_link_enabled' => ['nullable', 'boolean'],
-            'oshigoto_listed' => ['nullable', 'boolean'],
             'client_name' => ['nullable', 'string', 'max:255'],
             'referrer_agency_id' => ['nullable', 'exists:agencies,id'],
             'tsunagu_price_mode' => ['required', 'in:fixed,variable'],
@@ -216,7 +215,6 @@ class ProjectController extends Controller
             'line_auto_message' => ['nullable', 'string'],
         ]);
 
-        $data['oshigoto_listed'] = $request->boolean('oshigoto_listed');
         $data['is_recurring'] = $request->boolean('is_recurring');
         $data['bulk_link_enabled'] = $request->boolean('bulk_link_enabled');
 

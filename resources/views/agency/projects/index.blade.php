@@ -27,12 +27,9 @@
 .mk-cases button.copy.copy-link{background:#2563eb}
 .mk-cases .copy-row{display:flex;gap:8px}
 .mk-cases .copy-row .copy{width:50%;margin-top:8px}
-.mk-cases pre{background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:12px;font-size:13px;line-height:1.75;white-space:pre-wrap;word-break:break-word;margin:10px 0 0}
 .mk-cases .mk-cat{background:transparent;border:none;border-left:4px solid #ea580c;padding:8px 12px;margin:28px 0 10px}
 .mk-cases .mk-cat:first-of-type{margin-top:8px}
 .mk-cases .mk-cat-title{color:#9a3412;font-size:15px;font-weight:800;margin-bottom:4px}
-.mk-cases .mkp-photo{width:100%;aspect-ratio:1/1;overflow:hidden;border-radius:16px;border:1px solid #e5e7eb;background:#fff;margin-top:10px}
-.mk-cases .mkp-photo img{width:100%;height:100%;object-fit:contain;display:block}
 .mk-cases .dl-btn{display:inline-flex;align-items:center;gap:6px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:999px;padding:8px 16px;font-weight:700;font-size:13px;text-decoration:none}
 .mk-cases .dl-btn:hover{background:#dbeafe}
 .mk-cases .dl-btn svg{width:16px;height:16px;flex-shrink:0}
@@ -47,48 +44,6 @@
 @section('content')
 <div class="mk-cases" id="mkCases">
     <div class="mk-wrap">
-        <details class="case" style="margin-bottom:20px">
-            <summary>
-                おしごとナビ（全案件まとめ紹介リンク）
-                <span class="chev"></span>
-            </summary>
-            <div class="body">
-                <div class="box">
-                    <div class="muted">掲載中の全案件を1ページにまとめたページです。個別の招待リンクの代わりにこちらをシェアできます。</div>
-                </div>
-
-                @if (\Illuminate\Support\Facades\Storage::disk('public')->exists('oshigoto/oshigoto4.png'))
-                    <div class="box">
-                        <p class="box-title">✅ 集客画像</p>
-                        <p class="muted">※携帯は文字以外の部分を長押しで保存できます。</p>
-                        <div class="mkp-photo">
-                            <img src="{{ \Illuminate\Support\Facades\Storage::url('oshigoto/oshigoto4.png') }}" alt="おしごとナビ" loading="lazy">
-                        </div>
-                    </div>
-                @endif
-
-                <div class="box">
-                    <p class="box-title">✅ 招待リンク・募集文</p>
-
-                    <input type="text" readonly value="{{ $oshigotoUrl }}">
-                    <div class="copy-row">
-                        <button type="button" class="copy copy-link" onclick="copyToClipboard({{ Illuminate\Support\Js::from($oshigotoUrl) }})">
-                            リンクのみコピー
-                        </button>
-                        <a href="{{ $oshigotoUrl }}" target="_blank" rel="noopener" class="copy">
-                            ページを確認
-                        </a>
-                    </div>
-
-                    <pre>{{ $oshigotoTemplate }}</pre>
-                    <button type="button" class="copy"
-                            onclick="copyToClipboard({{ Illuminate\Support\Js::from($oshigotoTemplate) }})">
-                        募集文をコピー
-                    </button>
-                </div>
-            </div>
-        </details>
-
         @forelse ($projectsByCategory as $categoryName => $projects)
             <div class="mk-cat">
                 <div class="mk-cat-title">{{ $categoryName }}</div>

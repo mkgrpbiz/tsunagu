@@ -37,7 +37,6 @@ use App\Http\Controllers\Public\ApplyController;
 use App\Http\Controllers\Public\CompanyProfileController as PublicCompanyProfileController;
 use App\Http\Controllers\Public\LegalDocumentController as PublicLegalDocumentController;
 use App\Http\Controllers\Public\LineWebhookController;
-use App\Http\Controllers\Public\OshigotoController;
 use App\Models\NotificationMessageSetting;
 use Illuminate\Support\Facades\Route;
 
@@ -50,8 +49,6 @@ Route::get('apply/oauth-callback', [ApplyController::class, 'oauthCallback'])->n
 Route::get('apply/{inviteLink:token}', [ApplyController::class, 'show'])->name('apply.show');
 Route::post('apply/{inviteLink:token}', [ApplyController::class, 'store'])->name('apply.store');
 Route::post('apply/{inviteLink:token}/redirect-to-line', [ApplyController::class, 'redirectToLine'])->name('apply.redirect-to-line');
-
-Route::get('oshigoto', [OshigotoController::class, 'index'])->name('oshigoto.index');
 
 Route::post('line/webhook', [LineWebhookController::class, 'handle'])->name('line.webhook');
 

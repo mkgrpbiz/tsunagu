@@ -29,15 +29,6 @@
 
     <div class="col-span-2">
         <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
-            <input type="checkbox" name="oshigoto_listed" value="1" @checked(old('oshigoto_listed', $project->oshigoto_listed))>
-            おしごとナビに掲載する
-        </label>
-        <p class="text-xs text-gray-500 mt-1">ONにすると、下の「集客画像」「案件概要」の内容がおしごとナビ（全案件まとめページ）にそのまま表示されます。</p>
-        @error('oshigoto_listed')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-    </div>
-
-    <div class="col-span-2">
-        <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
             <input type="checkbox" name="is_recurring" value="1" @checked(old('is_recurring', $project->is_recurring))>
             ストック系案件（同じ問い合わせに何度でも着金紐付けできるようにする）
         </label>

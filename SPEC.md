@@ -61,13 +61,17 @@
 - **取引先名（`client_name`）はdatalistでサジェスト**（2026-07-22）: 既存の全案件から使われている`client_name`の一覧（`Project::whereNotNull('client_name')->distinct()`）を`<datalist>`として表示し、既存の取引先を選びやすくする一方、新規取引先の自由入力もそのまま可能（サーバー側で候補以外を拒否するような強制はしていない）。共創報酬の集計が`client_name`の文字列完全一致に依存しているため、表記ゆれ防止が目的
 - **管理画面ラベルのリネーム**（2026-07-25）: `description`フィールドの表示ラベルを「紹介報酬」→「成果単価」に変更（パートナー自身の紹介報酬〈`ReferralCommission`〉と紛らわしかったため）。`recruitment_template`フィールドの表示ラベルを「募集文テンプレ」→「案件概要」に変更。どちらもカラム名・DB上の意味は変更なし、表示ラベルのみの変更
 - **営業資料PDF**（2026-07-25追加）: `Project.sales_material_path`（nullable string、案件編集フォームで案件概要欄の直上にアップロード欄あり、`projects/sales-materials/`に保存）
-- **パートナー向け案件一覧の構成を刷新**（2026-07-25、`agency/projects/index.blade.php`の個別案件アコーディオン内のみ。ページ上部の「おしごとナビ」まとめ紹介セクションは対象外・従来のまま）: 「集客画像」ボックスと「募集文をコピー」ボタンを廃止し、以下の5ボックス構成に統一（絵文字アイコン、`✅`は使わない）
+- **パートナー向け案件一覧の構成を刷新**（2026-07-25、`agency/projects/index.blade.php`の個別案件アコーディオン内）: 「集客画像」ボックスと「募集文をコピー」ボタンを廃止し、以下の5ボックス構成に統一（絵文字アイコン、`✅`は使わない）
   1. 💰 成果単価（`description`）
   2. 📅 着金タイミング（`payment_timing`）
-  3. 📄 営業資料（`sales_material_path`が設定されている案件のみ表示）
-  4. 📝 案件概要 — `Project::overviewText()`（`recruitment_template`から`✅【お申し込みはこちら】`/`{invite_url}`のプレースホルダーを取り除いた素の説明文。コピー機能なし、読み物としての表示のみ）
+  3. 📄 営業資料（`sales_material_path`が設定されている案件のみ表示。控えめな薄い青のピル型ボタン`.dl-btn`＋ダウンロードアイコンSVG。2026-07-26に目立ちすぎるという指摘で通常の`.copy`黒ボタンから変更）
+  4. 📝 案件概要 — `Project::overviewText()`（`recruitment_template`から`✅【お申し込みはこちら】`/`{invite_url}`のプレースホルダーを取り除いた素の説明文。コピー機能なし、`<details class="mini-acc">`のミニアコーディオンで開閉、2026-07-26追加）
   5. 📨 案内フォーム — 招待URLの「リンクをコピー」ボタンと、実際の申し込みフォームを新規タブで開ける「フォームを確認」リンク
-  - `Project::overviewText()`は元々`Public\ApplyController::offerText()`（申し込みフォームの案件説明文）・`Public\OshigotoController`（公開おしごとナビ）に別々に重複実装されていたのを1箇所に集約したもの。3箇所とも同じ「プレースホルダー除去済みの案件概要」を表示する
+  - `Project::overviewText()`は元々`Public\ApplyController::offerText()`（申し込みフォームの案件説明文）・公開おしごとナビ（後述の理由で2026-07-26に廃止）に別々に重複実装されていたのを1箇所に集約したもの
+- **「おしごとナビ」全案件まとめページを完全廃止**（2026-07-26）: 審査制・営業代行中心のビジネスプラットフォームとして、誰でも踏める公開の案件まとめページ（審査を経ないパートナーでも使える集客導線）はプラットフォームの質感と逆行するとの判断。アクセス数等の利用実績データは元々一切収集していなかった（アプリ側にアクセス集計機構なし、サーバーのアクセスログも未有効化）ため、影響範囲を測れないまま撤去する判断となった。
+  - 削除: `Public\OshigotoController`・`resources/views/public/oshigoto/`・`GET /oshigoto`ルート・`Project.oshigoto_listed`カラム（案件編集の「おしごとナビに掲載する」チェックボックスごと）・`Agency.oshigoto_token`カラムと`Agency::getOrCreateOshigotoToken()`・パートナー向け案件一覧ページ上部の「おしごとナビ（全案件まとめ紹介リンク）」アコーディオンセクション一式（`Agency\ProjectController`の`OSHIGOTO_TEMPLATE`定数含む）
+  - 案件・パートナーのDBカラムは削除専用マイグレーション（`2026_07_26_002501_drop_oshigoto_listed_from_projects_table`/`_drop_oshigoto_token_from_agencies_table`）を新規追加して`down()`で復元可能な形にしてある（元の`add_oshigoto_*`マイグレーション自体は履歴として変更していない）
+  - 個別の案件紹介リンク（`/apply/{token}`、パートナーごとの招待リンク）は本機能と無関係のため、この廃止による影響はない
 
 ## 一覧画面の列構成
 
@@ -110,7 +114,7 @@
 
 - `categories.sort_order` / `projects.sort_order`（いずれもunsigned int、既存データは元の表示順で自動採番済み）
 - 管理画面の一覧はネイティブJS（外部ライブラリなし）のドラッグ＆ドロップで並び替え可能。カテゴリーは常時、案件は「特定カテゴリーを選択」かつステータス「すべて」表示時のみ（`Admin\ProjectController::index()`の`$canReorder`）
-- この並び順はパートナー向け案件一覧（`Agency\ProjectController`）・公開おしごとナビ（`Public\OshigotoController`）の表示順にもそのまま反映される（`categories.sort_order`→`projects.sort_order`の順でJOIN・ORDER BY）
+- この並び順はパートナー向け案件一覧（`Agency\ProjectController`）の表示順にもそのまま反映される（`categories.sort_order`→`projects.sort_order`の順でJOIN・ORDER BY）
 
 ## 着金紐付け（`admin/deposit-links`）
 
@@ -151,7 +155,7 @@
 - 用途は**着金紐付け用のマッチングのみ**。パートナー向け画面（`agency/inquiries`）には一切表示しない
 - `inquiries`テーブルの`invite_link_id`/`line_user_id`は元々必須FKだが、過去データには実在するLINE UIDも招待リンクも無いためインポートできない → 両カラムをnullable化し、`is_legacy_import`（bool）と`legacy_line_display_name`（生のLINE表示名テキスト）を追加して緩和した
 - `invite_link_id`は該当するagency×projectの組み合わせで`InviteLink::firstOrCreate`（本番運用と同じ一意制約に乗る）。`line_user_id`は常にnull
-- 案件名の表記ゆれは`Project.legacy_names`（改行区切りテキスト）に別名を登録し、`Project::findByAnyName()`で解決。既存projectと対応が付かない旧案件（トレード案件）は**ステータス`closed`・`oshigoto_listed=false`の専用projectを新規作成**して紐付け（パートナー向け一覧にも案件一覧にも出ない）
+- 案件名の表記ゆれは`Project.legacy_names`（改行区切りテキスト）に別名を登録し、`Project::findByAnyName()`で解決。既存projectと対応が付かない旧案件（トレード案件）は**ステータス`closed`の専用projectを新規作成**して紐付け（パートナー向け一覧にも案件一覧にも出ない）
 - **注意**: 「オールマイティ求人」は当初どのprojectにも対応がないと判断して専用projectを作ったが、実際は管理画面側で既に「製造業 出稼ぎ案件｜全国｜短期OK」の`legacy_names`に登録済みだった。`findByAnyName()`は`name`完全一致を`legacy_names`検索より優先するため、コマンド側の`PROJECT_NAME_ALIASES`に載っていない別名は見落とされる。**別名を追加する前に、対象projectの`legacy_names`を`admin/projects`側で必ず確認すること**（誤って作成した専用projectと11件の問い合わせは本番・ローカルとも製造業出稼ぎ案件へ付け替え済み）
 - 「代表者募集」「紹介パートナー登録」など案件として扱う意味がないカテゴリはインポート対象外としてスキップ
 - 紹介コード（`legacy_code`）が現行agenciesと一致しない行（実データでは5件）はスキップし、コマンド実行結果に一覧表示。個別確認が必要な場合はそこから追う

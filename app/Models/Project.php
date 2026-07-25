@@ -19,7 +19,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'status',
     'is_recurring',
     'bulk_link_enabled',
-    'oshigoto_listed',
     'client_name',
     'referrer_agency_id',
     'tsunagu_unit_prices',
@@ -36,7 +35,6 @@ class Project extends Model
             'status' => ProjectStatus::class,
             'is_recurring' => 'boolean',
             'bulk_link_enabled' => 'boolean',
-            'oshigoto_listed' => 'boolean',
             'tsunagu_unit_prices' => 'array',
             'agency_unit_prices' => 'array',
         ];

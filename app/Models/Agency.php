@@ -27,7 +27,6 @@ use Illuminate\Support\Str;
     'line_display_name',
     'line_notify_project_info',
     'line_notify_payment',
-    'oshigoto_token',
     'name',
     'name_kana',
     'gender',
@@ -286,18 +285,4 @@ class Agency extends Authenticatable
         });
     }
 
-    public function getOrCreateOshigotoToken(): string
-    {
-        if ($this->oshigoto_token) {
-            return $this->oshigoto_token;
-        }
-
-        do {
-            $token = \Illuminate\Support\Str::random(10);
-        } while (self::where('oshigoto_token', $token)->exists());
-
-        $this->update(['oshigoto_token' => $token]);
-
-        return $token;
-    }
 }
