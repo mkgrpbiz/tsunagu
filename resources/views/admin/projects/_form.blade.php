@@ -185,7 +185,7 @@
     </div>
 
     <div class="col-span-2">
-        <label for="recruitment_template" class="block text-sm font-medium text-gray-700 mb-1">案件概要（招待リンクはパートナーマイページで自動挿入されます）</label>
+        <label for="recruitment_template" class="block text-sm font-medium text-gray-700 mb-1">案件概要</label>
         <textarea name="recruitment_template" id="recruitment_template" rows="4"
                   class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('recruitment_template', $project->recruitment_template) }}</textarea>
         @error('recruitment_template')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
