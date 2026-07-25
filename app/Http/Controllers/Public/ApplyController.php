@@ -61,7 +61,7 @@ class ApplyController extends Controller
 
         $authorizeUrl = 'https://access.line.me/oauth2/v2.1/authorize?'.http_build_query([
             'response_type' => 'code',
-            'client_id' => config('services.line_customer.channel_id'),
+            'client_id' => config('services.line_customer.oauth_channel_id'),
             'redirect_uri' => route('apply.oauth-callback'),
             'state' => $state,
             'scope' => 'profile openid',
@@ -99,8 +99,8 @@ class ApplyController extends Controller
             'grant_type' => 'authorization_code',
             'code' => $code,
             'redirect_uri' => route('apply.oauth-callback'),
-            'client_id' => config('services.line_customer.channel_id'),
-            'client_secret' => config('services.line_customer.channel_secret'),
+            'client_id' => config('services.line_customer.oauth_channel_id'),
+            'client_secret' => config('services.line_customer.oauth_channel_secret'),
         ]);
 
         if (! $tokenResponse->successful()) {

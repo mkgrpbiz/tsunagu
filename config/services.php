@@ -43,11 +43,15 @@ return [
     ],
 
     'line_customer' => [
-        'channel_id' => env('LINE_CUSTOMER_CHANNEL_ID'),
+        // Messaging API側（おしごとナビ本体）。Webhook署名検証・プッシュ送信に使う。
         'channel_secret' => env('LINE_CUSTOMER_CHANNEL_SECRET'),
         'channel_access_token' => env('LINE_CUSTOMER_CHANNEL_ACCESS_TOKEN'),
         'liff_id' => env('LINE_CUSTOMER_LIFF_ID'),
         'official_account_id' => env('LINE_CUSTOMER_OFFICIAL_ACCOUNT_ID'),
+
+        // LIFFが入っているLINE Loginチャネル側。OAuthのトークン交換にのみ使う（別チャネルのため秘密鍵が異なる）。
+        'oauth_channel_id' => env('LINE_CUSTOMER_OAUTH_CHANNEL_ID'),
+        'oauth_channel_secret' => env('LINE_CUSTOMER_OAUTH_CHANNEL_SECRET'),
     ],
 
     'zengin_transfer' => [
