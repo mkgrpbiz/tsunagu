@@ -60,7 +60,14 @@
 - `Project.is_recurring`（ストック系案件）・`Project.bulk_link_enabled`（一括紐付け対象）は着金紐付けセクション参照
 - **取引先名（`client_name`）はdatalistでサジェスト**（2026-07-22）: 既存の全案件から使われている`client_name`の一覧（`Project::whereNotNull('client_name')->distinct()`）を`<datalist>`として表示し、既存の取引先を選びやすくする一方、新規取引先の自由入力もそのまま可能（サーバー側で候補以外を拒否するような強制はしていない）。共創報酬の集計が`client_name`の文字列完全一致に依存しているため、表記ゆれ防止が目的
 - **管理画面ラベルのリネーム**（2026-07-25）: `description`フィールドの表示ラベルを「紹介報酬」→「成果単価」に変更（パートナー自身の紹介報酬〈`ReferralCommission`〉と紛らわしかったため）。`recruitment_template`フィールドの表示ラベルを「募集文テンプレ」→「案件概要」に変更。どちらもカラム名・DB上の意味は変更なし、表示ラベルのみの変更
-- **営業資料PDF**（2026-07-25追加）: `Project.sales_material_path`（nullable string、案件編集フォームで案件概要欄の直上にアップロード欄あり、`projects/sales-materials/`に保存）。パートナー向け案件一覧（`agency/projects/index.blade.php`）にも設定されていれば「営業資料」ダウンロードリンクとして表示（集客画像・成果単価に続く位置）
+- **営業資料PDF**（2026-07-25追加）: `Project.sales_material_path`（nullable string、案件編集フォームで案件概要欄の直上にアップロード欄あり、`projects/sales-materials/`に保存）
+- **パートナー向け案件一覧の構成を刷新**（2026-07-25、`agency/projects/index.blade.php`の個別案件アコーディオン内のみ。ページ上部の「おしごとナビ」まとめ紹介セクションは対象外・従来のまま）: 「集客画像」ボックスと「募集文をコピー」ボタンを廃止し、以下の5ボックス構成に統一（絵文字アイコン、`✅`は使わない）
+  1. 💰 成果単価（`description`）
+  2. 📅 着金タイミング（`payment_timing`）
+  3. 📄 営業資料（`sales_material_path`が設定されている案件のみ表示）
+  4. 📝 案件概要 — `Project::overviewText()`（`recruitment_template`から`✅【お申し込みはこちら】`/`{invite_url}`のプレースホルダーを取り除いた素の説明文。コピー機能なし、読み物としての表示のみ）
+  5. 📨 案内フォーム — 招待URLの「リンクをコピー」ボタンと、実際の申し込みフォームを新規タブで開ける「フォームを確認」リンク
+  - `Project::overviewText()`は元々`Public\ApplyController::offerText()`（申し込みフォームの案件説明文）・`Public\OshigotoController`（公開おしごとナビ）に別々に重複実装されていたのを1箇所に集約したもの。3箇所とも同じ「プレースホルダー除去済みの案件概要」を表示する
 
 ## 一覧画面の列構成
 

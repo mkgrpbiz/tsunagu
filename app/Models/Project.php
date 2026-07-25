@@ -91,6 +91,15 @@ class Project extends Model
         return collect($prices)->map(fn (int $price) => '¥'.number_format($price))->implode(' / ');
     }
 
+    public function overviewText(): string
+    {
+        return trim(str_replace(
+            ['✅【お申し込みはこちら】', '{invite_url}'],
+            '',
+            (string) $this->recruitment_template
+        ));
+    }
+
     public function legacyNamesList(): array
     {
         return collect(explode("\n", (string) $this->legacy_names))

@@ -93,29 +93,19 @@
                         <span class="chev"></span>
                     </summary>
                     <div class="body">
-                        @if ($project->image_path)
-                            <div class="box">
-                                <p class="box-title">✅ 集客画像</p>
-                                <p class="muted">※携帯は文字以外の部分を長押しで保存できます。</p>
-                                <div class="mkp-photo">
-                                    <img src="{{ \Illuminate\Support\Facades\Storage::url($project->image_path) }}" alt="{{ $project->name }} 集客画像" loading="lazy">
-                                </div>
-                            </div>
-                        @endif
-
                         <div class="box">
-                            <p class="box-title">✅ 成果単価</p>
+                            <p class="box-title">💰 成果単価</p>
                             <p>{{ $project->description }}</p>
                         </div>
 
                         <div class="box">
-                            <p class="box-title">✅ 着金タイミング</p>
+                            <p class="box-title">📅 着金タイミング</p>
                             <p>{{ $project->payment_timing }}</p>
                         </div>
 
                         @if ($project->sales_material_path)
                             <div class="box">
-                                <p class="box-title">✅ 営業資料</p>
+                                <p class="box-title">📄 営業資料</p>
                                 <a href="{{ \Illuminate\Support\Facades\Storage::url($project->sales_material_path) }}" target="_blank" rel="noopener" class="copy">
                                     資料をダウンロード
                                 </a>
@@ -123,20 +113,24 @@
                         @endif
 
                         <div class="box">
-                            <p class="box-title">✅ 招待リンク・募集文</p>
-                            <div class="muted">この案件専用の招待リンクです。募集文にはリンクが自動で組み込まれています。</div>
+                            <p class="box-title">📝 案件概要</p>
+                            <p>{{ $project->overviewText() }}</p>
+                        </div>
+
+                        <div class="box">
+                            <p class="box-title">📨 案内フォーム</p>
+                            <div class="muted">この案件専用の招待リンクです。お客様が送信するとLINEでご案内が届きます。</div>
 
                             <input type="text" readonly value="{{ $inviteData[$project->id]['url'] }}">
-                            <button type="button" class="copy copy-link"
-                                    onclick="copyToClipboard({{ Illuminate\Support\Js::from($inviteData[$project->id]['url']) }})">
-                                リンクのみコピー
-                            </button>
-
-                            <pre>{{ $inviteData[$project->id]['template'] }}</pre>
-                            <button type="button" class="copy"
-                                    onclick="copyToClipboard({{ Illuminate\Support\Js::from($inviteData[$project->id]['template']) }})">
-                                募集文をコピー
-                            </button>
+                            <div class="copy-row">
+                                <button type="button" class="copy copy-link"
+                                        onclick="copyToClipboard({{ Illuminate\Support\Js::from($inviteData[$project->id]['url']) }})">
+                                    リンクをコピー
+                                </button>
+                                <a href="{{ $inviteData[$project->id]['url'] }}" target="_blank" rel="noopener" class="copy">
+                                    フォームを確認
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </details>

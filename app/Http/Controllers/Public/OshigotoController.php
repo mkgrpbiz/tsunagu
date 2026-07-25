@@ -34,11 +34,7 @@ class OshigotoController extends Controller
         $offerTexts = [];
 
         foreach ($projects as $project) {
-            $offerTexts[$project->id] = trim(str_replace(
-                ['✅【お申し込みはこちら】', '{invite_url}'],
-                '',
-                (string) $project->recruitment_template
-            ));
+            $offerTexts[$project->id] = $project->overviewText();
 
             if ($agency) {
                 $inviteLink = InviteLink::firstOrCreate(

@@ -56,11 +56,8 @@ TEXT;
                 ['token' => Str::random(10)],
             );
 
-            $inviteUrl = url('/apply/'.$inviteLink->token);
-
             return [$project->id => [
-                'url' => $inviteUrl,
-                'template' => str_replace('{invite_url}', $inviteUrl, (string) $project->recruitment_template),
+                'url' => url('/apply/'.$inviteLink->token),
             ]];
         });
 
