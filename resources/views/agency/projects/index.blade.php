@@ -33,6 +33,14 @@
 .mk-cases .mk-cat-title{color:#9a3412;font-size:15px;font-weight:800;margin-bottom:4px}
 .mk-cases .mkp-photo{width:100%;aspect-ratio:1/1;overflow:hidden;border-radius:16px;border:1px solid #e5e7eb;background:#fff;margin-top:10px}
 .mk-cases .mkp-photo img{width:100%;height:100%;object-fit:contain;display:block}
+.mk-cases .dl-btn{display:inline-flex;align-items:center;gap:6px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:999px;padding:8px 16px;font-weight:700;font-size:13px;text-decoration:none}
+.mk-cases .dl-btn:hover{background:#dbeafe}
+.mk-cases .dl-btn svg{width:16px;height:16px;flex-shrink:0}
+.mk-cases .mini-acc summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;margin:0}
+.mk-cases .mini-acc summary::-webkit-details-marker{display:none}
+.mk-cases .mini-acc .mini-chev{width:8px;height:8px;border-right:2px solid #9ca3af;border-bottom:2px solid #9ca3af;transform:rotate(45deg);transition:transform .18s ease;margin-left:auto;flex-shrink:0}
+.mk-cases .mini-acc[open] .mini-chev{transform:rotate(-135deg)}
+.mk-cases .mini-acc p{margin-top:8px}
 </style>
 @endpush
 
@@ -106,15 +114,18 @@
                         @if ($project->sales_material_path)
                             <div class="box">
                                 <p class="box-title">📄 営業資料</p>
-                                <a href="{{ \Illuminate\Support\Facades\Storage::url($project->sales_material_path) }}" target="_blank" rel="noopener" class="copy">
-                                    資料をダウンロード
+                                <a href="{{ \Illuminate\Support\Facades\Storage::url($project->sales_material_path) }}" target="_blank" rel="noopener" class="dl-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                                    PDFをダウンロード
                                 </a>
                             </div>
                         @endif
 
                         <div class="box">
-                            <p class="box-title">📝 案件概要</p>
-                            <p>{{ $project->overviewText() }}</p>
+                            <details class="mini-acc">
+                                <summary class="box-title">📝 案件概要<span class="mini-chev"></span></summary>
+                                <p>{{ $project->overviewText() }}</p>
+                            </details>
                         </div>
 
                         <div class="box">
