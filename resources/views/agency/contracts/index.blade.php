@@ -1,9 +1,9 @@
 @extends('layouts.agency')
 
-@section('title', '着金・支払い')
+@section('title', '報酬管理')
 
 @section('content')
-<h1 class="text-xl font-semibold mb-6">着金・支払い</h1>
+<h1 class="text-xl font-semibold mb-6">報酬管理</h1>
 
 <div class="bg-blue-50 border border-blue-100 rounded-lg p-6 mb-6 text-sm text-gray-700 leading-relaxed">
     <p class="font-semibold mb-1">お支払いについて</p>

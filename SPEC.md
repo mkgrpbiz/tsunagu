@@ -114,7 +114,7 @@
 - **一括紐付け（貼り付け）**: `<details>`アコーディオン内に配置。案件を1つ選択（`bulk_link_enabled=true`の案件のみプルダウンに表示、案件編集の専用チェックボックスで対象を絞る）→ テキストエリアに「名前 フリガナ TSUNAGU単価 パートナー単価 件数（省略可、未入力は1件）」をタブまたは半角スペース2個以上区切りで貼り付け（`preg_split('/\t+| {2,}/', ...)`。単語内の単一スペース、例:「山田 太郎」は区切りとして扱わない）→ プレビュー画面（`admin.deposit-links.bulk-preview`）で一致/不一致を確認 →確定（`bulk-store`）
   - マッチングは「同一案件×名前（フリガナ指定時はそれも一致）」で候補問い合わせを検索し、`whereDoesntHave('contracts')->orWhereHas('project', fn ($q) => $q->where('is_recurring', true))`で絞り込み、`inquired_at`昇順で先着一致・同一バッチ内の二重取得なしという単純なルールで割り当てる
 - **該当なし成果**: 「該当する問い合わせ候補」の検索結果画面から「該当なし成果」ボタンでインライン展開されるフォーム（案件・名前・フリガナ・TSUNAGU単価・件数のみ入力、パートナー単価は常に0＝全額TSUNAGU利益）。紹介元パートナーが存在しない成果（直接反響など）を表すため、`Agency::noReferralAgency()`（`is_system=true`の専用ダミーAgency、`firstOrCreate`で1件だけ作られるシングルトン）に紐付ける。ダミーAgencyは`admin/agencies`一覧・件数集計から除外（`Agency::where('is_system', false)`）
-- `ContractLinkingService::linkInquiry(Inquiry $inquiry, array $lines): bool`が着金紐付け・該当なし成果・合計成果反映（後述）で共用する中心ロジック。ライン単位で`Contract`作成（`deposit_date`=当日固定、`payment_due_date`=当月末締め翌月5日）＋`agency_reward_amount`に`agency_unit_price`・`count`も併せて保存（パートナー着金・支払いページの単価/件数列表示用）＋紹介元パートナーへの10%`ReferralCommission`自動計上。ライン単位で`apply_referral_commission`（省略時true）を指定すればこの10%計上を個別にスキップできる（後述の合計成果反映で使用）
+- `ContractLinkingService::linkInquiry(Inquiry $inquiry, array $lines): bool`が着金紐付け・該当なし成果・合計成果反映（後述）で共用する中心ロジック。ライン単位で`Contract`作成（`deposit_date`=当日固定、`payment_due_date`=当月末締め翌月5日）＋`agency_reward_amount`に`agency_unit_price`・`count`も併せて保存（パートナー報酬管理ページの単価/件数列表示用）＋紹介元パートナーへの10%`ReferralCommission`自動計上。ライン単位で`apply_referral_commission`（省略時true）を指定すればこの10%計上を個別にスキップできる（後述の合計成果反映で使用）
 
 ## 合計成果反映（`admin/aggregate-results`、着金紐付けメニューの直下）
 
@@ -146,10 +146,10 @@
 - **注意**: 「オールマイティ求人」は当初どのprojectにも対応がないと判断して専用projectを作ったが、実際は管理画面側で既に「製造業 出稼ぎ案件｜全国｜短期OK」の`legacy_names`に登録済みだった。`findByAnyName()`は`name`完全一致を`legacy_names`検索より優先するため、コマンド側の`PROJECT_NAME_ALIASES`に載っていない別名は見落とされる。**別名を追加する前に、対象projectの`legacy_names`を`admin/projects`側で必ず確認すること**（誤って作成した専用projectと11件の問い合わせは本番・ローカルとも製造業出稼ぎ案件へ付け替え済み）
 - 「代表者募集」「紹介パートナー登録」など案件として扱う意味がないカテゴリはインポート対象外としてスキップ
 - 紹介コード（`legacy_code`）が現行agenciesと一致しない行（実データでは5件）はスキップし、コマンド実行結果に一覧表示。個別確認が必要な場合はそこから追う
-- 除外は`Agency\InquiryController`（問い合わせ一覧）のみに適用。`agency/contracts`（着金・支払い）は除外**しない** — レガシー問い合わせに実際の着金が紐付いた（`Contract`が作られた）時点で、それは現在進行系の実支払いなのでパートナーに通常通り表示される
+- 除外は`Agency\InquiryController`（問い合わせ一覧）のみに適用。`agency/contracts`（報酬管理）は除外**しない** — レガシー問い合わせに実際の着金が紐付いた（`Contract`が作られた）時点で、それは現在進行系の実支払いなのでパートナーに通常通り表示される
 - 実行方法: `php artisan inquiries:import-legacy {CSVパス} [--dry-run]`。同じCSVを再実行すると同じ行がそのまま重複登録される（重複排除はしていない）ため、再実行が必要な場合は要注意
 
-## パートナー着金・支払いページ（`agency/contracts`）
+## パートナー報酬管理ページ（`agency/contracts`）
 
 - 3セクション: 紹介報酬（自分の着金、1行=1件、列は**着金日・案件名・名前・フリガナ・単価・件数・合計・支払予定日**。同一案件・同一人物でも単価パターンが違えば`Contract`が別々になるため複数行で表示される＝着金紐付けと同じ粒度）／パートナー10%（紹介先パートナー×支払予定日ごとに件数・合計額を集計した行）／共創パートナー30%（取引先ごとに案件数・着金数・合計額を集計、**承認済みのもののみ**表示）
 - `Contract`に`agency_unit_price`・`count`カラムを追加（2026-07-22）し、`ContractLinkingService`がライン作成時に保存。マイグレーション前の既存データはこの2カラムがnullのため「－」表示にフォールバック
