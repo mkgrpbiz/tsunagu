@@ -43,6 +43,7 @@ return [
     ],
 
     'line_customer' => [
+        'channel_id' => env('LINE_CUSTOMER_CHANNEL_ID'),
         'channel_secret' => env('LINE_CUSTOMER_CHANNEL_SECRET'),
         'channel_access_token' => env('LINE_CUSTOMER_CHANNEL_ACCESS_TOKEN'),
         'liff_id' => env('LINE_CUSTOMER_LIFF_ID'),

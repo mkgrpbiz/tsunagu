@@ -50,12 +50,14 @@
                 </div>
             @endif
 
-            <form id="apply-form" method="POST" action="{{ route('apply.store', $inviteLink) }}"
+            <form id="apply-form" method="POST" action="{{ $liffId ? route('apply.redirect-to-line', $inviteLink) : route('apply.store', $inviteLink) }}"
                   class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
                 @csrf
-                <input type="hidden" name="line_uid" id="line_uid">
-                <input type="hidden" name="line_display_name" id="line_display_name">
-                <input type="hidden" name="is_friend" id="is_friend" value="0">
+                @unless ($liffId)
+                    <input type="hidden" name="line_uid" id="line_uid">
+                    <input type="hidden" name="line_display_name" id="line_display_name">
+                    <input type="hidden" name="is_friend" id="is_friend" value="0">
+                @endunless
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">案件名</label>
@@ -109,79 +111,7 @@
     </div>
 
     @if ($result === null)
-        @if ($liffId)
-            <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-            <script>
-                function tsnFillFieldsFromQuery() {
-                    var params = new URLSearchParams(window.location.search);
-                    if (!params.has('tsn_resume')) return false;
-
-                    var nonce = params.get('tsn_nonce');
-                    var usedKey = nonce ? ('tsn_used_nonce_' + nonce) : null;
-
-                    if (usedKey && localStorage.getItem(usedKey)) {
-                        return false;
-                    }
-
-                    if (usedKey) {
-                        localStorage.setItem(usedKey, '1');
-                    }
-
-                    document.getElementById('name').value = params.get('name') || '';
-                    document.getElementById('name_kana').value = params.get('name_kana') || '';
-                    document.getElementById('email').value = params.get('email') || '';
-                    return true;
-                }
-
-                function tsnSetSubmitting(isSubmitting) {
-                    var button = document.getElementById('apply-submit-button');
-                    button.disabled = isSubmitting;
-                    button.textContent = isSubmitting ? '送信中です...' : '案内を受け取る';
-                }
-
-                var resumingSubmit = tsnFillFieldsFromQuery();
-                var liffReady = liff.init({ liffId: @json($liffId) });
-                liffReady.catch((error) => console.error(error));
-
-                document.getElementById('apply-form').addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    tsnSetSubmitting(true);
-
-                    liffReady
-                        .then(() => {
-                            if (!liff.isLoggedIn()) {
-                                var resumeParams = new URLSearchParams();
-                                resumeParams.set('tsn_resume', '1');
-                                resumeParams.set('tsn_nonce', Date.now().toString(36) + Math.random().toString(36).slice(2));
-                                resumeParams.set('name', document.getElementById('name').value);
-                                resumeParams.set('name_kana', document.getElementById('name_kana').value);
-                                resumeParams.set('email', document.getElementById('email').value);
-                                var from = encodeURIComponent(window.location.pathname + '?' + resumeParams.toString());
-                                window.location.href = 'https://liff.line.me/' + @json($liffId) + '?from=' + from;
-                                return null;
-                            }
-                            return Promise.all([liff.getProfile(), liff.getFriendship()]);
-                        })
-                        .then((results) => {
-                            if (!results) return;
-                            const [profile, friendship] = results;
-                            document.getElementById('line_uid').value = profile.userId;
-                            document.getElementById('line_display_name').value = profile.displayName;
-                            document.getElementById('is_friend').value = (friendship && friendship.friendFlag) ? '1' : '0';
-                            document.getElementById('apply-form').submit();
-                        })
-                        .catch((error) => {
-                            console.error(error);
-                            tsnSetSubmitting(false);
-                            alert('LINEとの連携に失敗しました。時間をおいて再度お試しください。');
-                        });
-                });
-
-                if (resumingSubmit) {
-                    document.getElementById('apply-form').requestSubmit();
-                }
-            </script>
-        @else
+        @unless ($liffId)
             <script>
                 document.addEventListener('DOMContentLoaded', () => {
                     const devUid = document.getElementById('dev_line_uid');
@@ -199,7 +129,7 @@
                     });
                 });
             </script>
-        @endif
+        @endunless
     @endif
 </body>
 </html>
