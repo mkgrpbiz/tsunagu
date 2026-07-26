@@ -108,6 +108,8 @@
                 </button>
             </form>
         @endif
+
+        <div class="mt-6 text-center text-xs text-gray-400">紹介コード: {{ $referralCode }}</div>
     </div>
 
     @if ($result === null)

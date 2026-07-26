@@ -20,7 +20,7 @@ class ApplyController extends Controller
 {
     public function show(InviteLink $inviteLink): View
     {
-        $inviteLink->load('project');
+        $inviteLink->load('project', 'agency');
 
         return view('public.apply.show', [
             'inviteLink' => $inviteLink,
@@ -29,6 +29,7 @@ class ApplyController extends Controller
             'officialAccountId' => config('services.line_customer.official_account_id'),
             'result' => $inviteLink->project->status === ProjectStatus::Published ? null : 'unavailable',
             'offerText' => $inviteLink->project->overviewText(),
+            'referralCode' => $inviteLink->agency->referral_code,
         ]);
     }
 
@@ -88,7 +89,7 @@ class ApplyController extends Controller
             abort(404);
         }
 
-        $inviteLink = InviteLink::with('project')->find($payload['invite_link_id'] ?? null);
+        $inviteLink = InviteLink::with('project', 'agency')->find($payload['invite_link_id'] ?? null);
 
         if (! $inviteLink) {
             abort(404);
@@ -143,7 +144,7 @@ class ApplyController extends Controller
      */
     public function store(Request $request, InviteLink $inviteLink, LineMessagingService $lineMessaging): View
     {
-        $inviteLink->load('project');
+        $inviteLink->load('project', 'agency');
 
         if ($inviteLink->project->status !== ProjectStatus::Published) {
             abort(404);
@@ -237,6 +238,7 @@ class ApplyController extends Controller
             'officialAccountId' => config('services.line_customer.official_account_id'),
             'result' => $result,
             'offerText' => $inviteLink->project->overviewText(),
+            'referralCode' => $inviteLink->agency->referral_code,
         ]);
     }
 }
