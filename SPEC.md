@@ -149,6 +149,7 @@
 - **`GuidanceFailed`（エラー）を新設**: `LineMessagingService::sendPush()`がLINE Push APIの呼び出しに失敗した場合（トークン無効・レート制限・ブロック中・通信エラー等）に`false`を返す。従来はこの戻り値をチェックしておらず、送信に失敗しても気づかれずに「新規」のままサイレントに残っていた（`ApplyController::store()`側は戻り値を全くチェックしておらず、常にGuided扱いにしてしまうバグもここで合わせて修正）。送信失敗時は`GuidanceFailed`に遷移させ、管理画面の問い合わせ一覧でエラー行の横に「再送信」ボタン（`Admin\InquiryController::resendGuidance()`）を表示し、その場で再送信→成功すれば`Guided`に更新できるようにした
 - **パートナー向け表示ではエラーを隠す**: `InquiryStatus::partnerLabel()`を追加し、パートナー側の問い合わせ一覧（`agency/inquiries`）では`GuidanceFailed`も`New`と同じ「案内待ち」表示にする（送信エラーは運営側で対応すべき内部事情のため）。管理画面側の`label()`は従来通り「エラー」を表示する
 - `status`カラムはDBネイティブのENUM型ではなく単なる`string`のため、ステータスの追加・削除にDBマイグレーションは不要（PHP側のenum定義のみで完結）
+- **パートナー単価0円の契約は「着金」として見せない（2026-07-26追加）**: `Project`の複数単価パターン機能でパートナー単価に`0`を設定できるため（例: TSUNAGU単価500円・パートナー単価0円のパターン）、この単価で着金紐付けされた`Contract`は実際にはパートナーへの報酬が発生しない。`Inquiry::hasRewardedContract()`（`contract`が存在し`agency_reward_amount > 0`）と`Inquiry::partnerStatusLabel()`（`Contracted`だが無報酬なら`Guided`のラベルにフォールバック）を追加し、`Agency\InquiryController`の集計・`agency/inquiries/index.blade.php`の行表示はこちらを使う。**管理画面側（`Admin\InquiryController`）はこれまで通り`contract !== null`のみで判定**（着金紐付け自体は実際に起きた業務イベントなので、管理側の集計は無報酬でも「着金」として正しくカウントし続ける——変えたのはパートナーに見せる表示だけ）
 
 ## 過去の問い合わせデータのインポート（`inquiries:import-legacy`）
 
@@ -166,6 +167,7 @@
 
 - 3セクション: 紹介報酬（自分の着金、1行=1件、列は**着金日・案件名・名前・フリガナ・単価・件数・合計・支払予定日**。同一案件・同一人物でも単価パターンが違えば`Contract`が別々になるため複数行で表示される＝着金紐付けと同じ粒度）／パートナー10%（紹介先パートナー×支払予定日ごとに件数・合計額を集計した行）／共創パートナー30%（取引先ごとに案件数・着金数・合計額を集計、**承認済みのもののみ**表示）
 - `Contract`に`agency_unit_price`・`count`カラムを追加（2026-07-22）し、`ContractLinkingService`がライン作成時に保存。マイグレーション前の既存データはこの2カラムがnullのため「－」表示にフォールバック
+- **`agency_reward_amount = 0`の契約は非表示（2026-07-26追加）**: `ContractController::buildMonthData()`の`$contracts`クエリに`->where('agency_reward_amount', '>', 0)`を追加。画面表示・月選択肢(`$months`)・支払通知書PDFのすべてがこのクエリを共有しているため、無報酬の契約は3箇所すべてから一貫して除外される（`Agency::contracts()`リレーション自体や管理画面側の集計は変更していない——パートナー向け表示だけのフィルタ）
 - ページ上部に支払いサイクルの案内文（月末締め翌月5日払い、**5日が土日祝日の場合は翌営業日のお振り込み**、¥1,000未満は繰り越し）
 - 「繰り越し報酬」表示は**累計（全期間）の未払い合計が¥1,000未満の場合、その全額**（`Agency::totalPendingPayout()`が0円になるまで自然に繰り越り続ける仕組みで、繰り越し専用のDBカラムは無い）
 - **支払通知書PDFダウンロード**（2026-07-24追加、`agency/contracts/statement`、`barryvdh/laravel-dompdf`使用）: 月選択（`?month=YYYY-MM`必須、それ以外は404）で、その月の紹介報酬・パートナー10%・共創パートナー30%を**支払済み/未払いに関わらず全件**itemizeしたPDFをダウンロード（画面上のUnpaid集計とは別に、PDF専用で全ステータス合計を再計算）。会社情報（`CompanyProfile::current()`）・書類番号（`YYYYMM-{agency_id 4桁0埋め}`）付き

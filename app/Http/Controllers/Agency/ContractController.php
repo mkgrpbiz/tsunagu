@@ -68,8 +68,10 @@ class ContractController extends Controller
 
     private function buildMonthData(Agency $agency, ?string $month, bool $forceMonth = false): array
     {
+        // パートナー単価0円の契約は実際の報酬が発生しないため、パートナー向け画面・PDFには表示しない。
         $contracts = $agency->contracts()
             ->with('inquiry.project')
+            ->where('agency_reward_amount', '>', 0)
             ->orderByDesc('deposit_date')
             ->get();
 

@@ -66,4 +66,23 @@ class Inquiry extends Model
     {
         return $this->hasMany(Contract::class);
     }
+
+    /**
+     * パートナー単価0円の契約は、パートナーからは「着金」として見せない
+     * （実際の報酬が発生しないため）。管理画面側の集計はこれを使わず
+     * contract()の有無だけで判定し続ける。
+     */
+    public function hasRewardedContract(): bool
+    {
+        return $this->contract !== null && $this->contract->agency_reward_amount > 0;
+    }
+
+    public function partnerStatusLabel(): string
+    {
+        if ($this->status === InquiryStatus::Contracted && ! $this->hasRewardedContract()) {
+            return InquiryStatus::Guided->label();
+        }
+
+        return $this->status->partnerLabel();
+    }
 }

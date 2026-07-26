@@ -33,19 +33,19 @@ class InquiryController extends Controller
 
         $monthlyTotal = [
             'count' => $monthInquiries->count(),
-            'contracted' => $monthInquiries->filter(fn (Inquiry $inquiry) => $inquiry->contract !== null)->count(),
+            'contracted' => $monthInquiries->filter(fn (Inquiry $inquiry) => $inquiry->hasRewardedContract())->count(),
         ];
 
         $cumulativeTotal = [
             'count' => $inquiries->count(),
-            'contracted' => $inquiries->filter(fn (Inquiry $inquiry) => $inquiry->contract !== null)->count(),
+            'contracted' => $inquiries->filter(fn (Inquiry $inquiry) => $inquiry->hasRewardedContract())->count(),
         ];
 
         $projectSummary = $monthInquiries
             ->groupBy(fn (Inquiry $inquiry) => $inquiry->project->name)
             ->map(fn ($group) => [
                 'count' => $group->count(),
-                'contracted' => $group->filter(fn (Inquiry $inquiry) => $inquiry->contract !== null)->count(),
+                'contracted' => $group->filter(fn (Inquiry $inquiry) => $inquiry->hasRewardedContract())->count(),
             ])
             ->sortByDesc('count');
 
