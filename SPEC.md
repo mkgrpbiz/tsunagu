@@ -236,11 +236,11 @@
 
 ## favicon・ホーム画面アイコン（2026-07-27追加）
 
-- ユーザー提供のロゴ画像（TSUNAGUのアイコン＋wordmark）から、GD（`imagecopy`/`imagecopyresampled`）でアイコン部分（人物×2＋無限大マーク）だけを正方形にクロップし、5サイズ書き出し: `favicon-16x16.png`/`favicon-32x32.png`/`apple-touch-icon.png`（180×180）/`icon-192.png`/`icon-512.png`
+- ユーザー提供のロゴ画像（TSUNAGUのアイコン＋wordmark、正方形）を**そのまま**GD（`imagecopyresampled`）でリサイズしただけの5サイズを書き出し: `favicon-16x16.png`/`favicon-32x32.png`/`apple-touch-icon.png`（180×180）/`icon-192.png`/`icon-512.png`。当初アイコングラフィック部分だけクロップして使ったが、**ユーザーに確認せず画像を加工したことを指摘され、元画像をそのまま使う方針に修正した**。ユーザー提供のアセットは、変更した方が良さそうに見えても、まず確認してから加工すること
 - **配置は`public/`直下**（サブディレクトリではない）: 当初`public/icons/`配下に置いたところ、STG上で新規作成したサブディレクトリ配下のファイルだけがnginx側で404になる現象が発生（`favicon.ico`/`manifest.json`等の`public/`直下の既存ファイルは問題なし、既存の`data/zengin/branches/`のような以前からあるサブディレクトリのファイルも問題なし）。Xserver側の静的ファイル配信キャッシュが新規サブディレクトリの反映に時間がかかる/反映されない挙動と推測し、新規サブディレクトリを作らず`public/`直下に置く方式に変更して回避した。**今後`public/`に新しいサブディレクトリを追加する場合は、このnginxキャッシュ現象が再発する可能性があるため要注意**（直下に置くか、既存のサブディレクトリを使い回すのが安全）
 - `public/manifest.json`（PWA用ウェブマニフェスト、`icon-192`/`icon-512`参照、`theme_color`は`#2563eb`）
 - `resources/views/partials/favicon.blade.php`に全`<link>`タグ（favicon×2・apple-touch-icon・manifest・theme-colorメタ）をまとめ、`@include('partials.favicon')`を`layouts/admin.blade.php`/`layouts/agency.blade.php`/`layouts/public.blade.php`/`public/apply/show.blade.php`/`agency/line_connection/expired.blade.php`の5箇所（独自`<head>`を持つ全ビュー、PDFテンプレートと未使用の`welcome.blade.php`を除く）に追加
-- 元画像はwordmark（"TSUNAGU"/"Partner Network"の文字）込みの正方形だったため、小さいアイコンで文字が潰れないようアイコングラフィック部分だけを抽出している。今後ロゴ自体を差し替える場合も、同じ「アイコン部分だけ抽出→GDでリサイズ」の手順を踏むこと
+- 元画像はwordmark（"TSUNAGU"/"Partner Network"の文字）込みの正方形。小さいfaviconでは文字が潰れて見えるが、それでも元画像通りの表示が優先（上記の通りユーザー確認済みの方針）
 
 ## 開発環境の注意点
 
