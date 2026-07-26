@@ -219,6 +219,7 @@
 - **重複防止についての運用方針（ユーザー確認済み）**: 認可コードは1回しか使えないため、コールバック画面をリロードしても2回目はLINE側でエラーになり`Inquiry`は作られない＝「何もしていないのに勝手に複数回送信される」バグは構造的に解消済み。一方、**本人が意図して招待リンクをもう一度開き改めて送信する**ケースについては、`completeInquiry()`は今も重複防止チェックをせず毎回新規`Inquiry`を作る（あえて対応していない、意図したスコープ）
 - `store()`（POST、`apply.store`）はLIFF未設定のローカル開発環境専用フォールバックとしてのみ残っている（手入力の`line_uid`等をそのまま使う旧来の経路）。`config('services.line_customer.liff_id')`が設定されていればフォーム側は自動的に`redirectToLine()`経路を使う
 - `LineWebhookController::handleFollow()`は実際に使われている: 友だち未追加のままフォーム送信した場合、後から友だち追加された時点で保留中の`Inquiry`（`guidance_sent_at`が空のもの）を検知し自動で案内メッセージを送る
+- **`oauthCallback()`初回作成時の友だち状態シード（2026-07-26追加）**: follow/unfollowのWebhookは「うちのDBに既にいる相手の状態変化」しか捉えられない。**このアプリで初めて見る`line_uid`が、実は本お問い合わせより前に別経緯で既に公式アカウントを友だち追加済みだった場合、LINEは新規のfollowイベントを二度と送ってこない**ため、`is_friend`が永久に`false`のまま案内が届かなくなる実バグが発生した（2026-07-26、本番）。対策として`LineUser::firstOrCreate()`が実際に新規作成した瞬間（`wasRecentlyCreated`）だけ、`ApplyController::seedInitialFriendship()`が`GET https://api.line.me/v2/bot/profile/{userId}`をMessaging APIの`channel_access_token`で1回だけ叩き、200（friend）なら`is_friend=true`/`followed_at`を即座にシードする。既存の`LineUser`行に対しては叩かない＝以降の状態変化は今まで通りWebhookだけを信頼する設計を維持（LIFFの`getFriendship()`のような継続的なライブ確認には戻していない）
 
 ## パートナー側LINE連携（`Agency\LineConnectionController`）
 

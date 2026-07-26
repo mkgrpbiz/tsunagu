@@ -120,6 +120,10 @@ class ApplyController extends Controller
             ['display_name' => $displayName],
         );
 
+        if ($lineUser->wasRecentlyCreated) {
+            $this->seedInitialFriendship($lineUser);
+        }
+
         if ($displayName && $lineUser->display_name !== $displayName) {
             $lineUser->update(['display_name' => $displayName]);
         }
@@ -168,6 +172,26 @@ class ApplyController extends Controller
         }
 
         return $this->completeInquiry($inviteLink, $lineUser, $data['name'], $data['name_kana'], $data['email'], $lineMessaging);
+    }
+
+    /**
+     * follow/unfollowのWebhookイベントは、うちのDBに既にLineUser行がある相手の状態変化しか捉えられない。
+     * 過去に別経緯で既に友だち追加済みだった相手が初めてこのDBに現れた瞬間は、
+     * 二度とfollowイベントが来ないため、初回作成時に一度だけMessaging APIで実際の友だち状態を確認しておく。
+     */
+    private function seedInitialFriendship(LineUser $lineUser): void
+    {
+        $token = config('services.line_customer.channel_access_token');
+
+        if (blank($token)) {
+            return;
+        }
+
+        $response = Http::withToken($token)->get("https://api.line.me/v2/bot/profile/{$lineUser->line_uid}");
+
+        if ($response->successful()) {
+            $lineUser->update(['is_friend' => true, 'followed_at' => now()]);
+        }
     }
 
     private function completeInquiry(
