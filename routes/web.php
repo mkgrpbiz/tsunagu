@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminManagerController;
 use App\Http\Controllers\Admin\AgencyController;
+use App\Http\Controllers\Admin\AppIconController;
 use App\Http\Controllers\Admin\AggregateResultController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AuthController;
@@ -214,6 +215,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::middleware('menu:company_profile')->group(function () {
                 Route::get('company-profile', [CompanyProfileController::class, 'edit'])->name('company-profile.edit');
                 Route::put('company-profile', [CompanyProfileController::class, 'update'])->name('company-profile.update');
+            });
+
+            Route::middleware('menu:app_icon')->group(function () {
+                Route::get('app-icon', [AppIconController::class, 'edit'])->name('app-icon.edit');
+                Route::put('app-icon', [AppIconController::class, 'update'])->name('app-icon.update');
             });
         });
     });

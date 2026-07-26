@@ -39,6 +39,7 @@ class AdminManagerController extends Controller
             'home' => 'ホーム',
             'landing_page_content' => 'LP',
             'company_profile' => '会社概要',
+            'app_icon' => 'アイコン管理',
         ];
     }
 

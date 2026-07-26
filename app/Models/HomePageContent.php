@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['hero_tagline', 'closing_message', 'brand_logo_path'])]
+#[Fillable(['hero_tagline', 'closing_message', 'brand_logo_path', 'app_icon_source_path'])]
 class HomePageContent extends Model
 {
     protected $table = 'home_page_content';

@@ -240,7 +240,8 @@
 - **配置は`public/`直下**（サブディレクトリではない）: 当初`public/icons/`配下に置いたところ、STG上で新規作成したサブディレクトリ配下のファイルだけがnginx側で404になる現象が発生（`favicon.ico`/`manifest.json`等の`public/`直下の既存ファイルは問題なし、既存の`data/zengin/branches/`のような以前からあるサブディレクトリのファイルも問題なし）。Xserver側の静的ファイル配信キャッシュが新規サブディレクトリの反映に時間がかかる/反映されない挙動と推測し、新規サブディレクトリを作らず`public/`直下に置く方式に変更して回避した。**今後`public/`に新しいサブディレクトリを追加する場合は、このnginxキャッシュ現象が再発する可能性があるため要注意**（直下に置くか、既存のサブディレクトリを使い回すのが安全）
 - `public/manifest.json`（PWA用ウェブマニフェスト、`icon-192`/`icon-512`参照、`theme_color`は`#2563eb`）
 - `resources/views/partials/favicon.blade.php`に全`<link>`タグ（favicon×2・apple-touch-icon・manifest・theme-colorメタ）をまとめ、`@include('partials.favicon')`を`layouts/admin.blade.php`/`layouts/agency.blade.php`/`layouts/public.blade.php`/`public/apply/show.blade.php`/`agency/line_connection/expired.blade.php`の5箇所（独自`<head>`を持つ全ビュー、PDFテンプレートと未使用の`welcome.blade.php`を除く）に追加
-- 元画像はwordmark（"TSUNAGU"/"Partner Network"の文字）込みの正方形。小さいfaviconでは文字が潰れて見えるが、それでも元画像通りの表示が優先（上記の通りユーザー確認済みの方針）
+- 元画像はwordmark（"TSUNAGU"/"Partner Network"の文字）込みの正方形。最終的には「アイコングラフィック部分（人物×2＋無限大マーク）だけを中央揃えで使う」形にユーザーから明示的に依頼があり、その形に変更（`imagecolorat`でのピクセルスキャンによりwordmarkとの間の余白行を検出し、正確なグラフィック部分のbboxを特定→均等パディングで正方形に切り出し）
+- **アイコンは管理画面から差し替え可能（2026-07-27追加）**: 「各ページ管理」→「アイコン管理」（`admin/app-icon`、menuKey`app_icon`）。アップロードした画像は`HomePageContent.app_icon_source_path`（`storage/app/public/branding/`）に元のまま保存し、`App\Services\AppIconGenerator::generate()`が**クロップ等の加工をせず**`imagecopyresampled`でリサイズするだけで5サイズを`public/`直下に書き出す（既存ファイルを上書き）。今後アイコン画像を変更したい場合は、この管理画面からアップロードするだけでよく、コード変更・デプロイ作業は不要
 
 ## 開発環境の注意点
 
