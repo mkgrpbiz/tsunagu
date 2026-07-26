@@ -5,7 +5,9 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="TSUNAGU Partner Network">
 <meta property="og:title" content="{{ $resolvedOgTitle }}">
-@if ($ogImagePath)
+@if ($ogImagePath && ($showOgImage ?? true))
     <meta property="og:image" content="{{ \Illuminate\Support\Facades\Storage::url($ogImagePath) }}">
+    <meta name="twitter:card" content="summary_large_image">
+@else
+    <meta name="twitter:card" content="summary">
 @endif
-<meta name="twitter:card" content="summary_large_image">
