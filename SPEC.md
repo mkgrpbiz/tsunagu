@@ -234,6 +234,13 @@
 
 **同様の設計原則（新機能を作る際の注意）**: ログイン済みユーザーがLINEログイン/LIFFの外部往復を経由する画面を新たに作る場合、着地ページを認証必須ルートにしないこと。認証が必要な処理は必ずセッション非依存の`state`（`encrypt()`されたペイロード）等で本人確認すること。
 
+## favicon・ホーム画面アイコン（2026-07-27追加）
+
+- ユーザー提供のロゴ画像（TSUNAGUのアイコン＋wordmark）から、GD（`imagecopy`/`imagecopyresampled`）でアイコン部分（人物×2＋無限大マーク）だけを正方形にクロップし、`public/icons/`に5サイズ書き出し: `favicon-16x16.png`/`favicon-32x32.png`/`apple-touch-icon.png`（180×180）/`icon-192.png`/`icon-512.png`
+- `public/manifest.json`（PWA用ウェブマニフェスト、`icon-192`/`icon-512`参照、`theme_color`は`#2563eb`）
+- `resources/views/partials/favicon.blade.php`に全`<link>`タグ（favicon×2・apple-touch-icon・manifest・theme-colorメタ）をまとめ、`@include('partials.favicon')`を`layouts/admin.blade.php`/`layouts/agency.blade.php`/`layouts/public.blade.php`/`public/apply/show.blade.php`/`agency/line_connection/expired.blade.php`の5箇所（独自`<head>`を持つ全ビュー、PDFテンプレートと未使用の`welcome.blade.php`を除く）に追加
+- 元画像はwordmark（"TSUNAGU"/"Partner Network"の文字）込みの正方形だったため、小さいアイコンで文字が潰れないようアイコングラフィック部分だけを抽出している。今後ロゴ自体を差し替える場合も、同じ「アイコン部分だけ抽出→GDでリサイズ」の手順を踏むこと
+
 ## 開発環境の注意点
 
 - Laragonのnode/npmはPATHに無いため、ビルド時は`export PATH="/c/laragon/bin/nodejs/node-v22:$PATH"`が必要
