@@ -23,7 +23,7 @@
 .lp-step .num{flex-shrink:0;width:24px;height:24px;border-radius:999px;background:#2563eb;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
 .lp-cta{display:block;width:100%;background:#2563eb;color:#fff;font-weight:800;font-size:16px;padding:16px;border-radius:16px;text-align:center;margin-top:28px;box-shadow:0 10px 24px rgba(37,99,235,.25);transition:transform .1s}
 .lp-cta:active{transform:scale(.97)}
-.lp-footer{margin-top:24px;text-align:center;font-size:11px;color:#d1d5db}
+.lp-footer{margin-top:24px;text-align:center;font-size:11px;color:#9ca3af}
 .lp-wrap .tsn-home{max-width:none;margin:24px 0 0}
 .lp-wrap .tsn-home .benefits-title{font-size:14px}
 </style>
