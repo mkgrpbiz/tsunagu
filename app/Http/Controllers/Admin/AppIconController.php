@@ -22,19 +22,30 @@ class AppIconController extends Controller
     public function update(Request $request, AppIconGenerator $generator): RedirectResponse
     {
         $data = $request->validate([
-            'app_icon' => ['required', 'image', 'max:4096'],
+            'app_icon' => ['nullable', 'image', 'max:4096'],
+            'og_image' => ['nullable', 'image', 'max:4096'],
         ]);
 
         $content = HomePageContent::current();
 
-        if ($content->app_icon_source_path) {
-            Storage::disk('public')->delete($content->app_icon_source_path);
+        if ($request->hasFile('app_icon')) {
+            if ($content->app_icon_source_path) {
+                Storage::disk('public')->delete($content->app_icon_source_path);
+            }
+
+            $sourcePath = $request->file('app_icon')->store('branding', 'public');
+            $content->update(['app_icon_source_path' => $sourcePath]);
+
+            $generator->generate(Storage::disk('public')->path($sourcePath));
         }
 
-        $sourcePath = $request->file('app_icon')->store('branding', 'public');
-        $content->update(['app_icon_source_path' => $sourcePath]);
+        if ($request->hasFile('og_image')) {
+            if ($content->og_image_path) {
+                Storage::disk('public')->delete($content->og_image_path);
+            }
 
-        $generator->generate(Storage::disk('public')->path($sourcePath));
+            $content->update(['og_image_path' => $request->file('og_image')->store('branding', 'public')]);
+        }
 
         return redirect()->route('admin.app-icon.edit')->with('status', 'アイコンを更新しました。');
     }

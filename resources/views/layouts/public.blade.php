@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'TSUNAGU')</title>
     @include('partials.favicon')
+    @include('partials.ogp')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>

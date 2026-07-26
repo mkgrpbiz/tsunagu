@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $project->name }} - TSUNAGU</title>
     @include('partials.favicon')
+    @include('partials.ogp', ['ogTitle' => $project->name.' - TSUNAGU'])
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-50 text-gray-900">
