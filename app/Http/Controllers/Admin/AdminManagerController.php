@@ -42,6 +42,7 @@ class AdminManagerController extends Controller
             'app_icon' => 'アイコン管理',
             'sharepoy_users' => 'SharePoy+管理',
             'bimoni_tsunagu_links' => 'BIMONI用(TSUNAGU)',
+            'bimoni_sharepoy_links' => 'BIMONI(SharePoy)',
         ];
     }
 
