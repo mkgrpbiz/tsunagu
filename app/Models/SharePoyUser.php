@@ -18,6 +18,6 @@ class SharePoyUser extends Model
 
     public function depositRecords(): HasMany
     {
-        return $this->hasMany(SharePoyDepositRecord::class);
+        return $this->hasMany(SharePoyDepositRecord::class, 'sharepoy_user_id');
     }
 }

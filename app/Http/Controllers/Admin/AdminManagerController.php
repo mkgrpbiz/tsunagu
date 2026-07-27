@@ -45,6 +45,8 @@ class AdminManagerController extends Controller
             'bimoni_sharepoy_links' => 'BIMONI(SharePoy)',
             'product_monitor_links' => '商品受け取りモニター',
             'mystery_shopper_links' => '覆面調査モニター',
+            'sharepoy_points' => 'SharePoyポイント用',
+            'sharepoy_reports' => 'SharePoy+報告管理',
         ];
     }
 

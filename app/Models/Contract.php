@@ -40,4 +40,9 @@ class Contract extends Model
     {
         return $this->hasOne(ReferralCommission::class);
     }
+
+    public function sharePoyDepositRecord(): HasOne
+    {
+        return $this->hasOne(SharePoyDepositRecord::class);
+    }
 }

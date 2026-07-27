@@ -47,6 +47,8 @@
                 'bimoni_sharepoy_links' => ['label' => 'BIMONI(SharePoy)', 'route' => 'admin.bimoni-sharepoy-links.index', 'active' => 'admin.bimoni-sharepoy-links.*'],
                 'product_monitor_links' => ['label' => '商品受け取りモニター', 'route' => 'admin.product-monitor-links.index', 'active' => 'admin.product-monitor-links.*'],
                 'mystery_shopper_links' => ['label' => '覆面調査モニター', 'route' => 'admin.mystery-shopper-links.index', 'active' => 'admin.mystery-shopper-links.*'],
+                'sharepoy_points' => ['label' => 'SharePoyポイント用', 'route' => 'admin.sharepoy-points.index', 'active' => 'admin.sharepoy-points.*'],
+                'sharepoy_reports' => ['label' => 'SharePoy+報告管理', 'route' => 'admin.sharepoy-reports.index', 'active' => 'admin.sharepoy-reports.*'],
             ],
         ];
     @endphp
