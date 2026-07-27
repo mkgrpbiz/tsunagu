@@ -21,9 +21,11 @@ use App\Http\Controllers\Admin\InquiryController;
 use App\Http\Controllers\Admin\InternalAgencyController;
 use App\Http\Controllers\Admin\LandingPageContentController;
 use App\Http\Controllers\Admin\LegalDocumentController as AdminLegalDocumentController;
+use App\Http\Controllers\Admin\MysteryShopperLinkController;
 use App\Http\Controllers\Admin\NotificationMessageSettingController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
+use App\Http\Controllers\Admin\ProductMonitorLinkController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\SalesMaterialController;
 use App\Http\Controllers\Admin\SharePoyUserController;
@@ -160,6 +162,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('bimoni-sharepoy-links', [BimoniSharePoyLinkController::class, 'index'])->name('bimoni-sharepoy-links.index');
                 Route::post('bimoni-sharepoy-links/bulk-preview', [BimoniSharePoyLinkController::class, 'bulkPreview'])->name('bimoni-sharepoy-links.bulk-preview');
                 Route::post('bimoni-sharepoy-links/bulk-store', [BimoniSharePoyLinkController::class, 'bulkStore'])->name('bimoni-sharepoy-links.bulk-store');
+            });
+
+            Route::middleware('menu:product_monitor_links')->group(function () {
+                Route::get('product-monitor-links', [ProductMonitorLinkController::class, 'index'])->name('product-monitor-links.index');
+                Route::post('product-monitor-links/bulk-preview', [ProductMonitorLinkController::class, 'bulkPreview'])->name('product-monitor-links.bulk-preview');
+                Route::post('product-monitor-links/bulk-store', [ProductMonitorLinkController::class, 'bulkStore'])->name('product-monitor-links.bulk-store');
+            });
+
+            Route::middleware('menu:mystery_shopper_links')->group(function () {
+                Route::get('mystery-shopper-links', [MysteryShopperLinkController::class, 'index'])->name('mystery-shopper-links.index');
+                Route::post('mystery-shopper-links/bulk-preview', [MysteryShopperLinkController::class, 'bulkPreview'])->name('mystery-shopper-links.bulk-preview');
+                Route::post('mystery-shopper-links/bulk-store', [MysteryShopperLinkController::class, 'bulkStore'])->name('mystery-shopper-links.bulk-store');
             });
 
             Route::middleware('menu:aggregate_results')->group(function () {
