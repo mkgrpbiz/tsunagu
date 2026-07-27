@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\SalesMaterialController;
+use App\Http\Controllers\Admin\SharePoyUserController;
 use App\Http\Controllers\Agency\AdditionalInfoController as AgencyAdditionalInfoController;
 use App\Http\Controllers\Agency\AuthController as AgencyAuthController;
 use App\Http\Controllers\Agency\CollaborationPartnerApplicationController as AgencyCollaborationPartnerApplicationController;
@@ -138,6 +139,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::post('deposit-links/bulk-store', [DepositLinkController::class, 'bulkStore'])->name('deposit-links.bulk-store');
                 Route::post('deposit-links/no-referral', [DepositLinkController::class, 'storeNoReferral'])->name('deposit-links.no-referral');
                 Route::post('deposit-links/{inquiry}', [DepositLinkController::class, 'store'])->name('deposit-links.store');
+            });
+
+            Route::middleware('menu:sharepoy_users')->group(function () {
+                Route::get('sharepoy-users', [SharePoyUserController::class, 'index'])->name('sharepoy-users.index');
+                Route::get('sharepoy-users/{sharepoyUser}', [SharePoyUserController::class, 'show'])->name('sharepoy-users.show');
+                Route::post('sharepoy-users/bulk-preview', [SharePoyUserController::class, 'bulkPreview'])->name('sharepoy-users.bulk-preview');
+                Route::post('sharepoy-users/bulk-store', [SharePoyUserController::class, 'bulkStore'])->name('sharepoy-users.bulk-store');
             });
 
             Route::middleware('menu:aggregate_results')->group(function () {

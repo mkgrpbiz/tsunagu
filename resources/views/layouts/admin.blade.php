@@ -41,6 +41,9 @@
                 'company_profile' => ['label' => '会社概要編集', 'route' => 'admin.company-profile.edit', 'active' => 'admin.company-profile.*'],
                 'app_icon' => ['label' => 'アイコン管理', 'route' => 'admin.app-icon.edit', 'active' => 'admin.app-icon.*'],
             ],
+            'MK振り分け管理' => [
+                'sharepoy_users' => ['label' => 'SharePoy+管理', 'route' => 'admin.sharepoy-users.index', 'active' => 'admin.sharepoy-users.*'],
+            ],
         ];
     @endphp
 

@@ -40,6 +40,7 @@ class AdminManagerController extends Controller
             'landing_page_content' => 'LP',
             'company_profile' => '会社概要',
             'app_icon' => 'アイコン管理',
+            'sharepoy_users' => 'SharePoy+管理',
         ];
     }
 
