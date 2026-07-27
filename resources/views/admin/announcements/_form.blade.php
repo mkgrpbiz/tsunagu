@@ -22,6 +22,17 @@
     </select>
 </div>
 
+@if ($announcement->exists)
+    <div class="mb-4 border border-gray-200 rounded-md p-4 bg-amber-50">
+        <label class="flex items-center gap-2">
+            <input type="checkbox" name="is_draft" id="is_draft" value="1" {{ old('is_draft', $announcement->is_draft) ? 'checked' : '' }}>
+            <span class="text-sm font-medium text-gray-700">下書き（チェックを外すと公開され、パートナーマイページの新着情報に表示されます）</span>
+        </label>
+    </div>
+@else
+    <input type="hidden" name="is_draft" value="0">
+@endif
+
 <div class="mb-4 border border-gray-200 rounded-md p-4">
     <label class="flex items-center gap-2">
         <input type="checkbox" name="notify_line" id="notify_line" value="1" {{ old('notify_line', $announcement->notify_line) ? 'checked' : '' }}

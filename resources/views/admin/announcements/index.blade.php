@@ -26,7 +26,12 @@
                     <td class="px-4 py-3">
                         <span class="text-xs font-medium border rounded-full px-2 py-1 {{ $announcement->category->color() }}">{{ $announcement->category->label() }}</span>
                     </td>
-                    <td class="px-4 py-3">{{ $announcement->body }}</td>
+                    <td class="px-4 py-3">
+                        {{ $announcement->body }}
+                        @if ($announcement->is_draft)
+                            <span class="text-xs font-medium border rounded-full px-2 py-1 bg-amber-50 text-amber-700 border-amber-200 ml-1">下書き</span>
+                        @endif
+                    </td>
                     <td class="px-4 py-3">
                         @if ($announcement->notify_line)
                             <span class="text-xs font-medium border rounded-full px-2 py-1 bg-green-50 text-green-700 border-green-200">ON</span>

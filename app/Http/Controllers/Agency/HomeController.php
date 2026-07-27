@@ -31,7 +31,7 @@ class HomeController extends Controller
             'agency' => $agency,
             'content' => HomePageContent::current(),
             'blocks' => HomeBlock::orderBy('sort_order')->get(),
-            'announcements' => Announcement::latest()->take(10)->get(),
+            'announcements' => Announcement::where('is_draft', false)->latest()->take(10)->get(),
             'salesMaterials' => SalesMaterial::latest()->get(),
             'referralUrl' => url('/agency/register?ref='.$agency->referral_code),
             'restrictedReason' => $restrictedReason,

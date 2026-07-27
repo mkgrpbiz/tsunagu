@@ -95,6 +95,7 @@ class ProjectController extends Controller
 
         Announcement::create([
             'body' => "{$project->name}を{$project->category->name}に追加しました。",
+            'is_draft' => true,
         ]);
 
         return redirect()->route('admin.projects.index')->with('status', '案件を作成しました。');

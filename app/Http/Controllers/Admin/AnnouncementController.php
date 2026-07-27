@@ -28,9 +28,12 @@ class AnnouncementController extends Controller
 
     public function store(Request $request, LineMessagingService $lineMessaging): RedirectResponse
     {
-        $announcement = Announcement::create($this->validated($request));
+        $data = $this->validated($request);
+        $data['is_draft'] = $request->boolean('is_draft');
 
-        if ($announcement->notify_line) {
+        $announcement = Announcement::create($data);
+
+        if (! $announcement->is_draft && $announcement->notify_line) {
             $this->sendLineNotifications($announcement, $lineMessaging);
         }
 
@@ -42,9 +45,18 @@ class AnnouncementController extends Controller
         return view('admin.announcements.edit', ['announcement' => $announcement]);
     }
 
-    public function update(Request $request, Announcement $announcement): RedirectResponse
+    public function update(Request $request, Announcement $announcement, LineMessagingService $lineMessaging): RedirectResponse
     {
-        $announcement->update($this->validated($request));
+        $wasDraft = $announcement->is_draft;
+
+        $data = $this->validated($request);
+        $data['is_draft'] = $request->boolean('is_draft');
+
+        $announcement->update($data);
+
+        if ($wasDraft && ! $announcement->is_draft && $announcement->notify_line) {
+            $this->sendLineNotifications($announcement, $lineMessaging);
+        }
 
         return redirect()->route('admin.announcements.index')->with('status', 'お知らせを更新しました。');
     }
@@ -61,6 +73,7 @@ class AnnouncementController extends Controller
         return $request->validate([
             'body' => ['required', 'string', 'max:1000'],
             'category' => ['required', 'in:important,project_info'],
+            'is_draft' => ['sometimes', 'boolean'],
             'notify_line' => ['sometimes', 'boolean'],
             'line_message' => ['nullable', 'string', 'max:1000'],
         ]);

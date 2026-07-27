@@ -22,7 +22,7 @@ class HomeBlockController extends Controller
         return view('admin.home_blocks.index', [
             'blocks' => HomeBlock::orderBy('sort_order')->get(),
             'salesMaterials' => SalesMaterial::latest()->get(),
-            'announcements' => Announcement::latest()->take(10)->get(),
+            'announcements' => Announcement::where('is_draft', false)->latest()->take(10)->get(),
         ]);
     }
 
