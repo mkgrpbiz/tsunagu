@@ -87,22 +87,39 @@ class SharePoyPointController extends Controller
 
         foreach ($result['groups'] as $group) {
             foreach ($group['contracts'] as $contract) {
-                SharePoyDepositRecord::create([
-                    'sharepoy_user_id' => $group['sharePoyUser']->id,
-                    'inquiry_id' => $contract->inquiry_id,
-                    'contract_id' => $contract->id,
-                    'source' => $source,
-                    'deposit_date' => $contract->deposit_date,
-                    'tsunagu_unit_price' => (int) ($contract->count > 0 ? $contract->deposit_amount / $contract->count : 0),
-                    'agency_unit_price' => 0,
-                    'count' => $contract->count,
-                    'memo' => null,
-                ]);
+                $this->recordContract($contract, $group['sharePoyUser']->id, $source, null);
+                $savedCount++;
+            }
+        }
+
+        // 非マッチ分もプレースホルダーユーザーに「確認済み」として記録し、次回以降は対象外にする
+        $unmatchedPlaceholderId = null;
+
+        foreach ($result['unmatched'] as $entry) {
+            $unmatchedPlaceholderId ??= SharePoyUser::unmatchedPlaceholder()->id;
+
+            foreach ($entry['contracts'] as $contract) {
+                $this->recordContract($contract, $unmatchedPlaceholderId, $source, $entry['name']);
                 $savedCount++;
             }
         }
 
         return $savedCount;
+    }
+
+    private function recordContract(Contract $contract, int $sharePoyUserId, string $source, ?string $memo): void
+    {
+        SharePoyDepositRecord::create([
+            'sharepoy_user_id' => $sharePoyUserId,
+            'inquiry_id' => $contract->inquiry_id,
+            'contract_id' => $contract->id,
+            'source' => $source,
+            'deposit_date' => $contract->deposit_date,
+            'tsunagu_unit_price' => (int) ($contract->count > 0 ? $contract->deposit_amount / $contract->count : 0),
+            'agency_unit_price' => 0,
+            'count' => $contract->count,
+            'memo' => $memo,
+        ]);
     }
 
     /**
