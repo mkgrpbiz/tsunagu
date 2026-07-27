@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class SharePoyDepositRecord extends Model
 {
+    protected $table = 'sharepoy_deposit_records';
+
     protected function casts(): array
     {
         return [

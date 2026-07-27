@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class SharePoyUser extends Model
 {
+    protected $table = 'sharepoy_users';
+
     public function depositRecords(): HasMany
     {
         return $this->hasMany(SharePoyDepositRecord::class);
