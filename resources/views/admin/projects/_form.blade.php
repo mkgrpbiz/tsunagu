@@ -45,31 +45,20 @@
         @error('bulk_link_enabled')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
-    <div>
+    <div class="relative">
         <label for="client_name" class="block text-sm font-medium text-gray-700 mb-1">取引先名</label>
         <input type="text" name="client_name" id="client_name" value="{{ old('client_name', $project->client_name) }}"
-               list="client_name_list" autocomplete="off"
+               autocomplete="off"
+               oninput="tsnFilterClientNameSuggestions(this.value)"
+               onfocus="tsnFilterClientNameSuggestions(this.value)"
                class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-        <datalist id="client_name_list">
-            @foreach ($clientNames as $clientName)
-                <option value="{{ $clientName }}">
-            @endforeach
-        </datalist>
+        <div id="client_name_suggestions" class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-56 overflow-y-auto text-sm"></div>
+        <input type="hidden" name="referrer_agency_id" id="referrer_agency_id" value="{{ old('referrer_agency_id', $project->referrer_agency_id) }}">
+        <p class="text-xs text-gray-500 mt-1">
+            紹介者: <span id="referrer_agency_label">{{ old('referrer_agency_id', $project->referrer_agency_id) ? $project->referrerAgency?->name : 'なし' }}</span>
+            （会社名・登録コードで検索して候補を選ぶと自動でセットされます）
+        </p>
         @error('client_name')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-    </div>
-
-    <div>
-        <label for="referrer_agency_id" class="block text-sm font-medium text-gray-700 mb-1">紹介者（共創パートナー）</label>
-        <input type="text" id="referrer_agency_search" placeholder="共創パートナー名で検索"
-               oninput="tsnFilterReferrerAgencyOptions(this.value)"
-               class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 mb-1">
-        <select name="referrer_agency_id" id="referrer_agency_id"
-                class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            <option value="">なし</option>
-            @foreach ($agencies as $agency)
-                <option value="{{ $agency->id }}" @selected(old('referrer_agency_id', $project->referrer_agency_id) == $agency->id)>{{ $agency->name }}</option>
-            @endforeach
-        </select>
         @error('referrer_agency_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
@@ -205,18 +194,61 @@
 </div>
 
 <script>
-function tsnFilterReferrerAgencyOptions(query) {
-    var select = document.getElementById('referrer_agency_id');
-    var q = query.trim();
+var tsnPartnerDirectory = {{ Illuminate\Support\Js::from($agencies->map(fn ($a) => [
+    'id' => $a->id,
+    'label' => $a->company_name ?: $a->name,
+    'code' => $a->legacy_code,
+])->values()) }};
+var tsnClientHistory = {{ Illuminate\Support\Js::from($clientNames) }};
 
-    Array.from(select.options).forEach(function (option) {
-        if (!option.value) {
-            option.hidden = false;
-            return;
-        }
-        option.hidden = q !== '' && option.textContent.indexOf(q) === -1;
+function tsnFilterClientNameSuggestions(query) {
+    var box = document.getElementById('client_name_suggestions');
+    var q = query.trim().toLowerCase();
+
+    if (q === '') {
+        box.classList.add('hidden');
+        box.innerHTML = '';
+        return;
+    }
+
+    var partnerMatches = tsnPartnerDirectory.filter(function (a) {
+        return (a.label && a.label.toLowerCase().indexOf(q) !== -1) || (a.code && a.code.toLowerCase().indexOf(q) !== -1);
     });
+    var partnerLabels = partnerMatches.map(function (a) { return a.label; });
+    var historyMatches = tsnClientHistory.filter(function (name) {
+        return name.toLowerCase().indexOf(q) !== -1 && partnerLabels.indexOf(name) === -1;
+    });
+
+    var items = partnerMatches.slice(0, 8).map(function (a) {
+        return '<div class="px-3 py-2 hover:bg-blue-50 cursor-pointer tsn-client-suggestion" data-id="' + a.id + '" data-label="' + a.label.replace(/"/g, '&quot;') + '">'
+            + a.label + (a.code ? ' <span class="text-gray-400">(' + a.code + ')</span>' : '') + '</div>';
+    }).concat(historyMatches.slice(0, 8).map(function (name) {
+        return '<div class="px-3 py-2 hover:bg-blue-50 cursor-pointer tsn-client-suggestion text-gray-600" data-label="' + name.replace(/"/g, '&quot;') + '">' + name + '</div>';
+    }));
+
+    if (items.length === 0) {
+        box.classList.add('hidden');
+        box.innerHTML = '';
+        return;
+    }
+
+    box.innerHTML = items.join('');
+    box.classList.remove('hidden');
 }
+
+document.addEventListener('click', function (e) {
+    var suggestion = e.target.closest('.tsn-client-suggestion');
+    if (suggestion) {
+        document.getElementById('client_name').value = suggestion.dataset.label;
+        document.getElementById('referrer_agency_id').value = suggestion.dataset.id || '';
+        document.getElementById('referrer_agency_label').textContent = suggestion.dataset.id ? suggestion.dataset.label : 'なし';
+        document.getElementById('client_name_suggestions').classList.add('hidden');
+        return;
+    }
+    if (!e.target.closest('#client_name') && !e.target.closest('#client_name_suggestions')) {
+        document.getElementById('client_name_suggestions').classList.add('hidden');
+    }
+});
 
 function tsnApplyPriceMode(radio) {
     var container = document.getElementById(radio.dataset.target);

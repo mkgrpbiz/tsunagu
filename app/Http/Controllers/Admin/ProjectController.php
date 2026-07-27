@@ -11,7 +11,6 @@ use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -61,7 +60,7 @@ class ProjectController extends Controller
             'categories' => Category::orderBy('sort_order')->get(),
             'statuses' => ProjectStatus::cases(),
             'agencies' => Agency::where('is_collaboration_partner', true)->orderBy('name')->get(),
-            'clientNames' => $this->clientNameOptions(),
+            'clientNames' => Project::whereNotNull('client_name')->distinct()->orderBy('client_name')->pluck('client_name'),
         ]);
     }
 
@@ -114,20 +113,8 @@ class ProjectController extends Controller
             'categories' => Category::orderBy('sort_order')->get(),
             'statuses' => ProjectStatus::cases(),
             'agencies' => $agencies,
-            'clientNames' => $this->clientNameOptions(),
+            'clientNames' => Project::whereNotNull('client_name')->distinct()->orderBy('client_name')->pluck('client_name'),
         ]);
-    }
-
-    private function clientNameOptions(): Collection
-    {
-        $pastClientNames = Project::whereNotNull('client_name')->distinct()->pluck('client_name');
-
-        $partnerNames = Agency::where('is_collaboration_partner', true)
-            ->get()
-            ->map(fn (Agency $agency) => $agency->company_name ?: $agency->name)
-            ->filter();
-
-        return $pastClientNames->merge($partnerNames)->unique()->sort()->values();
     }
 
     public function update(Request $request, Project $project): RedirectResponse
