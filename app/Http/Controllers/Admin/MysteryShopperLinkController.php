@@ -111,9 +111,9 @@ class MysteryShopperLinkController extends Controller
             }
 
             $itemLines = [[
-                'tsunagu_unit_price' => $count * 1000,
-                'agency_unit_price' => $count * 500,
-                'count' => 1,
+                'tsunagu_unit_price' => 1000,
+                'agency_unit_price' => 500,
+                'count' => $count,
                 'memo' => null,
             ]];
 

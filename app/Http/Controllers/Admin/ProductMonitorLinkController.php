@@ -117,17 +117,17 @@ class ProductMonitorLinkController extends Controller
             $lines = [];
             if ($qtyA > 0) {
                 $lines[] = [
-                    'tsunagu_unit_price' => $qtyA * 1000,
-                    'agency_unit_price' => $qtyA * 500,
-                    'count' => 1,
+                    'tsunagu_unit_price' => 1000,
+                    'agency_unit_price' => 500,
+                    'count' => $qtyA,
                     'memo' => $productsA !== '' ? str_replace("\n", '、', $productsA) : null,
                 ];
             }
             if ($qtyB > 0) {
                 $lines[] = [
-                    'tsunagu_unit_price' => $qtyB * 500,
+                    'tsunagu_unit_price' => 500,
                     'agency_unit_price' => 0,
-                    'count' => 1,
+                    'count' => $qtyB,
                     'memo' => $productsB !== '' ? str_replace("\n", '、', $productsB) : null,
                 ];
             }

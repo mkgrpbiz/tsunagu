@@ -18,8 +18,10 @@
                 <tr>
                     <th class="text-left px-4 py-2 font-medium">名前</th>
                     <th class="text-left px-4 py-2 font-medium">パートナー</th>
-                    <th class="text-right px-4 py-2 font-medium">TSUNAGU単価</th>
-                    <th class="text-right px-4 py-2 font-medium">パートナー単価</th>
+                    <th class="text-right px-4 py-2 font-medium">単価(TSUNAGU/パートナー)</th>
+                    <th class="text-right px-4 py-2 font-medium">件数</th>
+                    <th class="text-right px-4 py-2 font-medium">TSUNAGU合計</th>
+                    <th class="text-right px-4 py-2 font-medium">パートナー合計</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -33,8 +35,10 @@
                                     <span class="text-amber-600 text-xs">(A01・満額)</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-2 text-right">¥{{ number_format($line['tsunagu_unit_price']) }}</td>
-                            <td class="px-4 py-2 text-right">¥{{ number_format($line['agency_unit_price']) }}</td>
+                            <td class="px-4 py-2 text-right">¥{{ number_format($line['tsunagu_unit_price']) }} / ¥{{ number_format($line['agency_unit_price']) }}</td>
+                            <td class="px-4 py-2 text-right">{{ $line['count'] }}</td>
+                            <td class="px-4 py-2 text-right">¥{{ number_format($line['tsunagu_unit_price'] * $line['count']) }}</td>
+                            <td class="px-4 py-2 text-right">¥{{ number_format($line['agency_unit_price'] * $line['count']) }}</td>
                         </tr>
                     @endforeach
                 @endforeach
@@ -50,8 +54,10 @@
             <thead class="bg-amber-100/50 text-gray-600">
                 <tr>
                     <th class="text-left px-4 py-2 font-medium">名前</th>
-                    <th class="text-right px-4 py-2 font-medium">TSUNAGU単価</th>
-                    <th class="text-right px-4 py-2 font-medium">パートナー単価</th>
+                    <th class="text-right px-4 py-2 font-medium">単価(TSUNAGU/パートナー)</th>
+                    <th class="text-right px-4 py-2 font-medium">件数</th>
+                    <th class="text-right px-4 py-2 font-medium">TSUNAGU合計</th>
+                    <th class="text-right px-4 py-2 font-medium">パートナー合計</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-amber-100">
@@ -59,8 +65,10 @@
                     @foreach ($item['lines'] as $line)
                         <tr>
                             <td class="px-4 py-2">{{ $item['name'] }}</td>
-                            <td class="px-4 py-2 text-right">¥{{ number_format($line['tsunagu_unit_price']) }}</td>
-                            <td class="px-4 py-2 text-right">¥{{ number_format($line['agency_unit_price']) }}</td>
+                            <td class="px-4 py-2 text-right">¥{{ number_format($line['tsunagu_unit_price']) }} / ¥{{ number_format($line['agency_unit_price']) }}</td>
+                            <td class="px-4 py-2 text-right">{{ $line['count'] }}</td>
+                            <td class="px-4 py-2 text-right">¥{{ number_format($line['tsunagu_unit_price'] * $line['count']) }}</td>
+                            <td class="px-4 py-2 text-right">¥{{ number_format($line['agency_unit_price'] * $line['count']) }}</td>
                         </tr>
                     @endforeach
                 @endforeach
