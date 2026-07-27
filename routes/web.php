@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminManagerController;
 use App\Http\Controllers\Admin\AgencyController;
 use App\Http\Controllers\Admin\AppIconController;
+use App\Http\Controllers\Admin\BimoniTsunaguLinkController;
 use App\Http\Controllers\Admin\AggregateResultController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AuthController;
@@ -146,6 +147,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('sharepoy-users/{sharepoyUser}', [SharePoyUserController::class, 'show'])->name('sharepoy-users.show');
                 Route::post('sharepoy-users/bulk-preview', [SharePoyUserController::class, 'bulkPreview'])->name('sharepoy-users.bulk-preview');
                 Route::post('sharepoy-users/bulk-store', [SharePoyUserController::class, 'bulkStore'])->name('sharepoy-users.bulk-store');
+            });
+
+            Route::middleware('menu:bimoni_tsunagu_links')->group(function () {
+                Route::get('bimoni-tsunagu-links', [BimoniTsunaguLinkController::class, 'index'])->name('bimoni-tsunagu-links.index');
+                Route::post('bimoni-tsunagu-links/bulk-preview', [BimoniTsunaguLinkController::class, 'bulkPreview'])->name('bimoni-tsunagu-links.bulk-preview');
+                Route::post('bimoni-tsunagu-links/bulk-store', [BimoniTsunaguLinkController::class, 'bulkStore'])->name('bimoni-tsunagu-links.bulk-store');
             });
 
             Route::middleware('menu:aggregate_results')->group(function () {

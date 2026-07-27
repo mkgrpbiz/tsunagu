@@ -43,6 +43,7 @@
             ],
             'MK振り分け管理' => [
                 'sharepoy_users' => ['label' => 'SharePoy+管理', 'route' => 'admin.sharepoy-users.index', 'active' => 'admin.sharepoy-users.*'],
+                'bimoni_tsunagu_links' => ['label' => 'BIMONI用(TSUNAGU)', 'route' => 'admin.bimoni-tsunagu-links.index', 'active' => 'admin.bimoni-tsunagu-links.*'],
             ],
         ];
     @endphp

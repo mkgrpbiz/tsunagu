@@ -41,6 +41,7 @@ class AdminManagerController extends Controller
             'company_profile' => '会社概要',
             'app_icon' => 'アイコン管理',
             'sharepoy_users' => 'SharePoy+管理',
+            'bimoni_tsunagu_links' => 'BIMONI用(TSUNAGU)',
         ];
     }
 
