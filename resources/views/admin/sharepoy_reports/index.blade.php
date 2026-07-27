@@ -41,7 +41,7 @@
                     @forelse ($depositRecords as $record)
                         <tr>
                             <td class="px-4 py-2">{{ $record->deposit_date->format('Y/m/d') }}</td>
-                            <td class="px-4 py-2">{{ $record->source }}</td>
+                            <td class="px-4 py-2">{{ $record->sourceLabel() }}</td>
                             <td class="px-4 py-2">{{ $record->inquiry?->name ?? '-' }}</td>
                             <td class="px-4 py-2 text-right">¥{{ number_format($record->tsunagu_unit_price) }}</td>
                             <td class="px-4 py-2 text-right">¥{{ number_format($record->agency_unit_price) }}</td>

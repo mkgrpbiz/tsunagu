@@ -19,6 +19,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class SharePoyDepositRecord extends Model
 {
+    private const SOURCE_LABELS = [
+        'bimoni_sharepoy' => 'BIMONI(SharePoy)',
+        'product_monitor' => '商品受け取りモニター',
+        'mystery_shopper' => '覆面調査モニター',
+    ];
+
     protected $table = 'sharepoy_deposit_records';
 
     protected function casts(): array
@@ -26,6 +32,11 @@ class SharePoyDepositRecord extends Model
         return [
             'deposit_date' => 'date',
         ];
+    }
+
+    public function sourceLabel(): string
+    {
+        return self::SOURCE_LABELS[$this->source] ?? $this->source;
     }
 
     public function sharePoyUser(): BelongsTo
