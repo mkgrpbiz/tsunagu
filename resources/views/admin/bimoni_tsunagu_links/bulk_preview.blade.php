@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'BIMONI用(TSUNAGU) - 一括紐付けプレビュー')
+@section('title', 'BIMONI(TSUNAGU) - 一括紐付けプレビュー')
 
 @section('content')
 <h1 class="text-xl font-semibold mb-6">一括紐付けプレビュー</h1>

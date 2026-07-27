@@ -1,9 +1,9 @@
 @extends('layouts.admin')
 
-@section('title', 'BIMONI用(TSUNAGU)')
+@section('title', 'BIMONI(TSUNAGU)')
 
 @section('content')
-<h1 class="text-xl font-semibold mb-6">BIMONI用(TSUNAGU) 一括紐付け</h1>
+<h1 class="text-xl font-semibold mb-6">BIMONI(TSUNAGU) 一括紐付け</h1>
 
 <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
     <p class="text-xs text-gray-500 mb-3">

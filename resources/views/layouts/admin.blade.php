@@ -43,7 +43,7 @@
             ],
             'MK振り分け管理' => [
                 'sharepoy_users' => ['label' => 'SharePoy+管理', 'route' => 'admin.sharepoy-users.index', 'active' => 'admin.sharepoy-users.*'],
-                'bimoni_tsunagu_links' => ['label' => 'BIMONI用(TSUNAGU)', 'route' => 'admin.bimoni-tsunagu-links.index', 'active' => 'admin.bimoni-tsunagu-links.*'],
+                'bimoni_tsunagu_links' => ['label' => 'BIMONI(TSUNAGU)', 'route' => 'admin.bimoni-tsunagu-links.index', 'active' => 'admin.bimoni-tsunagu-links.*'],
                 'bimoni_sharepoy_links' => ['label' => 'BIMONI(SharePoy)', 'route' => 'admin.bimoni-sharepoy-links.index', 'active' => 'admin.bimoni-sharepoy-links.*'],
                 'product_monitor_links' => ['label' => '商品受け取りモニター', 'route' => 'admin.product-monitor-links.index', 'active' => 'admin.product-monitor-links.*'],
                 'mystery_shopper_links' => ['label' => '覆面調査モニター', 'route' => 'admin.mystery-shopper-links.index', 'active' => 'admin.mystery-shopper-links.*'],
