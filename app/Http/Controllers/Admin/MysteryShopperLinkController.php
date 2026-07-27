@@ -90,7 +90,7 @@ class MysteryShopperLinkController extends Controller
     }
 
     /**
-     * @return array{matched: array<int, array{name: string, inquiry: Inquiry, lines: array<int, array{tsunagu_unit_price: int, agency_unit_price: int, count: int, memo: ?string}>}>, a01: array<int, array{name: string, lines: array<int, array{tsunagu_unit_price: int, agency_unit_price: int, count: int, memo: ?string}>}>}
+     * @return array{matched: array<int, array{name: string, inquiry: Inquiry, lines: array<int, array{tsunagu_unit_price: int, agency_unit_price: int, count: int, memo: ?string}>, isA01: bool}>, a01: array<int, array{name: string, lines: array<int, array{tsunagu_unit_price: int, agency_unit_price: int, count: int, memo: ?string}>}>}
      */
     private function parseBulkRows(string $text): array
     {
@@ -117,7 +117,8 @@ class MysteryShopperLinkController extends Controller
                 'memo' => null,
             ]];
 
-            $inquiry = Inquiry::where('project_id', self::TARGET_PROJECT_ID)
+            $inquiry = Inquiry::with('agency')
+                ->where('project_id', self::TARGET_PROJECT_ID)
                 ->where('name', $name)
                 ->where(function ($q) {
                     $q->whereDoesntHave('contracts')
@@ -127,26 +128,29 @@ class MysteryShopperLinkController extends Controller
                 ->get()
                 ->first(fn (Inquiry $c) => ! in_array($c->id, $claimedIds, true));
 
+            // A01(シェアポイ)扱い(既存の紐付け先がA01の場合も含む)はパートナー単価をTSUNAGU単価と同額(満額)にする
+            $isA01 = ! $inquiry || $inquiry->agency?->legacy_code === 'A01';
+
+            $finalLines = $isA01
+                ? array_map(fn (array $line) => [...$line, 'agency_unit_price' => $line['tsunagu_unit_price']], $itemLines)
+                : $itemLines;
+
             if ($inquiry) {
                 $claimedIds[] = $inquiry->id;
 
                 $matched[] = [
                     'name' => $name,
                     'inquiry' => $inquiry,
-                    'lines' => $itemLines,
+                    'lines' => $finalLines,
+                    'isA01' => $isA01,
                 ];
 
                 continue;
             }
 
-            $a01Lines = array_map(fn (array $line) => [
-                ...$line,
-                'agency_unit_price' => $line['tsunagu_unit_price'],
-            ], $itemLines);
-
             $a01[] = [
                 'name' => $name,
-                'lines' => $a01Lines,
+                'lines' => $finalLines,
             ];
         }
 

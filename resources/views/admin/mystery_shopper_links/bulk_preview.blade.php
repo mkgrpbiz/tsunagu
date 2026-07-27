@@ -27,7 +27,12 @@
                     @foreach ($item['lines'] as $line)
                         <tr>
                             <td class="px-4 py-2">{{ $item['name'] }}</td>
-                            <td class="px-4 py-2">{{ $item['inquiry']->agency?->name }}</td>
+                            <td class="px-4 py-2">
+                                {{ $item['inquiry']->agency?->name }}
+                                @if ($item['isA01'])
+                                    <span class="text-amber-600 text-xs">(A01・満額)</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-2 text-right">¥{{ number_format($line['tsunagu_unit_price']) }}</td>
                             <td class="px-4 py-2 text-right">¥{{ number_format($line['agency_unit_price']) }}</td>
                         </tr>
