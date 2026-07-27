@@ -59,7 +59,7 @@ class ProjectController extends Controller
             'project' => new Project,
             'categories' => Category::orderBy('sort_order')->get(),
             'statuses' => ProjectStatus::cases(),
-            'agencies' => Agency::where('is_collaboration_partner', true)->orderBy('name')->get(),
+            'agencies' => Agency::where('is_collaboration_partner', true)->with('referredBy')->orderBy('name')->get(),
             'clientNames' => Project::whereNotNull('client_name')->distinct()->orderBy('client_name')->pluck('client_name'),
         ]);
     }
@@ -102,17 +102,11 @@ class ProjectController extends Controller
 
     public function edit(Project $project): View
     {
-        $agencies = Agency::where('is_collaboration_partner', true)->orderBy('name')->get();
-
-        if ($project->referrer_agency_id && ! $agencies->contains('id', $project->referrer_agency_id)) {
-            $agencies->push($project->referrerAgency);
-        }
-
         return view('admin.projects.edit', [
             'project' => $project,
             'categories' => Category::orderBy('sort_order')->get(),
             'statuses' => ProjectStatus::cases(),
-            'agencies' => $agencies,
+            'agencies' => Agency::where('is_collaboration_partner', true)->with('referredBy')->orderBy('name')->get(),
             'clientNames' => Project::whereNotNull('client_name')->distinct()->orderBy('client_name')->pluck('client_name'),
         ]);
     }

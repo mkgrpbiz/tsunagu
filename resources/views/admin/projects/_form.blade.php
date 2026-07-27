@@ -46,7 +46,7 @@
     </div>
 
     <div class="relative">
-        <label for="client_name" class="block text-sm font-medium text-gray-700 mb-1">取引先名</label>
+        <label for="client_name" class="block text-sm font-medium text-gray-700 mb-1">共創パートナー名</label>
         <input type="text" name="client_name" id="client_name" value="{{ old('client_name', $project->client_name) }}"
                autocomplete="off"
                oninput="tsnFilterClientNameSuggestions(this.value)"
@@ -56,7 +56,7 @@
         <input type="hidden" name="referrer_agency_id" id="referrer_agency_id" value="{{ old('referrer_agency_id', $project->referrer_agency_id) }}">
         <p class="text-xs text-gray-500 mt-1">
             紹介者: <span id="referrer_agency_label">{{ old('referrer_agency_id', $project->referrer_agency_id) ? $project->referrerAgency?->name : 'なし' }}</span>
-            （会社名・登録コードで検索して候補を選ぶと自動でセットされます）
+            （会社名・登録コードで検索して共創パートナーの候補を選ぶと、そのパートナーを紹介した人が自動でセットされます）
         </p>
         @error('client_name')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
         @error('referrer_agency_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
@@ -195,9 +195,10 @@
 
 <script>
 var tsnPartnerDirectory = {{ Illuminate\Support\Js::from($agencies->map(fn ($a) => [
-    'id' => $a->id,
     'label' => $a->company_name ?: $a->name,
     'code' => $a->legacy_code,
+    'referrerId' => $a->referred_by_agency_id,
+    'referrerName' => $a->referredBy?->name,
 ])->values()) }};
 var tsnClientHistory = {{ Illuminate\Support\Js::from($clientNames) }};
 
@@ -220,7 +221,8 @@ function tsnFilterClientNameSuggestions(query) {
     });
 
     var items = partnerMatches.slice(0, 8).map(function (a) {
-        return '<div class="px-3 py-2 hover:bg-blue-50 cursor-pointer tsn-client-suggestion" data-id="' + a.id + '" data-label="' + a.label.replace(/"/g, '&quot;') + '">'
+        return '<div class="px-3 py-2 hover:bg-blue-50 cursor-pointer tsn-client-suggestion" data-label="' + a.label.replace(/"/g, '&quot;') + '"'
+            + ' data-referrer-id="' + (a.referrerId || '') + '" data-referrer-name="' + (a.referrerName ? a.referrerName.replace(/"/g, '&quot;') : '') + '" data-is-partner="1">'
             + a.label + (a.code ? ' <span class="text-gray-400">(' + a.code + ')</span>' : '') + '</div>';
     }).concat(historyMatches.slice(0, 8).map(function (name) {
         return '<div class="px-3 py-2 hover:bg-blue-50 cursor-pointer tsn-client-suggestion text-gray-600" data-label="' + name.replace(/"/g, '&quot;') + '">' + name + '</div>';
@@ -240,8 +242,13 @@ document.addEventListener('click', function (e) {
     var suggestion = e.target.closest('.tsn-client-suggestion');
     if (suggestion) {
         document.getElementById('client_name').value = suggestion.dataset.label;
-        document.getElementById('referrer_agency_id').value = suggestion.dataset.id || '';
-        document.getElementById('referrer_agency_label').textContent = suggestion.dataset.id ? suggestion.dataset.label : 'なし';
+        if (suggestion.dataset.isPartner) {
+            document.getElementById('referrer_agency_id').value = suggestion.dataset.referrerId || '';
+            document.getElementById('referrer_agency_label').textContent = suggestion.dataset.referrerId ? suggestion.dataset.referrerName : 'なし';
+        } else {
+            document.getElementById('referrer_agency_id').value = '';
+            document.getElementById('referrer_agency_label').textContent = 'なし';
+        }
         document.getElementById('client_name_suggestions').classList.add('hidden');
         return;
     }
