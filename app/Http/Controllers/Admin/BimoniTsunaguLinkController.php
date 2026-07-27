@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Services\ContractLinkingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class BimoniTsunaguLinkController extends Controller
@@ -33,6 +34,8 @@ class BimoniTsunaguLinkController extends Controller
         $data = $request->validate([
             'pasted_text' => ['required', 'string'],
         ]);
+
+        Log::info('bimoni_tsunagu_links debug pasted_text hex', ['hex' => bin2hex($data['pasted_text'])]);
 
         $result = $this->parseBulkText($data['pasted_text']);
 
