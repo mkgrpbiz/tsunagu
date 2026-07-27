@@ -30,7 +30,7 @@ class BimoniSharePoyLinkController extends Controller
         $result = $this->parseBulkText($data['pasted_text']);
 
         $copyText = collect($result['groups'])
-            ->map(fn (array $g) => implode("\t", [$g['code'], $g['name'], $g['points'], self::LABEL]))
+            ->map(fn (array $g) => implode("\t", [$g['code'], $g['points'], self::LABEL]))
             ->implode("\n");
 
         return view('admin.bimoni_sharepoy_links.bulk_preview', [

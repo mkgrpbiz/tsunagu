@@ -15,7 +15,7 @@
 @if (count($groups) > 0)
     <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
         <div class="flex items-center justify-between mb-3">
-            <h2 class="text-sm font-medium text-gray-700">コピー用一覧（紹介コード・名前・ポイント・ラベル）</h2>
+            <h2 class="text-sm font-medium text-gray-700">コピー用一覧（紹介コード・ポイント・ラベル）</h2>
             <button type="button" onclick="copyToClipboard({{ Illuminate\Support\Js::from($copyText) }})"
                     class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md px-3 py-1.5">コピー</button>
         </div>
