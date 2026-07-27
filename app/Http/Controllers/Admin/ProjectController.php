@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AnnouncementCategory;
 use App\Enums\ProjectStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
@@ -95,6 +96,7 @@ class ProjectController extends Controller
 
         Announcement::create([
             'body' => "{$project->name}を{$project->category->name}に追加しました。",
+            'category' => AnnouncementCategory::ProjectInfo,
             'is_draft' => true,
         ]);
 
