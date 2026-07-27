@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
+use App\Models\Project;
 use App\Services\ContractLinkingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,8 @@ class BimoniTsunaguLinkController extends Controller
         1000 => ['tsunagu' => 1000, 'agency' => 800],
         500 => ['tsunagu' => 500, 'agency' => 400],
     ];
+
+    private const TARGET_PROJECT_NAME = 'BIMONI【募集モニター30件以上】';
 
     public function __construct(private readonly ContractLinkingService $contractLinkingService)
     {
@@ -146,11 +149,20 @@ class BimoniTsunaguLinkController extends Controller
             })
             ->values();
 
+        $project = Project::where('name', self::TARGET_PROJECT_NAME)->first();
+
         $matched = [];
         $claimedIds = [];
 
         foreach ($combinedLines as $line) {
+            if (! $project) {
+                $unmatched[] = ['raw' => $line['raw'], 'reason' => '案件「'.self::TARGET_PROJECT_NAME.'」が見つかりません'];
+
+                continue;
+            }
+
             $candidateInquiries = Inquiry::with(['project', 'agency'])
+                ->where('project_id', $project->id)
                 ->where('name', $line['name'])
                 ->when($line['name_kana'] !== '', fn ($q) => $q->where('name_kana', $line['name_kana']))
                 ->where(function ($q) {
