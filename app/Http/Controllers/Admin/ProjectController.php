@@ -115,6 +115,7 @@ class ProjectController extends Controller
     public function update(Request $request, Project $project): RedirectResponse
     {
         $data = $this->validated($request);
+        $wasPublished = $project->status === ProjectStatus::Published;
 
         if ($data['category_id'] != $project->category_id) {
             $data['sort_order'] = Project::where('category_id', $data['category_id'])->max('sort_order') + 1;
@@ -135,6 +136,13 @@ class ProjectController extends Controller
         }
 
         $project->update($data);
+
+        if (! $wasPublished && $project->status === ProjectStatus::Published) {
+            Announcement::create([
+                'body' => "{$project->name}を{$project->category->name}に追加しました。",
+                'is_draft' => true,
+            ]);
+        }
 
         return redirect()->route('admin.projects.index')->with('status', '案件を更新しました。');
     }
