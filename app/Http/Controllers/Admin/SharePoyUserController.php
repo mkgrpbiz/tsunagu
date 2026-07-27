@@ -99,22 +99,21 @@ class SharePoyUserController extends Controller
      */
     private function parseBulkText(string $text): array
     {
-        $rawLines = preg_split('/\r\n|\r|\n/', trim($text)) ?: [];
+        $handle = fopen('php://memory', 'r+');
+        fwrite($handle, $text);
+        rewind($handle);
+
         $lines = [];
 
-        foreach ($rawLines as $lineText) {
-            $lineText = trim($lineText);
+        while (($row = fgetcsv($handle, 0, "\t", '"')) !== false) {
+            $userId = trim($row[0] ?? '');
+            $referrerId = trim($row[1] ?? '');
+            $name = trim($row[2] ?? '');
+            $nameKana = trim($row[3] ?? '');
 
-            if ($lineText === '') {
+            if ($userId === '' && $name === '' && $nameKana === '') {
                 continue;
             }
-
-            // タブ区切りが基本だが、手入力で紛れ込んだ半角スペース(2個以上連続)も列区切りとして許容する
-            $columns = preg_split('/\t+| {2,}/', $lineText) ?: [];
-            $userId = trim($columns[0] ?? '');
-            $referrerId = trim($columns[1] ?? '');
-            $name = trim($columns[2] ?? '');
-            $nameKana = trim($columns[3] ?? '');
 
             $error = null;
             if ($userId === '' || $name === '' || $nameKana === '') {
@@ -122,7 +121,7 @@ class SharePoyUserController extends Controller
             }
 
             $lines[] = [
-                'raw' => $lineText,
+                'raw' => implode("\t", [$userId, $referrerId, $name, $nameKana]),
                 'sharepoy_user_id' => $userId,
                 'referrer_sharepoy_user_id' => $referrerId !== '' ? $referrerId : null,
                 'name' => $name,
@@ -130,6 +129,8 @@ class SharePoyUserController extends Controller
                 'error' => $error,
             ];
         }
+
+        fclose($handle);
 
         return $lines;
     }
