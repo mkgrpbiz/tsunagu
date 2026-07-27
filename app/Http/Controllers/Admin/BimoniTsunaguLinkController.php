@@ -8,7 +8,6 @@ use App\Models\Project;
 use App\Services\ContractLinkingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class BimoniTsunaguLinkController extends Controller
@@ -35,8 +34,6 @@ class BimoniTsunaguLinkController extends Controller
             'pasted_text' => ['required', 'string'],
         ]);
 
-        Log::info('bimoni_tsunagu_links debug pasted_text hex', ['hex' => bin2hex($data['pasted_text'])]);
-
         $result = $this->parseBulkText($data['pasted_text']);
 
         return view('admin.bimoni_tsunagu_links.bulk_preview', [
@@ -58,11 +55,13 @@ class BimoniTsunaguLinkController extends Controller
         $blockedCount = 0;
 
         foreach ($result['matched'] as $match) {
-            $success = $this->contractLinkingService->linkInquiry($match['inquiry'], [[
-                'tsunagu_unit_price' => $match['tsunagu_price'],
-                'agency_unit_price' => $match['agency_price'],
-                'count' => $match['count'],
-            ]]);
+            $lines = collect($match['rows'])->map(fn (array $row) => [
+                'tsunagu_unit_price' => $row['tsunagu_price'],
+                'agency_unit_price' => $row['agency_price'],
+                'count' => $row['count'],
+            ])->all();
+
+            $success = $this->contractLinkingService->linkInquiry($match['inquiry'], $lines);
 
             if ($success) {
                 $linkedCount++;
@@ -85,7 +84,7 @@ class BimoniTsunaguLinkController extends Controller
     }
 
     /**
-     * @return array{matched: array<int, array{raw: string, inquiry: Inquiry, memo: string, tsunagu_price: int, agency_price: int, count: int}>, unmatched: array<int, array{raw: string, reason: string}>}
+     * @return array{matched: array<int, array{inquiry: Inquiry, rows: array<int, array{raw: string, memo: string, tsunagu_price: int, agency_price: int, count: int}>}>, unmatched: array<int, array{raw: string, reason: string}>}
      */
     private function parseBulkText(string $text): array
     {
@@ -135,7 +134,7 @@ class BimoniTsunaguLinkController extends Controller
         }
 
         // 同じ人・同じ単価の行は、紐づけ前にまとめる(同じ人が複数行に分かれて貼り付けられるケースがあるため)
-        $combinedLines = collect($parsedLines)
+        $priceLines = collect($parsedLines)
             ->groupBy(fn (array $line) => implode('|', [$line['name'], $line['name_kana'], $line['tsunagu_price'], $line['agency_price']]))
             ->map(function ($group) {
                 $first = $group->first();
@@ -152,22 +151,29 @@ class BimoniTsunaguLinkController extends Controller
             })
             ->values();
 
+        // 同じ人が金額違いで複数行に分かれているケース(例: 別商品を¥1,000と¥500で1件ずつ)は、
+        // TSUNAGU側の問い合わせが1件しか無くても、その1件にまとめて複数明細を紐付ける
+        $personGroups = $priceLines->groupBy(fn (array $line) => $line['name'].'|'.$line['name_kana']);
+
         $project = Project::where('name', self::TARGET_PROJECT_NAME)->first();
 
         $matched = [];
         $claimedIds = [];
 
-        foreach ($combinedLines as $line) {
+        foreach ($personGroups as $rows) {
+            $first = $rows->first();
+            $allRaw = $rows->pluck('raw')->implode(' / ');
+
             if (! $project) {
-                $unmatched[] = ['raw' => $line['raw'], 'reason' => '案件「'.self::TARGET_PROJECT_NAME.'」が見つかりません'];
+                $unmatched[] = ['raw' => $allRaw, 'reason' => '案件「'.self::TARGET_PROJECT_NAME.'」が見つかりません'];
 
                 continue;
             }
 
             $candidateInquiries = Inquiry::with(['project', 'agency'])
                 ->where('project_id', $project->id)
-                ->where('name', $line['name'])
-                ->when($line['name_kana'] !== '', fn ($q) => $q->where('name_kana', $line['name_kana']))
+                ->where('name', $first['name'])
+                ->when($first['name_kana'] !== '', fn ($q) => $q->where('name_kana', $first['name_kana']))
                 ->where(function ($q) {
                     $q->whereDoesntHave('contracts')
                         ->orWhereHas('project', fn ($q2) => $q2->where('is_recurring', true));
@@ -178,7 +184,7 @@ class BimoniTsunaguLinkController extends Controller
             $inquiry = $candidateInquiries->first(fn (Inquiry $c) => ! in_array($c->id, $claimedIds, true));
 
             if (! $inquiry) {
-                $unmatched[] = ['raw' => $line['raw'], 'reason' => '一致する問い合わせ候補が見つかりません(名前・フリガナをご確認ください)'];
+                $unmatched[] = ['raw' => $allRaw, 'reason' => '一致する問い合わせ候補が見つかりません(名前・フリガナをご確認ください)'];
 
                 continue;
             }
@@ -186,12 +192,14 @@ class BimoniTsunaguLinkController extends Controller
             $claimedIds[] = $inquiry->id;
 
             $matched[] = [
-                'raw' => $line['raw'],
                 'inquiry' => $inquiry,
-                'memo' => $line['memo'],
-                'tsunagu_price' => $line['tsunagu_price'],
-                'agency_price' => $line['agency_price'],
-                'count' => $line['count'],
+                'rows' => $rows->map(fn (array $line) => [
+                    'raw' => $line['raw'],
+                    'memo' => $line['memo'],
+                    'tsunagu_price' => $line['tsunagu_price'],
+                    'agency_price' => $line['agency_price'],
+                    'count' => $line['count'],
+                ])->values()->all(),
             ];
         }
 

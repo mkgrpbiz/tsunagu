@@ -6,7 +6,7 @@
 <h1 class="text-xl font-semibold mb-6">一括紐付けプレビュー</h1>
 
 <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-    <p class="text-sm text-gray-700 mb-1">マッチ: {{ count($matched) }}件</p>
+    <p class="text-sm text-gray-700 mb-1">マッチ: {{ collect($matched)->sum(fn ($m) => count($m['rows'])) }}件（{{ count($matched) }}名）</p>
     @if (count($unmatched) > 0)
         <p class="text-sm text-red-600">非マッチ: {{ count($unmatched) }}件</p>
     @endif
@@ -29,16 +29,18 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @foreach ($matched as $match)
-                    <tr>
-                        <td class="px-4 py-2">{{ $match['inquiry']->name }}</td>
-                        <td class="px-4 py-2">{{ $match['inquiry']->name_kana }}</td>
-                        <td class="px-4 py-2 text-gray-500">{{ $match['memo'] }}</td>
-                        <td class="px-4 py-2">{{ $match['inquiry']->project?->name }}</td>
-                        <td class="px-4 py-2">{{ $match['inquiry']->agency?->name }}</td>
-                        <td class="px-4 py-2 text-right">¥{{ number_format($match['tsunagu_price']) }}</td>
-                        <td class="px-4 py-2 text-right">¥{{ number_format($match['agency_price']) }}</td>
-                        <td class="px-4 py-2 text-right">{{ $match['count'] }}</td>
-                    </tr>
+                    @foreach ($match['rows'] as $i => $row)
+                        <tr>
+                            <td class="px-4 py-2">{{ $i === 0 ? $match['inquiry']->name : '' }}</td>
+                            <td class="px-4 py-2">{{ $i === 0 ? $match['inquiry']->name_kana : '' }}</td>
+                            <td class="px-4 py-2 text-gray-500">{{ $row['memo'] }}</td>
+                            <td class="px-4 py-2">{{ $i === 0 ? $match['inquiry']->project?->name : '' }}</td>
+                            <td class="px-4 py-2">{{ $i === 0 ? $match['inquiry']->agency?->name : '' }}</td>
+                            <td class="px-4 py-2 text-right">¥{{ number_format($row['tsunagu_price']) }}</td>
+                            <td class="px-4 py-2 text-right">¥{{ number_format($row['agency_price']) }}</td>
+                            <td class="px-4 py-2 text-right">{{ $row['count'] }}</td>
+                        </tr>
+                    @endforeach
                 @endforeach
             </tbody>
         </table>
