@@ -66,7 +66,7 @@
 
     <form method="POST" action="{{ route($section['route']) }}" class="mb-10">
         @csrf
-        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md px-4 py-2" @disabled(count($section['data']['groups']) === 0)>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md px-4 py-2" @disabled(count($section['data']['groups']) === 0 && count($section['data']['unmatched']) === 0)>
             確定して履歴に記録
         </button>
     </form>
