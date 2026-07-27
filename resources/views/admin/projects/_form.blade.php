@@ -156,8 +156,8 @@
 
     <div class="col-span-2">
         <label for="payment_timing" class="block text-sm font-medium text-gray-700 mb-1">着金タイミング</label>
-        <input type="text" name="payment_timing" id="payment_timing" value="{{ old('payment_timing', $project->payment_timing) }}"
-               class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        <textarea name="payment_timing" id="payment_timing" rows="3"
+                  class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('payment_timing', $project->payment_timing) }}</textarea>
         @error('payment_timing')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
