@@ -54,6 +54,7 @@
                class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
         <div id="client_name_suggestions" class="hidden absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-56 overflow-y-auto text-sm"></div>
         <input type="hidden" name="referrer_agency_id" id="referrer_agency_id" value="{{ old('referrer_agency_id', $project->referrer_agency_id) }}">
+        <input type="hidden" name="partner_agency_id" id="partner_agency_id" value="{{ old('partner_agency_id', $project->partner_agency_id) }}">
         <p class="text-xs text-gray-500 mt-1">
             紹介者: <span id="referrer_agency_label">{{ old('referrer_agency_id', $project->referrer_agency_id) ? $project->referrerAgency?->name : 'なし' }}</span>
             （会社名・登録コードで検索して共創パートナーの候補を選ぶと、そのパートナーを紹介した人が自動でセットされます）
@@ -195,6 +196,7 @@
 
 <script>
 var tsnPartnerDirectory = {{ Illuminate\Support\Js::from($agencies->map(fn ($a) => [
+    'id' => $a->id,
     'label' => $a->company_name ?: $a->name,
     'code' => $a->legacy_code,
     'referrerId' => $a->referred_by_agency_id,
@@ -222,7 +224,7 @@ function tsnFilterClientNameSuggestions(query) {
 
     var items = partnerMatches.slice(0, 8).map(function (a) {
         return '<div class="px-3 py-2 hover:bg-blue-50 cursor-pointer tsn-client-suggestion" data-label="' + a.label.replace(/"/g, '&quot;') + '"'
-            + ' data-referrer-id="' + (a.referrerId || '') + '" data-referrer-name="' + (a.referrerName ? a.referrerName.replace(/"/g, '&quot;') : '') + '" data-is-partner="1">'
+            + ' data-partner-id="' + a.id + '" data-referrer-id="' + (a.referrerId || '') + '" data-referrer-name="' + (a.referrerName ? a.referrerName.replace(/"/g, '&quot;') : '') + '" data-is-partner="1">'
             + a.label + (a.code ? ' <span class="text-gray-400">(' + a.code + ')</span>' : '') + '</div>';
     }).concat(historyMatches.slice(0, 8).map(function (name) {
         return '<div class="px-3 py-2 hover:bg-blue-50 cursor-pointer tsn-client-suggestion text-gray-600" data-label="' + name.replace(/"/g, '&quot;') + '">' + name + '</div>';
@@ -243,9 +245,11 @@ document.addEventListener('click', function (e) {
     if (suggestion) {
         document.getElementById('client_name').value = suggestion.dataset.label;
         if (suggestion.dataset.isPartner) {
+            document.getElementById('partner_agency_id').value = suggestion.dataset.partnerId || '';
             document.getElementById('referrer_agency_id').value = suggestion.dataset.referrerId || '';
             document.getElementById('referrer_agency_label').textContent = suggestion.dataset.referrerId ? suggestion.dataset.referrerName : 'なし';
         } else {
+            document.getElementById('partner_agency_id').value = '';
             document.getElementById('referrer_agency_id').value = '';
             document.getElementById('referrer_agency_label').textContent = 'なし';
         }

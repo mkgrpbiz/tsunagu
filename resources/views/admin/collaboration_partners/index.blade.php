@@ -26,7 +26,7 @@
                     <td class="px-4 py-3 text-gray-600">{{ $agency->name_kana }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $agency->referral_code }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $agency->referredBy?->referral_code ?: '—' }}</td>
-                    <td class="px-4 py-3">{{ $agency->projects_count }}</td>
+                    <td class="px-4 py-3">{{ $agency->partnered_projects_count }}</td>
                     <td class="px-4 py-3">
                         <div class="flex gap-1 justify-center flex-wrap">
                             <a href="{{ route('admin.agencies.show', $agency) }}" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">詳細</a>

@@ -130,6 +130,15 @@ class Agency extends Authenticatable
         return $this->hasMany(Project::class, 'referrer_agency_id');
     }
 
+    /**
+     * このパートナー自身が案件編集画面で「共創パートナー名」として選ばれている案件
+     * (referrer_agency_idは紹介者=このパートナーを紹介した人が入るため別物)
+     */
+    public function partneredProjects(): HasMany
+    {
+        return $this->hasMany(Project::class, 'partner_agency_id');
+    }
+
     public function statusHistories(): HasMany
     {
         return $this->hasMany(AgencyStatusHistory::class);

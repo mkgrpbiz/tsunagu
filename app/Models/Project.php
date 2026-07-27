@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'bulk_link_enabled',
     'client_name',
     'referrer_agency_id',
+    'partner_agency_id',
     'tsunagu_unit_prices',
     'agency_unit_prices',
     'payment_timing',
@@ -48,6 +49,11 @@ class Project extends Model
     public function referrerAgency(): BelongsTo
     {
         return $this->belongsTo(Agency::class, 'referrer_agency_id');
+    }
+
+    public function partnerAgency(): BelongsTo
+    {
+        return $this->belongsTo(Agency::class, 'partner_agency_id');
     }
 
     public function inviteLinks(): HasMany

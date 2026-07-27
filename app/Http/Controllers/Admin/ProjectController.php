@@ -198,6 +198,7 @@ class ProjectController extends Controller
             'bulk_link_enabled' => ['nullable', 'boolean'],
             'client_name' => ['nullable', 'string', 'max:255'],
             'referrer_agency_id' => ['nullable', 'exists:agencies,id'],
+            'partner_agency_id' => ['nullable', 'exists:agencies,id'],
             'tsunagu_price_mode' => ['required', 'in:fixed,variable'],
             'agency_price_mode' => ['required', 'in:fixed,variable'],
             'tsunagu_unit_price' => ['nullable', 'array', $requireAtLeastOnePrice('TSUNAGU単価')],
