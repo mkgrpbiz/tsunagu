@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 #[Fillable([
     'category_id',
@@ -64,6 +65,11 @@ class Project extends Model
     public function inquiries(): HasMany
     {
         return $this->hasMany(Inquiry::class);
+    }
+
+    public function contracts(): HasManyThrough
+    {
+        return $this->hasManyThrough(Contract::class, Inquiry::class);
     }
 
     public function singleAgencyUnitPrice(): ?int

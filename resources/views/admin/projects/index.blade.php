@@ -71,9 +71,10 @@
                 <th class="px-4 py-3 font-medium">ステータス</th>
                 <th class="px-4 py-3 font-medium">カテゴリー</th>
                 <th class="px-4 py-3 font-medium">取引先</th>
-                <th class="px-4 py-3 font-medium">紹介者</th>
                 <th class="px-4 py-3 font-medium text-right">TSUNAGU単価</th>
                 <th class="px-4 py-3 font-medium text-right">パートナー単価</th>
+                <th class="px-4 py-3 font-medium text-right">問い合わせ数</th>
+                <th class="px-4 py-3 font-medium text-right">着金数</th>
                 <th class="px-4 py-3 font-medium w-36 text-center">操作</th>
             </tr>
         </thead>
@@ -98,9 +99,10 @@
                     </td>
                     <td class="px-4 py-3 text-gray-600">{{ $project->category->name }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $project->client_name ?: '—' }}</td>
-                    <td class="px-4 py-3 text-gray-600">{{ $project->referrerAgency->name ?? '—' }}</td>
                     <td class="px-4 py-3 text-right">{{ $project->formattedTsunaguUnitPrices() }}</td>
                     <td class="px-4 py-3 text-right">{{ $project->formattedAgencyUnitPrices() }}</td>
+                    <td class="px-4 py-3 text-right">{{ $project->inquiries_count }}</td>
+                    <td class="px-4 py-3 text-right">{{ $project->contracts_count }}</td>
                     <td class="px-4 py-3">
                         <div class="flex gap-1 justify-center flex-wrap">
                             <form method="POST" action="{{ route('admin.projects.duplicate', $project) }}" class="inline">
@@ -117,7 +119,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ $canReorder ? 9 : 8 }}" class="px-4 py-8 text-center text-gray-400">案件がありません。</td>
+                    <td colspan="{{ $canReorder ? 10 : 9 }}" class="px-4 py-8 text-center text-gray-400">案件がありません。</td>
                 </tr>
             @endforelse
         </tbody>
