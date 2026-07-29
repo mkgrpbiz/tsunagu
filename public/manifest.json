@@ -1,7 +1,7 @@
 {
     "name": "TSUNAGU Partner Network",
     "short_name": "TSUNAGU",
-    "start_url": "/",
+    "start_url": "/agency",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#2563eb",
