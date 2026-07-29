@@ -50,6 +50,24 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/agency/register');
 
+// public/manifest.json(静的ファイル)だとXserverのnginx設定でCache-Control: max-age=604800(1週間)が
+// 付いてしまい、PWAのstart_url変更などがなかなか端末に反映されない問題があったため、動的ルートにして
+// no-cacheを明示する
+Route::get('manifest.json', function () {
+    return response()->json([
+        'name' => 'TSUNAGU Partner Network',
+        'short_name' => 'TSUNAGU',
+        'start_url' => '/agency',
+        'display' => 'standalone',
+        'background_color' => '#ffffff',
+        'theme_color' => '#2563eb',
+        'icons' => [
+            ['src' => '/icon-192.png', 'sizes' => '192x192', 'type' => 'image/png'],
+            ['src' => '/icon-512.png', 'sizes' => '512x512', 'type' => 'image/png'],
+        ],
+    ])->header('Cache-Control', 'no-cache, must-revalidate');
+})->name('manifest');
+
 Route::view('line/login-complete', 'public.line_login_complete')->name('line.login-complete');
 
 Route::get('apply/oauth-callback', [ApplyController::class, 'oauthCallback'])->name('apply.oauth-callback');
