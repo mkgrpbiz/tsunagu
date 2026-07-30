@@ -34,6 +34,7 @@ class SalesMaterialController extends Controller
         SalesMaterial::create([
             'title' => $data['title'],
             'file_path' => $request->file('file')->store('sales-materials', 'public'),
+            'original_filename' => $request->file('file')->getClientOriginalName(),
             'is_draft' => $request->boolean('is_draft'),
         ]);
 
@@ -58,6 +59,7 @@ class SalesMaterialController extends Controller
         if ($request->hasFile('file')) {
             Storage::disk('public')->delete($salesMaterial->file_path);
             $data['file_path'] = $request->file('file')->store('sales-materials', 'public');
+            $data['original_filename'] = $request->file('file')->getClientOriginalName();
         }
 
         $salesMaterial->update($data);

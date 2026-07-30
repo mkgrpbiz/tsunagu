@@ -103,6 +103,7 @@ class ProjectController extends Controller
 
         if ($request->hasFile('sales_material')) {
             $data['sales_material_path'] = $request->file('sales_material')->store('projects/sales-materials', 'public');
+            $data['sales_material_original_filename'] = $request->file('sales_material')->getClientOriginalName();
         }
 
         $project = Project::create($data);
@@ -148,6 +149,7 @@ class ProjectController extends Controller
                 Storage::disk('public')->delete($project->sales_material_path);
             }
             $data['sales_material_path'] = $request->file('sales_material')->store('projects/sales-materials', 'public');
+            $data['sales_material_original_filename'] = $request->file('sales_material')->getClientOriginalName();
         }
 
         $project->update($data);

@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('projects', function (Blueprint $table) {
+            $table->string('sales_material_original_filename')->nullable()->after('sales_material_path');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('projects', function (Blueprint $table) {
+            $table->dropColumn('sales_material_original_filename');
+        });
+    }
+};

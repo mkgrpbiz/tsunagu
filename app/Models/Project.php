@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
     'description',
     'image_path',
     'sales_material_path',
+    'sales_material_original_filename',
     'status',
     'is_recurring',
     'bulk_link_enabled',
