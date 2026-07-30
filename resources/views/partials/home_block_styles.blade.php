@@ -43,7 +43,9 @@
 
 .tsn-home .materials-title{font-weight:900;font-size:15px;color:#0f172a;margin-bottom:10px}
 .tsn-home .material-item{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px 16px;margin:8px 0;font-size:13.5px}
-.tsn-home .material-item a{color:#2563eb;font-weight:700}
+.tsn-home .dl-btn{display:inline-flex;align-items:center;gap:6px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:999px;padding:8px 16px;font-weight:700;font-size:13px;text-decoration:none}
+.tsn-home .dl-btn:hover{background:#dbeafe}
+.tsn-home .dl-btn svg{width:16px;height:16px;flex-shrink:0}
 
 .tsn-home .ticker-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.06)}
 .tsn-home .ticker-head{display:flex;align-items:center;gap:8px;padding:12px 16px;background:linear-gradient(180deg,#eff6ff,#fff);border-bottom:1px solid #e5e7eb;font-weight:800;font-size:13px}
