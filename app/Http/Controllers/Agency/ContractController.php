@@ -131,7 +131,7 @@ class ContractController extends Controller
 
         $collaborationRewardRows = $monthCollaborationRewards->map(function (CollaborationReward $reward) use ($clientContracts) {
             $matching = $clientContracts->filter(
-                fn (Contract $contract) => $contract->inquiry->project->client_name === $reward->client_name
+                fn (Contract $contract) => $contract->effectiveProject()->client_name === $reward->client_name
                     && $contract->deposit_date->format('Y-m') === $reward->month->format('Y-m')
             );
 

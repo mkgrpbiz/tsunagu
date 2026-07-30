@@ -129,9 +129,21 @@
                     <div><span class="text-gray-400 text-xs block">パートナー</span>{{ $candidate->agency->name }}</div>
                     <div>
                         <span class="text-gray-400 text-xs block">案件名</span>
-                        {{ $project->name }}
+                        <span class="tsn-project-label">{{ $project->name }}</span>
                         @if ($existingCount > 0)
                             <span class="ml-1 text-xs font-medium border rounded-full px-1.5 py-0.5 bg-amber-50 text-amber-700 border-amber-200">紐付け済み{{ $existingCount }}件</span>
+                        @endif
+                        @if ($candidate->siblingProjects->isNotEmpty())
+                            <button type="button" class="tsn-toggle-project-change ml-1 text-xs text-blue-600 hover:underline">変更</button>
+                            <div class="tsn-project-change hidden mt-1">
+                                <select class="tsn-project-select text-xs rounded-md border border-gray-300"
+                                        form="deposit-form-{{ $candidate->id }}" name="override_project_id">
+                                    <option value="" data-tsunagu-price="{{ $tsunaguPrice }}" data-agency-price="{{ $agencyPrice }}" data-name="{{ $project->name }}">{{ $project->name }}（元の案件）</option>
+                                    @foreach ($candidate->siblingProjects as $sibling)
+                                        <option value="{{ $sibling->id }}" data-tsunagu-price="{{ $sibling->singleTsunaguUnitPrice() }}" data-agency-price="{{ $sibling->singleAgencyUnitPrice() }}" data-name="{{ $sibling->name }}">{{ $sibling->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         @endif
                     </div>
                     <div><span class="text-gray-400 text-xs block">LINE名</span>{{ $candidate->lineUser->display_name ?? $candidate->legacy_line_display_name }}</div>
@@ -248,6 +260,37 @@ document.querySelectorAll('.tsn-deposit-row').forEach(function (row) {
 
         linesContainer.appendChild(template);
         tsnBindLine(template);
+    });
+
+    var toggleButton = row.querySelector('.tsn-toggle-project-change');
+    var changeBox = row.querySelector('.tsn-project-change');
+    var select = row.querySelector('.tsn-project-select');
+    var projectLabel = row.querySelector('.tsn-project-label');
+
+    if (!toggleButton) {
+        return;
+    }
+
+    toggleButton.addEventListener('click', function () {
+        changeBox.classList.toggle('hidden');
+    });
+
+    select.addEventListener('change', function () {
+        var option = select.options[select.selectedIndex];
+        projectLabel.textContent = option.dataset.name;
+
+        var firstLine = linesContainer.querySelector('.tsn-line');
+        var tsunaguInput = firstLine.querySelector('.tsn-tsunagu-price');
+        var agencyInput = firstLine.querySelector('.tsn-agency-price');
+
+        if (option.dataset.tsunaguPrice) {
+            tsunaguInput.value = option.dataset.tsunaguPrice;
+            tsunaguInput.dispatchEvent(new Event('input'));
+        }
+        if (option.dataset.agencyPrice) {
+            agencyInput.value = option.dataset.agencyPrice;
+            agencyInput.dispatchEvent(new Event('input'));
+        }
     });
 });
 

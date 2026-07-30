@@ -47,7 +47,7 @@
         <tbody class="divide-y divide-gray-100">
             @forelse ($contracts as $contract)
                 <tr class="even:bg-gray-50 hover:bg-gray-100">
-                    <td class="px-4 py-3">{{ $contract->inquiry->project->name }}</td>
+                    <td class="px-4 py-3">{{ $contract->effectiveProject()->name }}</td>
                     <td class="px-4 py-3">{{ $contract->inquiry->name }}</td>
                     <td class="px-4 py-3">{{ $contract->deposit_date->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">¥{{ number_format($contract->agency_reward_amount) }}</td>

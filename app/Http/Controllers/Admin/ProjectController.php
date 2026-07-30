@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Agency;
 use App\Models\Announcement;
 use App\Models\Category;
+use App\Models\Contract;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -35,13 +36,24 @@ class ProjectController extends Controller
             ->select('projects.*')
             ->join('categories', 'categories.id', '=', 'projects.category_id')
             ->with(['category', 'referrerAgency'])
-            ->withCount(['inquiries', 'contracts'])
+            ->withCount(['inquiries'])
             ->when($status !== 'all', fn ($query) => $query->where('projects.status', $status))
             ->when($categoryId !== 'all', fn ($query) => $query->where('projects.category_id', $categoryId))
             ->orderByRaw("CASE projects.status WHEN 'published' THEN 1 WHEN 'paused' THEN 2 WHEN 'closed' THEN 3 ELSE 4 END")
             ->orderBy('categories.sort_order')
             ->orderBy('projects.sort_order')
             ->get();
+
+        // 着金紐付け画面で個別に案件を上書きした着金(Contract.project_id)がある場合、
+        // そちらの案件でカウントする（未上書きなら問い合わせの案件でカウント）
+        $contractCounts = Contract::selectRaw('COALESCE(contracts.project_id, inquiries.project_id) as effective_project_id, COUNT(*) as count')
+            ->join('inquiries', 'inquiries.id', '=', 'contracts.inquiry_id')
+            ->groupBy('effective_project_id')
+            ->pluck('count', 'effective_project_id');
+
+        $projects->each(function (Project $project) use ($contractCounts) {
+            $project->contracts_count = $contractCounts->get($project->id, 0);
+        });
 
         return view('admin.projects.index', [
             'projects' => $projects,

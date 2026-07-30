@@ -50,6 +50,16 @@ class DepositLinkController extends Controller
                 })
                 ->latest('inquired_at')
                 ->get();
+
+            $allProjectsForSiblings = Project::orderBy('name')->get();
+
+            foreach ($candidates as $candidate) {
+                $partnerAgencyId = $candidate->project->partner_agency_id;
+
+                $candidate->siblingProjects = $partnerAgencyId
+                    ? $allProjectsForSiblings->where('partner_agency_id', $partnerAgencyId)->where('id', '!=', $candidate->project_id)->values()
+                    : collect();
+            }
         }
 
         return view('admin.deposit_links.index', [
@@ -72,9 +82,10 @@ class DepositLinkController extends Controller
             'lines.*.tsunagu_unit_price' => ['required', 'integer', 'min:0'],
             'lines.*.agency_unit_price' => ['required', 'integer', 'min:0'],
             'lines.*.count' => ['required', 'integer', 'min:1'],
+            'override_project_id' => ['nullable', 'integer', 'exists:projects,id'],
         ]);
 
-        if (! $this->contractLinkingService->linkInquiry($inquiry, $data['lines'])) {
+        if (! $this->contractLinkingService->linkInquiry($inquiry, $data['lines'], $data['override_project_id'] ?? null)) {
             return back()->with('error', 'この問い合わせにはすでに着金が紐付けられています。');
         }
 

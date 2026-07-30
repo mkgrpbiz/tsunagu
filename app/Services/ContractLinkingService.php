@@ -15,7 +15,7 @@ class ContractLinkingService
     /**
      * @param  array<int, array{tsunagu_unit_price: int, agency_unit_price: int, count: int, apply_referral_commission?: bool}>  $lines
      */
-    public function linkInquiry(Inquiry $inquiry, array $lines): bool
+    public function linkInquiry(Inquiry $inquiry, array $lines, ?int $projectId = null): bool
     {
         if ($inquiry->contract && ! $inquiry->project->is_recurring) {
             return false;
@@ -27,6 +27,7 @@ class ContractLinkingService
         foreach ($lines as $line) {
             $contract = Contract::create([
                 'inquiry_id' => $inquiry->id,
+                'project_id' => $projectId,
                 'deposit_date' => $depositDate,
                 'deposit_amount' => $line['tsunagu_unit_price'] * $line['count'],
                 'agency_reward_amount' => $line['agency_unit_price'] * $line['count'],

@@ -45,7 +45,7 @@
     $referralRewardTsv = collect([['着金日', '案件名', '名前', 'フリガナ', '単価', '件数', '合計', '支払予定日']])
         ->concat($contracts->map(fn ($contract) => [
             $contract->deposit_date->format('Y-m-d'),
-            $contract->inquiry->project->name,
+            $contract->effectiveProject()->name,
             $contract->inquiry->name,
             $contract->inquiry->name_kana,
             $contract->agency_unit_price ?? '',
@@ -80,7 +80,7 @@
             @forelse ($contracts as $contract)
                 <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3">{{ $contract->deposit_date->format('Y-m-d') }}</td>
-                    <td class="px-4 py-3">{{ $contract->inquiry->project->name }}</td>
+                    <td class="px-4 py-3">{{ $contract->effectiveProject()->name }}</td>
                     <td class="px-4 py-3">{{ $contract->inquiry->name }}</td>
                     <td class="px-4 py-3">{{ $contract->inquiry->name_kana }}</td>
                     <td class="px-4 py-3">{{ $contract->agency_unit_price !== null ? '¥'.number_format($contract->agency_unit_price) : '－' }}</td>

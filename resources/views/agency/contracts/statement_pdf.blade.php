@@ -72,7 +72,7 @@
                 @foreach ($contracts as $contract)
                     <tr>
                         <td>{{ $contract->deposit_date->format('Y/m/d') }}</td>
-                        <td>{{ $contract->inquiry->project->name }}</td>
+                        <td>{{ $contract->effectiveProject()->name }}</td>
                         <td class="text-right">¥{{ number_format($contract->agency_reward_amount) }}</td>
                     </tr>
                 @endforeach
