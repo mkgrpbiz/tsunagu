@@ -30,7 +30,7 @@
         </div>
 
         <div>
-            <label for="q" class="block text-sm font-medium text-gray-700 mb-1">名前・フリガナ・LINE名で検索</label>
+            <label for="q" class="block text-sm font-medium text-gray-700 mb-1">名前・フリガナ・LINE名・会員番号で検索</label>
             <div class="flex gap-2">
                 <input type="text" name="q" id="q" value="{{ $q }}"
                        class="flex-1 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
