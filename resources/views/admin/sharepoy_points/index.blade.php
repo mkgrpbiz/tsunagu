@@ -39,7 +39,7 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @foreach ($section['data']['groups'] as $group)
-                        <tr>
+                        <tr class="even:bg-gray-50 hover:bg-gray-100">
                             <td class="px-4 py-2">
                                 <a href="{{ route('admin.sharepoy-users.show', $group['sharePoyUser']) }}" class="text-blue-600 hover:underline">{{ $group['sharePoyUser']->sharepoy_user_id }}</a>
                             </td>

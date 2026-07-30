@@ -31,7 +31,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100" id="cat-list">
             @forelse ($categories as $category)
-                <tr class="cat-row" draggable="true" data-id="{{ $category->id }}">
+                <tr class="even:bg-gray-50 hover:bg-gray-100 cat-row" draggable="true" data-id="{{ $category->id }}">
                     <td class="px-4 py-3"><span class="cat-handle">⠿</span></td>
                     <td class="px-4 py-3">{{ $category->name }}</td>
                     <td class="px-4 py-3">{{ $category->projects_count }}</td>
@@ -47,7 +47,7 @@
                     </td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="4" class="px-4 py-6 text-center text-gray-400">カテゴリーがありません。</td>
                 </tr>
             @endforelse

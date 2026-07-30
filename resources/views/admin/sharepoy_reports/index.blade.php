@@ -39,7 +39,7 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse ($depositRecords as $record)
-                        <tr>
+                        <tr class="even:bg-gray-50 hover:bg-gray-100">
                             <td class="px-4 py-2">{{ $record->deposit_date->format('Y/m/d') }}</td>
                             <td class="px-4 py-2">{{ $record->sourceLabel() }}</td>
                             <td class="px-4 py-2">{{ $record->inquiry?->name ?? '-' }}</td>
@@ -48,7 +48,7 @@
                             <td class="px-4 py-2 text-right">{{ $record->count }}</td>
                         </tr>
                     @empty
-                        <tr>
+                        <tr class="even:bg-gray-50 hover:bg-gray-100">
                             <td colspan="6" class="px-4 py-6 text-center text-gray-400">まだ着金履歴がありません</td>
                         </tr>
                     @endforelse

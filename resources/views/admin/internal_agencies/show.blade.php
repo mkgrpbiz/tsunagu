@@ -46,14 +46,14 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($contracts as $contract)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3">{{ $contract->inquiry->project->name }}</td>
                     <td class="px-4 py-3">{{ $contract->inquiry->name }}</td>
                     <td class="px-4 py-3">{{ $contract->deposit_date->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">¥{{ number_format($contract->agency_reward_amount) }}</td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="4" class="px-4 py-6 text-center text-gray-400">データがありません。</td>
                 </tr>
             @endforelse
@@ -73,13 +73,13 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($commissions as $commission)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3">{{ $commission->sourceAgency->name }}</td>
                     <td class="px-4 py-3">¥{{ number_format($commission->amount) }}</td>
                     <td class="px-4 py-3">{{ optional($commission->contract?->deposit_date)->format('Y-m-d') ?? '—' }}</td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="3" class="px-4 py-6 text-center text-gray-400">データがありません。</td>
                 </tr>
             @endforelse
@@ -99,13 +99,13 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($collaborationRewards as $reward)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3">{{ $reward->client_name }}</td>
                     <td class="px-4 py-3">{{ $reward->month->format('Y-m') }}</td>
                     <td class="px-4 py-3">¥{{ number_format($reward->reward_amount) }}</td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="3" class="px-4 py-6 text-center text-gray-400">データがありません。</td>
                 </tr>
             @endforelse

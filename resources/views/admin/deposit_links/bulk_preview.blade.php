@@ -39,7 +39,7 @@
             <tbody class="divide-y divide-gray-100">
                 @foreach ($matched as $row)
                     @php $inquiry = $row['inquiry']; @endphp
-                    <tr>
+                    <tr class="even:bg-gray-50 hover:bg-gray-100">
                         <td class="px-4 py-3 whitespace-nowrap">{{ $inquiry->inquired_at?->format('Y-m-d H:i') }}</td>
                         <td class="px-4 py-3">{{ $inquiry->agency->name }}</td>
                         <td class="px-4 py-3">{{ $inquiry->project->name }}</td>
@@ -74,7 +74,7 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @foreach ($unmatched as $row)
-                    <tr>
+                    <tr class="even:bg-gray-50 hover:bg-gray-100">
                         <td class="px-4 py-3 font-mono text-xs">{{ $row['raw'] }}</td>
                         <td class="px-4 py-3 text-red-600">{{ $row['reason'] }}</td>
                     </tr>

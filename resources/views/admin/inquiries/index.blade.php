@@ -61,7 +61,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($inquiries as $inquiry)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3 whitespace-nowrap">{{ $inquiry->inquired_at->format('Y-m-d H:i') }}</td>
                     <td class="px-4 py-3">{{ $inquiry->project->category->name }}</td>
                     <td class="px-4 py-3">{{ $inquiry->project->name }}</td>
@@ -91,7 +91,7 @@
                     </td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="9" class="px-4 py-6 text-center text-gray-400">問い合わせはまだありません。</td>
                 </tr>
             @endforelse

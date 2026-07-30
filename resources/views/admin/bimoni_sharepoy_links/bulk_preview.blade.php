@@ -36,7 +36,7 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @foreach ($groups as $group)
-                    <tr>
+                    <tr class="even:bg-gray-50 hover:bg-gray-100">
                         <td class="px-4 py-2">{{ $group['code'] }}</td>
                         <td class="px-4 py-2">{{ $group['name'] }}</td>
                         <td class="px-4 py-2">{{ $group['nameKana'] }}</td>

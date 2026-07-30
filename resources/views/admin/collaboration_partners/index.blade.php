@@ -20,7 +20,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($agencies as $agency)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3 text-gray-600">{{ $agency->company_name ?: '—' }}</td>
                     <td class="px-4 py-3">{{ $agency->name }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $agency->name_kana }}</td>
@@ -34,7 +34,7 @@
                     </td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="7" class="px-4 py-6 text-center text-gray-400">共創パートナーに指定されているパートナーがいません。</td>
                 </tr>
             @endforelse

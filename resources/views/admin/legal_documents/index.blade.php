@@ -20,7 +20,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @foreach ($documents as $row)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3 font-medium">{{ $row['type']->label() }}</td>
                     <td class="px-4 py-3">{{ $row['latest']?->version ?? '—' }}</td>
                     <td class="px-4 py-3">

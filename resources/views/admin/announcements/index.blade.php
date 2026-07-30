@@ -21,7 +21,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($announcements as $announcement)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3 whitespace-nowrap">{{ $announcement->created_at->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">
                         <span class="text-xs font-medium border rounded-full px-2 py-1 {{ $announcement->category->color() }}">{{ $announcement->category->label() }}</span>
@@ -49,7 +49,7 @@
                     </td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="5" class="px-4 py-6 text-center text-gray-400">お知らせがありません。</td>
                 </tr>
             @endforelse

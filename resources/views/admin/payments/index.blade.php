@@ -72,7 +72,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($agencySummaries as $row)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3 font-medium">{{ $row['agency']->name }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $row['agency']->referral_code }}</td>
                     <td class="px-4 py-3">¥{{ number_format($row['contract_total']) }}</td>
@@ -84,7 +84,7 @@
                     </td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="7" class="px-4 py-6 text-center text-gray-400">対象パートナーがいません。</td>
                 </tr>
             @endforelse
@@ -109,7 +109,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($carryOverAgencies as $row)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3 font-medium">{{ $row['agency']->name }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $row['agency']->referral_code }}</td>
                     <td class="px-4 py-3">¥{{ number_format($row['contract_total']) }}</td>
@@ -121,7 +121,7 @@
                     </td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="7" class="px-4 py-6 text-center text-gray-400">繰り越し予定のパートナーはいません。</td>
                 </tr>
             @endforelse

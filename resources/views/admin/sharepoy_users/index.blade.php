@@ -42,7 +42,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($sharepoyUsers as $sharepoyUser)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-2">{{ $sharepoyUser->sharepoy_user_id }}</td>
                     <td class="px-4 py-2">{{ $sharepoyUser->referrer_sharepoy_user_id }}</td>
                     <td class="px-4 py-2">{{ $sharepoyUser->name }}</td>
@@ -52,7 +52,7 @@
                     </td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="5" class="px-4 py-6 text-center text-gray-400">該当するユーザーがいません</td>
                 </tr>
             @endforelse

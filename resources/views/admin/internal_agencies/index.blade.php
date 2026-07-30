@@ -51,7 +51,7 @@
         <tbody class="divide-y divide-gray-100">
             @forelse ($internalAgencies as $agency)
                 @php $referralUrl = url('/agency/register?ref='.$agency->referral_code); @endphp
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3">{{ $agency->name }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $agency->referral_code }}</td>
                     <td class="px-4 py-3">
@@ -78,7 +78,7 @@
                     </td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="8" class="px-4 py-6 text-center text-gray-400">社内運用アカウントはまだありません。</td>
                 </tr>
             @endforelse

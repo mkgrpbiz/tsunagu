@@ -48,7 +48,7 @@
                         \App\Enums\CollaborationPartnerApplicationStatus::Pending => 'bg-amber-50 text-amber-700 border-amber-200',
                     };
                 @endphp
-                <tr class="hover:bg-gray-50">
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3 whitespace-nowrap">{{ $application->created_at->format('Y-m-d H:i') }}</td>
                     <td class="px-4 py-3">{{ $application->agency->name }}（{{ $application->agency->referral_code }}）</td>
                     <td class="px-4 py-3 text-gray-600 truncate max-w-xs">{{ $application->collaboration_content }}</td>
@@ -64,7 +64,7 @@
                     </td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="5" class="px-4 py-6 text-center text-gray-400">共創パートナー申請はまだありません。</td>
                 </tr>
             @endforelse

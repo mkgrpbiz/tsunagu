@@ -24,7 +24,7 @@
                 @php
                     $isApproved = $client['status_summary'] === \App\Enums\CollaborationRewardStatus::Approved;
                 @endphp
-                <tr class="hover:bg-gray-50">
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3 font-medium">{{ $client['client_name'] }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $client['referrer']->name ?? '—' }}</td>
                     <td class="px-4 py-3 text-right">¥{{ number_format($client['totals']['revenue']) }}</td>
@@ -47,7 +47,7 @@
                     </td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="8" class="px-4 py-6 text-center text-gray-400">取引先が登録された案件がありません。案件編集画面で取引先名を設定してください。</td>
                 </tr>
             @endforelse

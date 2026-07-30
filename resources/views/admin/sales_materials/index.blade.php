@@ -19,7 +19,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($materials as $material)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3">{{ $material->title }}</td>
                     <td class="px-4 py-3">
                         <a href="{{ \Illuminate\Support\Facades\Storage::url($material->file_path) }}" target="_blank" class="text-blue-600 hover:underline">PDFを見る</a>
@@ -34,7 +34,7 @@
                     </td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="3" class="px-4 py-6 text-center text-gray-400">営業素材がありません。</td>
                 </tr>
             @endforelse

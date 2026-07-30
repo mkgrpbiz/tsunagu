@@ -58,7 +58,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($contracts as $contract)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3">{{ $contract->inquiry->project->name }}</td>
                     <td class="px-4 py-3">{{ $contract->inquiry->name }}</td>
                     <td class="px-4 py-3">¥{{ number_format($contract->agency_reward_amount) }}</td>
@@ -71,7 +71,7 @@
                     <td class="px-4 py-3">{{ optional($contract->paid_at)->format('Y-m-d') }}</td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="6" class="px-4 py-6 text-center text-gray-400">紹介報酬データがありません。</td>
                 </tr>
             @endforelse
@@ -93,7 +93,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($commissions as $commission)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3">{{ $commission->sourceAgency->name }}</td>
                     <td class="px-4 py-3">¥{{ number_format($commission->amount) }}</td>
                     <td class="px-4 py-3">{{ $commission->payment_due_date->format('Y-m-d') }}</td>
@@ -105,7 +105,7 @@
                     <td class="px-4 py-3">{{ optional($commission->paid_at)->format('Y-m-d') }}</td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="5" class="px-4 py-6 text-center text-gray-400">パートナー10%のデータがありません。</td>
                 </tr>
             @endforelse
@@ -128,7 +128,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($collaborationRewards as $reward)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3">{{ $reward->client_name }}</td>
                     <td class="px-4 py-3">{{ $reward->month->format('Y-m') }}</td>
                     <td class="px-4 py-3">¥{{ number_format($reward->reward_amount) }}</td>
@@ -141,7 +141,7 @@
                     <td class="px-4 py-3">{{ optional($reward->paid_at)->format('Y-m-d') }}</td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="6" class="px-4 py-6 text-center text-gray-400">共創パートナー30%のデータがありません。</td>
                 </tr>
             @endforelse

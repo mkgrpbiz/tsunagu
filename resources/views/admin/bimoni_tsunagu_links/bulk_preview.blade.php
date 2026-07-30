@@ -30,7 +30,7 @@
             <tbody class="divide-y divide-gray-100">
                 @foreach ($matched as $match)
                     @foreach ($match['rows'] as $i => $row)
-                        <tr>
+                        <tr class="even:bg-gray-50 hover:bg-gray-100">
                             <td class="px-4 py-2">{{ $i === 0 ? $match['inquiry']->name : '' }}</td>
                             <td class="px-4 py-2">{{ $i === 0 ? $match['inquiry']->name_kana : '' }}</td>
                             <td class="px-4 py-2 text-gray-500">{{ $row['memo'] }}</td>

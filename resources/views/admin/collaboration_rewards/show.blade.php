@@ -42,7 +42,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($client['monthly'] as $row)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3 whitespace-nowrap">{{ $row['month']->format('Y-m') }}</td>
                     <td class="px-4 py-3 text-right">¥{{ number_format($row['revenue']) }}</td>
                     <td class="px-4 py-3 text-right">¥{{ number_format($row['agency_reward_total']) }}</td>
@@ -70,7 +70,7 @@
                     @endif
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="7" class="px-4 py-6 text-center text-gray-400">着金実績がありません。</td>
                 </tr>
             @endforelse

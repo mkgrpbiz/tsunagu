@@ -33,7 +33,7 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @foreach ($valid as $row)
-                    <tr>
+                    <tr class="even:bg-gray-50 hover:bg-gray-100">
                         <td class="px-4 py-3 whitespace-nowrap">{{ $row['timestamp']?->format('Y-m-d H:i') ?? '—' }}</td>
                         <td class="px-4 py-3">{{ $row['agency']->name }}（{{ $row['agency']->referral_code }}）</td>
                         <td class="px-4 py-3">{{ $row['project']->name }}</td>
@@ -60,7 +60,7 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @foreach ($invalid as $row)
-                    <tr>
+                    <tr class="even:bg-gray-50 hover:bg-gray-100">
                         <td class="px-4 py-3 font-mono text-xs">{{ $row['raw'] }}</td>
                         <td class="px-4 py-3 text-red-600">{{ implode('、', $row['errors']) }}</td>
                     </tr>

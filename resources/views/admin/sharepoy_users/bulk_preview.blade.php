@@ -30,7 +30,7 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @foreach ($validLines as $line)
-                    <tr>
+                    <tr class="even:bg-gray-50 hover:bg-gray-100">
                         <td class="px-4 py-2">{{ $line['sharepoy_user_id'] }}</td>
                         <td class="px-4 py-2">{{ $line['referrer_sharepoy_user_id'] }}</td>
                         <td class="px-4 py-2">{{ $line['name'] }}</td>

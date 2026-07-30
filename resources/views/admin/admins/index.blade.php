@@ -21,7 +21,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($admins as $adm)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3">
                         {{ $adm->name }}
                         @if ($adm->id === auth()->id())
@@ -67,7 +67,7 @@
                     </td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="5" class="px-4 py-6 text-center text-gray-400">管理者がいません。</td>
                 </tr>
             @endforelse

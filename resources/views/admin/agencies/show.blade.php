@@ -127,7 +127,7 @@
         <tbody class="divide-y divide-gray-100">
             @foreach (\App\Enums\LegalDocumentType::cases() as $type)
                 @php $consent = $consents->get($type->value); @endphp
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-3 py-2">{{ $type->label() }}</td>
                     <td class="px-3 py-2">{{ $consent?->legalDocument?->version ?? '—' }}</td>
                     <td class="px-3 py-2 whitespace-nowrap">{{ optional($consent?->consented_at)->format('Y-m-d H:i') ?? '—' }}</td>
@@ -153,14 +153,14 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($statusHistories as $history)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-3 py-2 whitespace-nowrap">{{ $history->created_at->format('Y-m-d H:i') }}</td>
                     <td class="px-3 py-2">{{ $history->from_status?->label() ?? '—' }}</td>
                     <td class="px-3 py-2">{{ $history->to_status->label() }}</td>
                     <td class="px-3 py-2">{{ $history->changedByUser?->name ?? '（自己登録）' }}</td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="4" class="px-3 py-6 text-center text-gray-400">履歴がありません。</td>
                 </tr>
             @endforelse

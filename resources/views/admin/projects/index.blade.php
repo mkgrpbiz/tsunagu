@@ -80,7 +80,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100" id="proj-list">
             @forelse ($projects as $project)
-                <tr class="hover:bg-gray-50 @if ($canReorder) proj-row @endif" @if ($canReorder) draggable="true" data-id="{{ $project->id }}" @endif>
+                <tr class="even:bg-gray-50 hover:bg-gray-100 @if ($canReorder) proj-row @endif" @if ($canReorder) draggable="true" data-id="{{ $project->id }}" @endif>
                     @if ($canReorder)
                         <td class="px-4 py-3"><span class="proj-handle">⠿</span></td>
                     @endif
@@ -118,7 +118,7 @@
                     </td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="{{ $canReorder ? 10 : 9 }}" class="px-4 py-8 text-center text-gray-400">案件がありません。</td>
                 </tr>
             @endforelse

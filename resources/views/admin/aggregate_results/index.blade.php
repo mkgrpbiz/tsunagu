@@ -126,7 +126,7 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse ($history as $record)
-                    <tr>
+                    <tr class="even:bg-gray-50 hover:bg-gray-100">
                         <td class="px-4 py-3">{{ $record->created_at->format('Y-m-d H:i') }}</td>
                         <td class="px-4 py-3">{{ $record->project->name }}</td>
                         <td class="px-4 py-3">¥{{ number_format($record->contract->deposit_amount) }}</td>
@@ -139,7 +139,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr>
+                    <tr class="even:bg-gray-50 hover:bg-gray-100">
                         <td colspan="6" class="px-4 py-6 text-center text-gray-400">反映履歴はありません。</td>
                     </tr>
                 @endforelse
