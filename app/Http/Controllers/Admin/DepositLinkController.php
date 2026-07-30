@@ -55,10 +55,18 @@ class DepositLinkController extends Controller
 
             foreach ($candidates as $candidate) {
                 $partnerAgencyId = $candidate->project->partner_agency_id;
+                $clientName = $candidate->project->client_name;
 
-                $candidate->siblingProjects = $partnerAgencyId
-                    ? $allProjectsForSiblings->where('partner_agency_id', $partnerAgencyId)->where('id', '!=', $candidate->project_id)->values()
-                    : collect();
+                $candidate->siblingProjects = $allProjectsForSiblings
+                    ->filter(function (Project $project) use ($candidate, $partnerAgencyId, $clientName) {
+                        if ($project->id === $candidate->project_id) {
+                            return false;
+                        }
+
+                        return ($partnerAgencyId && $project->partner_agency_id === $partnerAgencyId)
+                            || ($clientName && $project->client_name === $clientName);
+                    })
+                    ->values();
             }
         }
 
