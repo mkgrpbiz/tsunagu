@@ -85,8 +85,8 @@ Route::get('legal/{type}', [PublicLegalDocumentController::class, 'show'])->name
 
 Route::get('company-profile', [PublicCompanyProfileController::class, 'show'])->name('company-profile.show');
 
-Route::get('sales-materials/{salesMaterial}/download', [DownloadController::class, 'salesMaterial'])->name('sales-materials.download');
-Route::get('projects/{project}/sales-material/download', [DownloadController::class, 'projectSalesMaterial'])->name('projects.sales-material.download');
+Route::get('sales-materials/{salesMaterial}/download/{filename}', [DownloadController::class, 'salesMaterial'])->name('sales-materials.download')->where('filename', '.*');
+Route::get('projects/{project}/sales-material/download/{filename}', [DownloadController::class, 'projectSalesMaterial'])->name('projects.sales-material.download')->where('filename', '.*');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('login', [AuthController::class, 'showLogin'])->name('login');
