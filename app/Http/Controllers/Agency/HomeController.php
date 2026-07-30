@@ -32,7 +32,7 @@ class HomeController extends Controller
             'content' => HomePageContent::current(),
             'blocks' => HomeBlock::orderBy('sort_order')->get(),
             'announcements' => Announcement::where('is_draft', false)->latest()->take(10)->get(),
-            'salesMaterials' => SalesMaterial::latest()->get(),
+            'salesMaterials' => SalesMaterial::where('is_draft', false)->latest()->get(),
             'referralUrl' => url('/agency/register?ref='.$agency->referral_code),
             'restrictedReason' => $restrictedReason,
             'bannerReason' => $bannerReason,

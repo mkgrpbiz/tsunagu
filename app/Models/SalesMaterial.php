@@ -5,8 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['title', 'file_path'])]
+#[Fillable(['title', 'file_path', 'is_draft'])]
 class SalesMaterial extends Model
 {
-    //
+    protected function casts(): array
+    {
+        return [
+            'is_draft' => 'boolean',
+        ];
+    }
 }

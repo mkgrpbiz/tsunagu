@@ -28,11 +28,13 @@ class SalesMaterialController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+            'is_draft' => ['sometimes', 'boolean'],
         ]);
 
         SalesMaterial::create([
             'title' => $data['title'],
             'file_path' => $request->file('file')->store('sales-materials', 'public'),
+            'is_draft' => $request->boolean('is_draft'),
         ]);
 
         return redirect()->route('admin.sales-materials.index')->with('status', '営業素材を追加しました。');
@@ -48,7 +50,10 @@ class SalesMaterialController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'file' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
+            'is_draft' => ['sometimes', 'boolean'],
         ]);
+
+        $data['is_draft'] = $request->boolean('is_draft');
 
         if ($request->hasFile('file')) {
             Storage::disk('public')->delete($salesMaterial->file_path);

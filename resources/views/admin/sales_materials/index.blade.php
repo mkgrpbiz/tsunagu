@@ -20,7 +20,12 @@
         <tbody class="divide-y divide-gray-100">
             @forelse ($materials as $material)
                 <tr class="even:bg-gray-50 hover:bg-gray-100">
-                    <td class="px-4 py-3">{{ $material->title }}</td>
+                    <td class="px-4 py-3">
+                        {{ $material->title }}
+                        @if ($material->is_draft)
+                            <span class="text-xs font-medium border rounded-full px-2 py-1 bg-amber-50 text-amber-700 border-amber-200 ml-1">下書き</span>
+                        @endif
+                    </td>
                     <td class="px-4 py-3">
                         <a href="{{ \Illuminate\Support\Facades\Storage::url($material->file_path) }}" target="_blank" class="text-blue-600 hover:underline">PDFを見る</a>
                     </td>
