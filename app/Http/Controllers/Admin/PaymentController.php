@@ -348,7 +348,7 @@ class PaymentController extends Controller
         return redirect()->route('admin.payments.show', $agency)->with('status', 'まとめて未払いに戻しました。');
     }
 
-    public function update(Contract $contract, LineMessagingService $lineMessaging): RedirectResponse
+    public function update(Request $request, Contract $contract, LineMessagingService $lineMessaging): RedirectResponse
     {
         $contract->update([
             'payment_status' => PaymentStatus::Paid,
@@ -357,7 +357,9 @@ class PaymentController extends Controller
 
         $agency = $contract->inquiry->agency;
 
-        $this->notifyPaymentCompleted($agency, (int) $contract->agency_reward_amount, $lineMessaging);
+        if (! $request->boolean('skip_line_notify')) {
+            $this->notifyPaymentCompleted($agency, (int) $contract->agency_reward_amount, $lineMessaging);
+        }
 
         return redirect()->route('admin.payments.show', $agency)->with('status', '支払済みにしました。');
     }
@@ -372,14 +374,16 @@ class PaymentController extends Controller
         return redirect()->route('admin.payments.show', $contract->inquiry->agency)->with('status', '未払いに戻しました。');
     }
 
-    public function updateReferralCommission(ReferralCommission $referralCommission, LineMessagingService $lineMessaging): RedirectResponse
+    public function updateReferralCommission(Request $request, ReferralCommission $referralCommission, LineMessagingService $lineMessaging): RedirectResponse
     {
         $referralCommission->update([
             'payment_status' => PaymentStatus::Paid,
             'paid_at' => now(),
         ]);
 
-        $this->notifyPaymentCompleted($referralCommission->referrerAgency, (int) $referralCommission->amount, $lineMessaging);
+        if (! $request->boolean('skip_line_notify')) {
+            $this->notifyPaymentCompleted($referralCommission->referrerAgency, (int) $referralCommission->amount, $lineMessaging);
+        }
 
         return redirect()->route('admin.payments.show', $referralCommission->referrerAgency)->with('status', 'パートナー10%を支払済みにしました。');
     }
@@ -394,7 +398,7 @@ class PaymentController extends Controller
         return redirect()->route('admin.payments.show', $referralCommission->referrerAgency)->with('status', 'パートナー10%を未払いに戻しました。');
     }
 
-    public function updateCollaborationReward(CollaborationReward $collaborationReward, LineMessagingService $lineMessaging): RedirectResponse
+    public function updateCollaborationReward(Request $request, CollaborationReward $collaborationReward, LineMessagingService $lineMessaging): RedirectResponse
     {
         $collaborationReward->update([
             'payment_status' => PaymentStatus::Paid,
@@ -406,7 +410,9 @@ class PaymentController extends Controller
             ->with('referrerAgency')
             ->first()?->referrerAgency;
 
-        $this->notifyPaymentCompleted($referrerAgency, (int) $collaborationReward->reward_amount, $lineMessaging);
+        if (! $request->boolean('skip_line_notify')) {
+            $this->notifyPaymentCompleted($referrerAgency, (int) $collaborationReward->reward_amount, $lineMessaging);
+        }
 
         return redirect()->route('admin.payments.show', $referrerAgency)->with('status', '共創パートナー30%を支払済みにしました。');
     }

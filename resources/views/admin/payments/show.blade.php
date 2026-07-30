@@ -54,6 +54,7 @@
                 <th class="px-4 py-3 font-medium">支払予定日</th>
                 <th class="px-4 py-3 font-medium">ステータス</th>
                 <th class="px-4 py-3 font-medium">支払日</th>
+                <th class="px-4 py-3 font-medium w-28"></th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
@@ -69,10 +70,17 @@
                         </span>
                     </td>
                     <td class="px-4 py-3">{{ optional($contract->paid_at)->format('Y-m-d') }}</td>
+                    <td class="px-4 py-3">
+                        @if ($contract->payment_status === \App\Enums\PaymentStatus::Unpaid)
+                            <button type="button" onclick="tsnOpenPayModal('{{ route('admin.payments.update', $contract) }}')" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">支払済み</button>
+                        @elseif ($contract->payment_status === \App\Enums\PaymentStatus::Paid)
+                            <button type="button" onclick="tsnOpenRevertModal('{{ route('admin.payments.revert', $contract) }}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded">取消し</button>
+                        @endif
+                    </td>
                 </tr>
             @empty
                 <tr class="even:bg-gray-50 hover:bg-gray-100">
-                    <td colspan="6" class="px-4 py-6 text-center text-gray-400">紹介報酬データがありません。</td>
+                    <td colspan="7" class="px-4 py-6 text-center text-gray-400">紹介報酬データがありません。</td>
                 </tr>
             @endforelse
         </tbody>
@@ -89,6 +97,7 @@
                 <th class="px-4 py-3 font-medium">支払予定日</th>
                 <th class="px-4 py-3 font-medium">ステータス</th>
                 <th class="px-4 py-3 font-medium">支払日</th>
+                <th class="px-4 py-3 font-medium w-28"></th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
@@ -103,10 +112,17 @@
                         </span>
                     </td>
                     <td class="px-4 py-3">{{ optional($commission->paid_at)->format('Y-m-d') }}</td>
+                    <td class="px-4 py-3">
+                        @if ($commission->payment_status === \App\Enums\PaymentStatus::Unpaid)
+                            <button type="button" onclick="tsnOpenPayModal('{{ route('admin.payments.referral-commissions.update', $commission) }}')" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">支払済み</button>
+                        @elseif ($commission->payment_status === \App\Enums\PaymentStatus::Paid)
+                            <button type="button" onclick="tsnOpenRevertModal('{{ route('admin.payments.referral-commissions.revert', $commission) }}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded">取消し</button>
+                        @endif
+                    </td>
                 </tr>
             @empty
                 <tr class="even:bg-gray-50 hover:bg-gray-100">
-                    <td colspan="5" class="px-4 py-6 text-center text-gray-400">パートナー10%のデータがありません。</td>
+                    <td colspan="6" class="px-4 py-6 text-center text-gray-400">パートナー10%のデータがありません。</td>
                 </tr>
             @endforelse
         </tbody>
@@ -124,6 +140,7 @@
                 <th class="px-4 py-3 font-medium">支払予定日</th>
                 <th class="px-4 py-3 font-medium">ステータス</th>
                 <th class="px-4 py-3 font-medium">支払日</th>
+                <th class="px-4 py-3 font-medium w-28"></th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
@@ -139,13 +156,67 @@
                         </span>
                     </td>
                     <td class="px-4 py-3">{{ optional($reward->paid_at)->format('Y-m-d') }}</td>
+                    <td class="px-4 py-3">
+                        @if ($reward->payment_status === \App\Enums\PaymentStatus::Unpaid)
+                            <button type="button" onclick="tsnOpenPayModal('{{ route('admin.payments.collaboration-rewards.update', $reward) }}')" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">支払済み</button>
+                        @elseif ($reward->payment_status === \App\Enums\PaymentStatus::Paid)
+                            <button type="button" onclick="tsnOpenRevertModal('{{ route('admin.payments.collaboration-rewards.revert', $reward) }}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded">取消し</button>
+                        @endif
+                    </td>
                 </tr>
             @empty
                 <tr class="even:bg-gray-50 hover:bg-gray-100">
-                    <td colspan="6" class="px-4 py-6 text-center text-gray-400">共創パートナー30%のデータがありません。</td>
+                    <td colspan="7" class="px-4 py-6 text-center text-gray-400">共創パートナー30%のデータがありません。</td>
                 </tr>
             @endforelse
         </tbody>
     </table>
 </div>
+
+<div id="pay-modal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-lg p-6 max-w-sm w-full">
+        <p class="text-sm text-gray-700 mb-4">支払済みにしますか？</p>
+        <form method="POST" id="pay-modal-form">
+            @csrf
+            @method('PATCH')
+            <label class="flex items-center gap-2 text-sm mb-4">
+                <input type="checkbox" name="skip_line_notify" value="1">
+                LINE通知を送らない
+            </label>
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="tsnCloseModal('pay-modal')" class="text-sm text-gray-500 px-4 py-2">キャンセル</button>
+                <button type="submit" class="text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md px-4 py-2">支払済みにする</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="revert-modal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
+    <div class="bg-white rounded-lg p-6 max-w-sm w-full">
+        <p class="text-sm text-gray-700 mb-4">未払いに戻しますか？</p>
+        <form method="POST" id="revert-modal-form">
+            @csrf
+            @method('PATCH')
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="tsnCloseModal('revert-modal')" class="text-sm text-gray-500 px-4 py-2">キャンセル</button>
+                <button type="submit" class="text-sm bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-md px-4 py-2">未払いに戻す</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function tsnOpenPayModal(actionUrl) {
+    document.getElementById('pay-modal-form').action = actionUrl;
+    document.getElementById('pay-modal-form').querySelector('input[name="skip_line_notify"]').checked = false;
+    document.getElementById('pay-modal').classList.remove('hidden');
+}
+function tsnOpenRevertModal(actionUrl) {
+    document.getElementById('revert-modal-form').action = actionUrl;
+    document.getElementById('revert-modal').classList.remove('hidden');
+}
+function tsnCloseModal(id) {
+    document.getElementById(id).classList.add('hidden');
+}
+</script>
 @endsection
