@@ -43,6 +43,7 @@ use App\Http\Controllers\Agency\ProjectController as AgencyProjectController;
 use App\Http\Controllers\Public\AgencyRegistrationController;
 use App\Http\Controllers\Public\ApplyController;
 use App\Http\Controllers\Public\CompanyProfileController as PublicCompanyProfileController;
+use App\Http\Controllers\Public\DownloadController;
 use App\Http\Controllers\Public\LegalDocumentController as PublicLegalDocumentController;
 use App\Http\Controllers\Public\LineWebhookController;
 use App\Models\NotificationMessageSetting;
@@ -83,6 +84,9 @@ Route::pattern('type', 'terms|privacy|partner_agreement');
 Route::get('legal/{type}', [PublicLegalDocumentController::class, 'show'])->name('legal.show');
 
 Route::get('company-profile', [PublicCompanyProfileController::class, 'show'])->name('company-profile.show');
+
+Route::get('sales-materials/{salesMaterial}/download', [DownloadController::class, 'salesMaterial'])->name('sales-materials.download');
+Route::get('projects/{project}/sales-material/download', [DownloadController::class, 'projectSalesMaterial'])->name('projects.sales-material.download');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('login', [AuthController::class, 'showLogin'])->name('login');
