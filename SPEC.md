@@ -80,6 +80,8 @@
   - **100件ごとのページネーション**（`->paginate(100)->withQueryString()`）
 - 共創パートナー一覧（`admin/collaboration-partners/index`）: 会社名 / 名前 / フリガナ / 公開案件数 / 詳細を表示
 - 問い合わせ一覧（`admin/inquiries`）も同様に**100件ごとのページネーション**（元々全件をメモリに読み込み月フィルタをPHP側でかけている実装のため、`LengthAwarePaginator`で`Collection::forPage()`スライスを手動ラップ）
+- 案件一覧（`admin/projects`）: **紹介者列を削除し、単価表示の後ろに問い合わせ数・着金数を追加（2026-07-28）**。紹介者情報は案件編集画面で確認できるため一覧では冗長と判断し削除、代わりに単価の隣に実績（問い合わせ数・着金数）を出して案件の動き具合を一目で見えるようにした
+- **管理画面・パートナー向け画面とも一覧テーブルは交互の行色（ゼブラストライプ）に統一（2026-07-30）**: `<tr>`に`even:bg-gray-50 hover:bg-gray-100`を付ける、姉妹プロジェクトBIMONIと同じ規約。管理画面の一覧テーブル全般、パートナー向け（問い合わせ・報酬管理）画面、支払通知書PDFのテーブルも同様に統一した
 
 ## ダッシュボード（`admin/dashboard`）
 
@@ -96,6 +98,15 @@
 - **LP**（`admin/landing-page-content`、`/agency/register`の未ログイン向け招待ページ用）: `LandingPageContent`シングルトン行。タグライン、見出し（1行目/強調部分/続き）、メリット（見出し＋`タイトル|説明`形式の項目一覧、`HomeBlock`とは分離管理）、ご参加の流れ（見出し＋ステップ3つ）、登録ボタンのテキスト、ロゴ上のバッジテキスト
 - **ロゴ画像**: `HomePageContent.brand_logo_path`が実体で、ホーム・LP両方の編集画面から共通でアップロード/削除できる（同じ1枚を共有）。未設定時は「TSUNAGU Partner Network」の文字表示にフォールバック
 - 画像は`storage/app/public/brand/`に保存（`php artisan storage:link`済み）
+
+## 営業素材（ホーム画面のダウンロードブロック、`admin/sales-materials`）
+
+パートナー向けホーム画面に表示するPDF資料の管理機能。`SalesMaterial`モデル（`title`/`file_path`/`original_filename`/`is_draft`）を管理画面からアップロード・並び替えでき、`HomeBlock`（`type='sales_materials'`）という**削除不可・作り直し不可の位置マーカー型ブロック**として`admin/home-content`の並び順に組み込まれる。
+
+- **下書き（表示/非表示）フラグ追加（2026-07-30）**: お知らせ（`Announcement.is_draft`）と同じパターンで、素材ごとにパートナー向けホーム画面への表示可否を切り替えられるようにした
+- **HomeBlockの削除不可種別を保護（2026-07-30）**: `sales_materials`のような「新規作成できない・位置が固定の」ブロック種別は、管理画面から一度削除すると二度と復元できなくなるバグがあった（作り直しの導線が存在しないため）。`HomeBlockController::destroy()`にサーバー側の削除禁止チェックを追加し、削除ボタン自体もこの種別には出さないようにした上で、既存データに欠けがあれば補充する専用マイグレーション（`restore_sales_materials_home_block_if_missing`）を追加
+- **ダウンロードリンクの見た目・挙動を統一（2026-07-30）**: 案件一覧の営業資料ダウンロードと同じピル型ボタンに統一、`download`属性を追加、ファイル名は素材名・案件名ベース（アップロード時の元ファイル名があればそれを優先）
+- **ダウンロードは専用ルート＋`Storage::download()`のサーバー側`Content-Disposition`方式（2026-07-30）**: HTMLの`download`属性はブラウザ側のヒントに過ぎず、iOS Safariやアプリ内ブラウザ経由の別ブラウザ起動などでは無視され、ストレージ上のランダムなハッシュファイル名でダウンロードされてしまう不具合が本番で報告された。`Public\DownloadController::salesMaterial()`/`projectSalesMaterial()`を新設し、`Storage::disk('public')->download($path, $filename)`でサーバー側から狙ったファイル名を明示することで環境非依存にした（`Project.sales_material_path`側の営業資料ダウンロードも同じ方式に統一）
 
 ## パートナーのコード体系（`legacy_code`）
 
@@ -118,7 +129,8 @@
 
 ## 着金紐付け（`admin/deposit-links`）
 
-- 検索欄（名前・フリガナ・LINE名）単独で検索可能。カテゴリー・案件名は絞り込み専用のオプション項目（以前は「カテゴリー→案件→検索」の3段階が必須だったのを解消）
+- 検索欄（名前・フリガナ・LINE名・**会員番号＝パートナーの`legacy_code`、2026-07-30追加**）単独で検索可能。カテゴリー・案件名は絞り込み専用のオプション項目（以前は「カテゴリー→案件→検索」の3段階が必須だったのを解消）
+- **着金(`Contract`)ごとの案件上書き（2026-07-30追加）**: 「案件Aへの問い合わせとして来た人が、実は同じ共創パートナーの別案件Bを行っていた」というケース向け。`Inquiry`自体の所属案件は変えず、**その着金だけ**別案件として扱いたいという要望から、`contracts.project_id`（nullable、FK→projects）を新設。`Contract::project()`（nullable）と`Contract::effectiveProject()`（`$this->project ?? $this->inquiry->project`）を追加し、`ContractLinkingService::linkInquiry()`の第3引数（`?int $projectId = null`、デフォルトnullで既存呼び出し元は無改修）経由で保存する。候補カードの案件名の横に「変更」リンクが出て、**同じ`partner_agency_id`を持つ案件、または同じ`client_name`（取引先名）を持つ案件**（後日追加要望で拡張）を選び直せる。`partner_agency_id`未設定の案件には「変更」リンク自体を出さない。表示・集計側（支払い管理・パートナー報酬管理・支払通知書PDF・社内処理詳細・案件一覧の着金数）はすべて`inquiry->project`直参照から`effectiveProject()`（または着金数集計は`COALESCE(contracts.project_id, inquiries.project_id)`によるSQL側集計）に置き換え済み。共創報酬（`client_name`ベース集計）も上書き後の案件の`client_name`を基準に計算される
 - 候補カードは2行表示: 上段（`bg-blue-50`）に問い合わせ日時・パートナー・案件名・LINE名・名前・フリガナ、下段にTSUNAGU単価/パートナー単価（両方とも編集可能な入力欄。案件に単価パターンが1つだけならその値を自動プリフィル、複数パターンや変動制なら空欄で手入力必須）・件数・TSUNAGU合計/パートナー合計（自動計算・readonly）・TSUNAGU利益（表示のみ）・紐付けボタン
 - **合計金額はサーバー側で単価×件数から再計算する**（クライアントが送ってきた合計値は信用しない）
 - 「+ もう1パターン追加」で1回の紐付け送信に複数の（単価/単価/件数）ラインを追加可能。各ラインが個別の`Contract`になる（`ContractLinkingService::linkInquiry()`が配列で受け取り、ライン数分`Contract::create()`をループ）
@@ -139,6 +151,7 @@
 - 送信すると、ラインごとに`Inquiry`（`name`/`name_kana`は固定文言「合計成果反映」、選択した実在Agencyに紐付け）を自動生成し、`ContractLinkingService::linkInquiry()`で着金紐付けと同じ`Contract`作成ロジックを共用
 - 選択中パートナーの反映履歴（案件名・TSUNAGU合計・パートナー合計・パートナー10%対象有無・支払状況）をページ下部に表示（`Contract.referralCommission`のHasOneリレーションで判定）
 - **`inquiries.is_bulk_reflection`（bool）フラグ**: この画面で作った`Inquiry`は実際の顧客問い合わせではないため、管理画面の通常の「問い合わせ一覧」（`admin/inquiries`）とその件数集計からは除外する（`is_bulk_reflection=false`でフィルタ）。除外しても合計成果反映画面自体の反映履歴では引き続き参照できる
+- **ライン単位の「合計」・全体合計はパートナー単価基準（2026-07-30修正）**: 各ラインの入力欄はTSUNAGU単価・パートナー単価の両方があるが、画面上でリアルタイム計算される「合計」表示と「全体合計」は**パートナー単価×件数**を基準にする（送信されるTSUNAGU単価自体はそのまま`ContractLinkingService::linkInquiry()`に渡り、`Contract`には両方の単価・件数が保存される。変更したのはこの2箇所のプレビュー表示の計算基準のみ）
 
 ## 問い合わせステータス（`InquiryStatus`）
 
@@ -192,7 +205,7 @@
 - 一覧（`admin/payments`）: パートナー別に1行（会員番号・紹介報酬・パートナー10%・共創パートナー30%・合計・詳細ボタン）。集計は`Agency::pendingPayoutBreakdown()`
   - **一括CSV抽出**: 振込指定日（デフォルト＝直近の5日、土日を考慮して調整可能な日付ピッカー）を指定し、全銀協形式の総合振込CSVをShift_JISでダウンロード（`ZenginTransferCsvBuilder`/`ZenginNameNormalizer`、BIMONIの本番GASスクリプトのロジックをPHPに移植。氏名の全角→半角カナ変換込み。半角中黒`ｦ-ﾟ`の文字フィルタ範囲が半角中点U+FF65を含まずストリップされる仕様もBIMONI本家と同じ挙動として踏襲）。振込元口座・委託者コード/名は`.env`の`ZENGIN_*`系（`config('services.zengin_transfer')`）
   - **一括で支払済みにする**: 画面上の月フィルタに関係なく、その時点で支払対象になっている全パートナーの未払い分を一括で支払済みに更新
-- 詳細ページ（`admin/payments/{agency}`）: 該当パートナーの紹介報酬・パートナー10%・共創パートナー30%の3履歴を表示。**「まとめて支払済みにする」「まとめて未払いに戻す」の一括ボタンのみ**（個別行ごとの支払済み/未払いボタンはUIから削除済み。ルート・コントローラーメソッド自体は保守的に残してある＝UIから参照されていないだけ）
+- 詳細ページ（`admin/payments/{agency}`）: 該当パートナーの紹介報酬・パートナー10%・共創パートナー30%の3履歴を表示。「まとめて支払済みにする」「まとめて未払いに戻す」の一括ボタンに加え、**行ごとの個別支払済み/取消しボタンも復活済み（2026-07-30再追加）**: 確認は素の`confirm()`ではなく自作モーダルを使用、支払済みにする側には「LINE通知を送らない」チェックボックスがあり、チェック時は`update()`/`updateReferralCommission()`/`updateCollaborationReward()`が`$request->boolean('skip_line_notify')`を見て`notifyPaymentCompleted()`をスキップする（既存の一括ボタン・ルート自体はそのまま流用、コントローラー側にリクエスト引数を追加しただけ）
 - `CollaborationReward`にも`payment_status`/`payment_due_date`/`paid_at`があり、他の2種と同じ支払済み/未払いの管理ができる（承認待ち/承認の`status`とは独立したカラム）
 - **パートナーの累計未払い合計（3種合算、`Agency::totalPendingPayout()`）が¥1,000未満の場合、そのパートナーの未払い分は一覧の支払対象から除外され「繰り越し予定」に回る**（支払済みの記録は除外されず、取り消しも従来通り可能）
 - `Agency::carryOverSummary(int $threshold = 1000)`が繰り越し対象パートナー一覧と合計額を返す（支払い管理・ダッシュボードの両方から呼ばれる共通ロジック）
@@ -234,6 +247,20 @@
 
 **同様の設計原則（新機能を作る際の注意）**: ログイン済みユーザーがLINEログイン/LIFFの外部往復を経由する画面を新たに作る場合、着地ページを認証必須ルートにしないこと。認証が必要な処理は必ずセッション非依存の`state`（`encrypt()`されたペイロード）等で本人確認すること。
 
+## MK振り分け管理（2026-07-27追加、サイドメニュー「各ページ管理」下）
+
+TSUNAGU本体の問い合わせ・着金紐付けとは別枠で、SharePoy+（社内で運営する別のポイント制度）関連の突合・記録をまとめて処理するための7画面。他の一括紐付け画面と同じ「プレースト→プレビュー→確定」パターンを使うが、対象データがTSUNAGU本体の`Inquiry`/`Contract`だったり、SharePoy+専用の`SharePoyUser`/`SharePoyDepositRecord`だったりと画面ごとに扱うモデルが異なる。
+
+- **SharePoy+管理**（`admin/sharepoy-users`）: SharePoy+ユーザー台帳。`sharepoy_users`テーブル（`sharepoy_user_id`・`referrer_sharepoy_user_id`・`name`・`name_kana`）を一括貼り付け（`updateOrCreate`、既存は更新）。詳細ページでそのユーザーの`SharePoyDepositRecord`履歴を表示
+- **BIMONI(TSUNAGU)**（`admin/bimoni-tsunagu-links`）: 案件「BIMONI【募集モニター30件以上】」固定の一括紐付け。貼り付け行の金額が¥1,000ならTSUNAGU単価1,000/パートナー単価800、¥500ならTSUNAGU単価500/パートナー単価400固定（それ以外の金額は不一致としてスキップ）。同一人物が¥1,000行と¥500行の両方を持つ場合でもTSUNAGU側の問い合わせが1件しかないケースがあるため、名前・フリガナ単位でグルーピングしてから、その1件の`Inquiry`に複数`Contract`ラインとしてまとめて紐付ける（`ContractLinkingService::linkInquiry()`に配列で渡す）
+- **BIMONI(SharePoy)**（`admin/bimoni-sharepoy-links`）: SharePoy+のBIMONI経由紹介分を`SharePoyDepositRecord`（`source='bimoni_sharepoy'`、TSUNAGU本体の`Inquiry`/`Contract`は作らない）として記録するだけの画面。紹介コード列が`SHAREPOY`なら名前・フリガナで`SharePoyUser`を検索して紐付け、`SP`始まりのコードならユーザー未登録のまま記録（後から名寄せする運用）。それ以外のコードは不正行として弾く
+- **商品受け取りモニター**（`admin/product-monitor-links`, 対象案件id固定）/ **覆面調査モニター**（`admin/mystery-shopper-links`, 対象案件id固定）: 貼り付け行から数量ベースで単価ラインを生成する一括紐付け画面。商品受け取りは「A商品数量→TSUNAGU単価1,000/パートナー単価500」「B商品数量→TSUNAGU単価500/パートナー単価0」の2ライン、覆面調査は「数量→TSUNAGU単価1,000/パートナー単価500」の1ラインを、実際の数量をそのまま`count`に入れて生成する（**単価に数量を織り込んで`count=1`にする実装だと、後述のSharePoyポイント集計が¥1,000ルール/¥500ルールの契約を区別できなくなるため、単価は常にリテラル値・数量は`count`で持つ設計に途中で直した**）
+  - **A01（シェアポイ経由）は満額ルール**: 一致した`Inquiry`（または新規作成する場合）の紹介元パートナーが`legacy_code='A01'`（シェアポイ用の特別コード）の場合、パートナー単価をTSUNAGU単価と同額にする（TSUNAGU側の取り分がゼロになる＝全額パートナー＝実質シェアポイの取り分）。**この判定は「新規作成するInquiry」だけでなく「既存Inquiryにマッチしてその紐付け先パートナーがたまたまA01だったケース」も同様に満額にする必要があり、実際に既存マッチ側の判定漏れがバグとして見つかり修正した**
+  - 一致する`Inquiry`が見つからない行はA01扱いの新規`Inquiry`として自動作成してから同じロジックで紐付ける
+- **SharePoyポイント用**（`admin/sharepoy-points`）: 商品受け取りモニター・覆面調査モニターの案件で、紐付け先パートナーがA01（＝シェアポイ経由）かつ**まだ`SharePoyDepositRecord`が作られていない**`Contract`を自動抽出し、`Contract.inquiry.name`で`SharePoyUser`と名前一致させ、1件（`count`単位ではなく1ライン）につき300ポイントとして集計表示。商品受け取りモニターは**単価¥1,000ルールの契約のみ**が対象（`deposit_amount === count * 1000`でフィルタ、¥500ルール分は対象外）、覆面調査モニターは絞り込みなし全件対象。名前が一致しない分も「非マッチ(確認済み)」という専用のプレースホルダー`SharePoyUser`（`sharepoy_user_id='UNMATCHED'`）に記録し、次回以降の集計対象から外す（`whereDoesntHave('sharePoyDepositRecord')`で判定するため）。確定ボタンはマッチ0件でも非マッチがあれば押せる
+- **SharePoy+報告管理**（`admin/sharepoy-reports`）: `sharepoy_user_id`で検索し、そのユーザーの`SharePoyDepositRecord`一覧（区分はsourceの生文字列ではなく日本語ラベル表示）を表示するだけの参照専用画面
+- 上記の一括紐付け画面はいずれも既存の`admin/deposit-links`と同じ「タブ区切り基本＋半角スペース2個以上も列区切りとして許容」パース方式（`preg_split('/\t+| {2,}/', ...)`または`fgetcsv`)を踏襲している
+
 ## favicon・ホーム画面アイコン（2026-07-27追加）
 
 - ユーザー提供のロゴ画像（TSUNAGUのアイコン＋wordmark、正方形）を**そのまま**GD（`imagecopyresampled`）でリサイズしただけの5サイズを書き出し: `favicon-16x16.png`/`favicon-32x32.png`/`apple-touch-icon.png`（180×180）/`icon-192.png`/`icon-512.png`。当初アイコングラフィック部分だけクロップして使ったが、**ユーザーに確認せず画像を加工したことを指摘され、元画像をそのまま使う方針に修正した**。ユーザー提供のアセットは、変更した方が良さそうに見えても、まず確認してから加工すること
@@ -243,6 +270,8 @@
 - 元画像はwordmark（"TSUNAGU"/"Partner Network"の文字）込みの正方形。最終的には「アイコングラフィック部分（人物×2＋無限大マーク）だけを中央揃えで使う」形にユーザーから明示的に依頼があり、その形に変更（`imagecolorat`でのピクセルスキャンによりwordmarkとの間の余白行を検出し、正確なグラフィック部分のbboxを特定→均等パディングで正方形に切り出し）
 - **アイコンは管理画面から差し替え可能（2026-07-27追加）**: 「各ページ管理」→「アイコン管理」（`admin/app-icon`、menuKey`app_icon`）。アップロードした画像は`HomePageContent.app_icon_source_path`（`storage/app/public/branding/`）に元のまま保存し、`App\Services\AppIconGenerator::generate()`が**クロップ等の加工をせず**`imagecopyresampled`でリサイズするだけで5サイズを`public/`直下に書き出す（既存ファイルを上書き）。今後アイコン画像を変更したい場合は、この管理画面からアップロードするだけでよく、コード変更・デプロイ作業は不要
 - **OGP画像も同じ「アイコン管理」ページで設定（2026-07-27追加）**: `HomePageContent.og_image_path`（同じ`storage/app/public/branding/`に保存、リサイズ等の加工はしない＝アップロードした画像をそのまま使う）。`resources/views/partials/ogp.blade.php`が`og:type`/`og:site_name`/`og:title`/`og:image`（設定時のみ）/`twitter:card`を出力し、`layouts/public.blade.php`（`@yield('title')`をそのまま`og:title`にも使う）と`public/apply/show.blade.php`（案件名を明示的に`ogTitle`として渡す）に`@include('partials.ogp')`を追加。admin/agencyの認証必須レイアウトには追加していない（ログイン画面が展開されるだけでシェアする価値が薄いため）
+- **PWAの`start_url`をホーム画面追加後もログイン導線に正しく乗るよう修正（2026-07-29）**: サイトルート`/`は常に`/agency/register`（未ログイン向け登録LP）へ無条件リダイレクトする設定のため、`start_url: "/"`のままだとログイン済みパートナーがホーム画面からPWAを開くたびにLPが表示されてしまっていた。`/agency`（`auth:agency`ミドルウェア配下、ログイン済みなら`/agency/home`・未ログインならログイン画面へ正しく振り分けられる）に変更
+- **`manifest.json`を静的ファイルから動的ルートに変更（2026-07-29）**: 静的ファイルのままだとXserverのnginx設定で`Cache-Control: max-age=604800`（1週間）が付与され、上記`start_url`変更のような修正が端末になかなか反映されない（`public/`直下のファイル全般がこのキャッシュを受ける、rootアクセス権がなくnginx設定側では制御不可）。`routes/web.php`の`manifest.json`という名前付きルート（`Route::get`）でJSONを返すよう置き換え、`no-cache, must-revalidate`ヘッダーを明示することで即時反映されるようにした
 
 ## 開発環境の注意点
 
