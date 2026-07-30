@@ -103,7 +103,7 @@
     @forelse ($salesMaterials as $material)
         <div class="material-item">
             <span>{{ $material->title }}</span>
-            <a href="{{ \Illuminate\Support\Facades\Storage::url($material->file_path) }}" download target="_blank" rel="noopener" class="dl-btn">
+            <a href="{{ \Illuminate\Support\Facades\Storage::url($material->file_path) }}" download="{{ $material->title }}.pdf" target="_blank" rel="noopener" class="dl-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
                 PDFをダウンロード
             </a>
