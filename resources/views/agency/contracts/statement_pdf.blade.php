@@ -25,6 +25,7 @@
     table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
     th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #e5e7eb; }
     th { background: #f9fafb; color: #6b7280; font-weight: normal; }
+    tbody tr:nth-child(even) { background: #f9fafb; }
     .section-title { font-weight: bold; margin: 16px 0 4px; }
     .text-right { text-align: right; }
 </style>

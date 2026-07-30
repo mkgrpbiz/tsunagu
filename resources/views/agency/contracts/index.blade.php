@@ -78,7 +78,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($contracts as $contract)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3">{{ $contract->deposit_date->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">{{ $contract->inquiry->project->name }}</td>
                     <td class="px-4 py-3">{{ $contract->inquiry->name }}</td>
@@ -89,7 +89,7 @@
                     <td class="px-4 py-3">{{ $contract->payment_due_date->format('Y-m-d') }}</td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="8" class="px-4 py-6 text-center text-gray-400">着金はまだありません。</td>
                 </tr>
             @endforelse
@@ -110,14 +110,14 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($referralCommissionGroups as $group)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3">{{ $group['sourceAgency']->name }}</td>
                     <td class="px-4 py-3">{{ $group['count'] }}</td>
                     <td class="px-4 py-3">¥{{ number_format($group['total']) }}</td>
                     <td class="px-4 py-3">{{ $group['paymentDueDate']->format('Y-m-d') }}</td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="4" class="px-4 py-6 text-center text-gray-400">紹介報酬はまだありません。</td>
                 </tr>
             @endforelse
@@ -139,7 +139,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($collaborationRewardRows as $row)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3">{{ $row['clientName'] }}</td>
                     <td class="px-4 py-3">{{ $row['projectCount'] }}</td>
                     <td class="px-4 py-3">{{ $row['depositCount'] }}</td>
@@ -147,7 +147,7 @@
                     <td class="px-4 py-3">{{ $row['paymentDueDate']->format('Y-m-d') }}</td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="5" class="px-4 py-6 text-center text-gray-400">共創報酬はまだありません。</td>
                 </tr>
             @endforelse

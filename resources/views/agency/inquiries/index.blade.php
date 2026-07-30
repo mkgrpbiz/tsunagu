@@ -55,13 +55,13 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($projectSummary as $projectName => $stats)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-2">{{ $projectName }}</td>
                     <td class="px-4 py-2">{{ $stats['count'] }}件</td>
                     <td class="px-4 py-2">{{ $stats['contracted'] }}件</td>
                 </tr>
             @empty
-                <tr><td colspan="3" class="px-4 py-4 text-center text-gray-400">データがありません。</td></tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100"><td colspan="3" class="px-4 py-4 text-center text-gray-400">データがありません。</td></tr>
             @endforelse
         </tbody>
     </table>
@@ -82,7 +82,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100">
             @forelse ($inquiries as $inquiry)
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td class="px-4 py-3 whitespace-nowrap">{{ $inquiry->inquired_at->format('Y-m-d H:i') }}</td>
                     <td class="px-4 py-3">{{ $inquiry->project->name }}</td>
                     <td class="px-4 py-3">{{ $inquiry->lineUser->display_name ?? $inquiry->legacy_line_display_name }}</td>
@@ -91,7 +91,7 @@
                     <td class="px-4 py-3">{{ $inquiry->partnerStatusLabel() }}</td>
                 </tr>
             @empty
-                <tr>
+                <tr class="even:bg-gray-50 hover:bg-gray-100">
                     <td colspan="6" class="px-4 py-6 text-center text-gray-400">該当する問い合わせがありません。</td>
                 </tr>
             @endforelse
