@@ -150,25 +150,25 @@
 
 <script>
 function tsnBindAggregateLine(line) {
-    var tsunaguPriceInput = line.querySelector('.tsn-tsunagu-price');
+    var agencyPriceInput = line.querySelector('.tsn-agency-price');
     var countInput = line.querySelector('.tsn-count-input');
     var lineTotalDisplay = line.querySelector('.tsn-line-total');
 
     function recalculate() {
         tsnRecalculateGrandTotal();
 
-        var tsunaguPrice = parseInt(tsunaguPriceInput.value, 10);
+        var agencyPrice = parseInt(agencyPriceInput.value, 10);
         var count = parseInt(countInput.value, 10);
 
-        if (isNaN(tsunaguPrice) || isNaN(count)) {
+        if (isNaN(agencyPrice) || isNaN(count)) {
             lineTotalDisplay.textContent = '—';
             return;
         }
 
-        lineTotalDisplay.textContent = '¥' + (tsunaguPrice * count).toLocaleString();
+        lineTotalDisplay.textContent = '¥' + (agencyPrice * count).toLocaleString();
     }
 
-    line.querySelectorAll('.tsn-tsunagu-price, .tsn-count-input').forEach(function (input) {
+    line.querySelectorAll('.tsn-agency-price, .tsn-count-input').forEach(function (input) {
         input.addEventListener('input', recalculate);
     });
 
@@ -178,10 +178,10 @@ function tsnBindAggregateLine(line) {
 function tsnRecalculateGrandTotal() {
     var grandTotal = 0;
     document.querySelectorAll('.tsn-line').forEach(function (line) {
-        var tsunaguPrice = parseInt(line.querySelector('.tsn-tsunagu-price').value, 10);
+        var agencyPrice = parseInt(line.querySelector('.tsn-agency-price').value, 10);
         var count = parseInt(line.querySelector('.tsn-count-input').value, 10);
-        if (!isNaN(tsunaguPrice) && !isNaN(count)) {
-            grandTotal += tsunaguPrice * count;
+        if (!isNaN(agencyPrice) && !isNaN(count)) {
+            grandTotal += agencyPrice * count;
         }
     });
 
