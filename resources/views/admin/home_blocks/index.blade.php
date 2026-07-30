@@ -55,11 +55,13 @@
                 <span class="hb-badge">{{ $typeLabels[$block->type] ?? $block->type }}</span>
                 <div class="hb-actions">
                     <a href="{{ route('admin.home-blocks.edit', $block) }}" class="text-blue-600 hover:underline">編集</a>
-                    <form method="POST" action="{{ route('admin.home-blocks.destroy', $block) }}" onsubmit="return confirm('削除しますか？');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="text-red-600 hover:underline">削除</button>
-                    </form>
+                    @if (in_array($block->type, ['text', 'image', 'benefits', 'cta'], true))
+                        <form method="POST" action="{{ route('admin.home-blocks.destroy', $block) }}" onsubmit="return confirm('削除しますか？');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:underline">削除</button>
+                        </form>
+                    @endif
                 </div>
             </div>
             <div class="hb-preview">

@@ -79,6 +79,10 @@ class HomeBlockController extends Controller
 
     public function destroy(HomeBlock $homeBlock): RedirectResponse
     {
+        if (! in_array($homeBlock->type, self::CREATABLE_TYPES, true)) {
+            return redirect()->route('admin.home-blocks.index')->with('status', 'このブロックは削除できません（作成し直せない種類のため）。');
+        }
+
         if ($homeBlock->image_path) {
             Storage::disk('public')->delete($homeBlock->image_path);
         }
