@@ -94,12 +94,14 @@ class ContractController extends Controller
             ->with('inquiry.project')
             ->get();
 
+        // データが無くても当月は選択肢・初期選択に必ず含める（前月のまま止まって見えないように）
         $months = $contracts->map(fn (Contract $contract) => $contract->deposit_date->format('Y-m'))->toBase()
             ->merge($referralCommissions->map(fn (ReferralCommission $commission) => $commission->payment_due_date->format('Y-m')))
             ->merge($collaborationRewards->map(fn (CollaborationReward $reward) => $reward->month->format('Y-m')))
+            ->push(now()->format('Y-m'))
             ->unique()->sortDesc()->values();
 
-        $month = $month ?? $months->first();
+        $month = $month ?? now()->format('Y-m');
         $month = ($month === 'all' && ! $forceMonth) ? null : $month;
 
         $monthContracts = $contracts->when($month, fn ($collection) => $collection->filter(

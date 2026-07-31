@@ -71,12 +71,14 @@ class PaymentController extends Controller
         $commissionMonth = fn (ReferralCommission $commission) => optional($commission->contract?->deposit_date)->format('Y-m');
         $rewardMonth = fn (CollaborationReward $reward) => $reward->month->format('Y-m');
 
+        // データが無くても当月は選択肢・初期選択に必ず含める（前月のまま止まって見えないように）
         $months = $allContracts->map($contractMonth)->toBase()
             ->merge($allCommissions->map($commissionMonth))
             ->merge($allCollaborationRewards->map($rewardMonth))
+            ->push(now()->format('Y-m'))
             ->filter()->unique()->sortDesc()->values();
 
-        $month = $request->query('month', $months->first());
+        $month = $request->query('month', now()->format('Y-m'));
         $month = $month === 'all' ? null : $month;
 
         $monthContracts = $allContracts->when($month, fn ($collection) => $collection->filter(
