@@ -27,13 +27,15 @@ class DashboardController extends Controller
         $contracts = Contract::all();
         $referralCommissions = ReferralCommission::with('contract')->get();
 
+        // データが無くても当月は選択肢・初期選択に必ず含める（前月のまま止まって見えないように）
         $months = $agencies->map(fn (Agency $agency) => $agency->created_at->format('Y-m'))->toBase()
             ->merge($collaborationPartners->map(fn (Agency $agency) => ($agency->collaboration_partner_at ?? $agency->created_at)->format('Y-m')))
             ->merge($inquiries->map(fn (Inquiry $inquiry) => $inquiry->inquired_at->format('Y-m')))
             ->merge($contracts->map(fn (Contract $contract) => $contract->deposit_date->format('Y-m')))
+            ->push(now()->format('Y-m'))
             ->unique()->sortDesc()->values();
 
-        $month = $request->query('month', $months->first());
+        $month = $request->query('month', now()->format('Y-m'));
         $month = $month === 'all' ? null : $month;
         $previousMonth = $month ? Carbon::parse($month.'-01')->subMonth()->format('Y-m') : null;
 

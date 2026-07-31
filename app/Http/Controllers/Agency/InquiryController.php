@@ -21,10 +21,13 @@ class InquiryController extends Controller
             ->orderByDesc('inquired_at')
             ->get();
 
-        $months = $inquiries->map(fn (Inquiry $inquiry) => $inquiry->inquired_at->format('Y-m'))->unique()->sortDesc()->values();
+        // データが無くても当月は選択肢・初期選択に必ず含める（前月のまま止まって見えないように）
+        $months = $inquiries->map(fn (Inquiry $inquiry) => $inquiry->inquired_at->format('Y-m'))->toBase()
+            ->push(now()->format('Y-m'))
+            ->unique()->sortDesc()->values();
 
         $projectId = $request->query('project_id');
-        $month = $request->query('month', $months->first());
+        $month = $request->query('month', now()->format('Y-m'));
         $month = $month === 'all' ? null : $month;
 
         $monthInquiries = $inquiries->when($month, fn ($collection) => $collection->filter(
