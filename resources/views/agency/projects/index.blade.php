@@ -13,9 +13,15 @@
 .mk-cases .mk-title-main{font-weight:900;font-size:16px;line-height:1.35;color:#0f172a}
 .mk-cases .mk-title-sub{margin-top:6px;font-size:12.5px;line-height:1.6;color:#475569}
 .mk-cases details.case{background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 10px 24px rgba(0,0,0,.06);overflow:hidden;margin:10px 0}
-.mk-cases summary{list-style:none;cursor:pointer;padding:14px;font-weight:800;display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(180deg,#eff6ff,#fff);border-bottom:1px solid #e5e7eb}
+.mk-cases summary{list-style:none;cursor:pointer;padding:14px;display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,#eff6ff,#fff);border-bottom:1px solid #e5e7eb}
 .mk-cases summary::-webkit-details-marker{display:none}
-.mk-cases .chev{width:10px;height:10px;border-right:2px solid #9ca3af;border-bottom:2px solid #9ca3af;transform:rotate(45deg);transition:transform .18s ease;margin-left:auto;flex-shrink:0}
+.mk-cases .thumb{width:56px;height:56px;border-radius:12px;overflow:hidden;flex-shrink:0;background:#eff6ff}
+.mk-cases .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.mk-cases .thumb-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px}
+.mk-cases .summary-body{flex:1;min-width:0}
+.mk-cases .summary-title{font-weight:800;font-size:14.5px;line-height:1.4;color:#0f172a}
+.mk-cases .summary-price{margin-top:4px;font-size:12.5px;line-height:1.5;color:#2563eb;font-weight:700;white-space:pre-line;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mk-cases .chev{width:10px;height:10px;border-right:2px solid #9ca3af;border-bottom:2px solid #9ca3af;transform:rotate(45deg);transition:transform .18s ease;flex-shrink:0}
 .mk-cases details.case[open] .chev{transform:rotate(-135deg)}
 .mk-cases .body{padding:12px}
 .mk-cases .box{border:1px solid #e5e7eb;border-radius:14px;background:#fff;padding:12px;margin:12px 0}
@@ -52,15 +58,20 @@
             @foreach ($projects as $project)
                 <details class="case">
                     <summary>
-                        {{ $project->name }}
+                        <div class="thumb">
+                            @if ($project->image_path)
+                                <img src="{{ \Illuminate\Support\Facades\Storage::url($project->image_path) }}" alt="">
+                            @else
+                                <div class="thumb-placeholder">📋</div>
+                            @endif
+                        </div>
+                        <div class="summary-body">
+                            <div class="summary-title">{{ $project->name }}</div>
+                            <div class="summary-price">{{ $project->description }}</div>
+                        </div>
                         <span class="chev"></span>
                     </summary>
                     <div class="body">
-                        <div class="box">
-                            <p class="box-title">💰 成果単価</p>
-                            <p>{{ $project->description }}</p>
-                        </div>
-
                         <div class="box">
                             <p class="box-title">📅 着金タイミング</p>
                             <p>{{ $project->payment_timing }}</p>
