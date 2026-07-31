@@ -109,36 +109,39 @@ class PaymentController extends Controller
             + $allCollaborationRewards->where('payment_status', PaymentStatus::Unpaid)->sum('reward_amount');
 
         $summaries = [];
+        $emptyRow = ['contract_total' => 0, 'commission_total' => 0, 'reward_total' => 0, 'has_unpaid' => false, 'has_paid' => false];
 
         foreach ($payableContracts as $contract) {
             $agencyId = $contract->inquiry->agency_id;
-            $summaries[$agencyId] ??= ['agency' => $contract->inquiry->agency, 'contract_total' => 0, 'commission_total' => 0, 'reward_total' => 0];
+            $summaries[$agencyId] ??= ['agency' => $contract->inquiry->agency, ...$emptyRow];
 
-            if ($contract->payment_status === PaymentStatus::Unpaid) {
-                $summaries[$agencyId]['contract_total'] += $contract->agency_reward_amount;
-            }
+            $summaries[$agencyId]['contract_total'] += $contract->agency_reward_amount;
+            $summaries[$agencyId][$contract->payment_status === PaymentStatus::Unpaid ? 'has_unpaid' : 'has_paid'] = true;
         }
 
         foreach ($payableCommissions as $commission) {
             $agencyId = $commission->referrer_agency_id;
-            $summaries[$agencyId] ??= ['agency' => $commission->referrerAgency, 'contract_total' => 0, 'commission_total' => 0, 'reward_total' => 0];
+            $summaries[$agencyId] ??= ['agency' => $commission->referrerAgency, ...$emptyRow];
 
-            if ($commission->payment_status === PaymentStatus::Unpaid) {
-                $summaries[$agencyId]['commission_total'] += $commission->amount;
-            }
+            $summaries[$agencyId]['commission_total'] += $commission->amount;
+            $summaries[$agencyId][$commission->payment_status === PaymentStatus::Unpaid ? 'has_unpaid' : 'has_paid'] = true;
         }
 
         foreach ($payableCollaborationRewards as $reward) {
             $agencyId = $reward->referrerAgency->id;
-            $summaries[$agencyId] ??= ['agency' => $reward->referrerAgency, 'contract_total' => 0, 'commission_total' => 0, 'reward_total' => 0];
+            $summaries[$agencyId] ??= ['agency' => $reward->referrerAgency, ...$emptyRow];
 
-            if ($reward->payment_status === PaymentStatus::Unpaid) {
-                $summaries[$agencyId]['reward_total'] += $reward->reward_amount;
-            }
+            $summaries[$agencyId]['reward_total'] += $reward->reward_amount;
+            $summaries[$agencyId][$reward->payment_status === PaymentStatus::Unpaid ? 'has_unpaid' : 'has_paid'] = true;
         }
 
         $agencySummaries = collect($summaries)->map(function (array $row) {
             $row['total'] = $row['contract_total'] + $row['commission_total'] + $row['reward_total'];
+            $row['status'] = match (true) {
+                $row['has_unpaid'] && $row['has_paid'] => 'partial',
+                $row['has_unpaid'] => 'unpaid',
+                default => 'paid',
+            };
 
             return $row;
         })->sortByDesc('total')->values();

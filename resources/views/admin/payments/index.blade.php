@@ -25,7 +25,7 @@
 
 <div class="grid md:grid-cols-3 gap-6 mb-6">
     <div class="bg-white border border-gray-200 rounded-lg p-6">
-        <p class="text-sm text-gray-500">{{ $month ? $month.'の支払い予定合計' : '全期間の支払い予定合計' }}</p>
+        <p class="text-sm text-gray-500">{{ $month ? $month.'の支払い合計' : '全期間の支払い合計' }}</p>
         <p class="text-2xl font-semibold mt-1">¥{{ number_format($monthlyTotal) }}</p>
     </div>
     <div class="bg-white border border-gray-200 rounded-lg p-6">
@@ -67,6 +67,7 @@
                 <th class="px-4 py-3 font-medium">パートナー10%</th>
                 <th class="px-4 py-3 font-medium">共創パートナー30%</th>
                 <th class="px-4 py-3 font-medium">合計</th>
+                <th class="px-4 py-3 font-medium">ステータス</th>
                 <th class="px-4 py-3 font-medium w-24"></th>
             </tr>
         </thead>
@@ -80,12 +81,21 @@
                     <td class="px-4 py-3">¥{{ number_format($row['reward_total']) }}</td>
                     <td class="px-4 py-3 font-semibold">¥{{ number_format($row['total']) }}</td>
                     <td class="px-4 py-3">
+                        @if ($row['status'] === 'paid')
+                            <span class="text-xs font-medium border rounded-full px-2 py-1 bg-green-50 text-green-700 border-green-200">支払済み</span>
+                        @elseif ($row['status'] === 'partial')
+                            <span class="text-xs font-medium border rounded-full px-2 py-1 bg-yellow-50 text-yellow-700 border-yellow-200">一部支払済み</span>
+                        @else
+                            <span class="text-xs font-medium border rounded-full px-2 py-1 bg-gray-50 text-gray-600 border-gray-200">未払い</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-3">
                         <a href="{{ route('admin.payments.show', $row['agency']) }}" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">詳細</a>
                     </td>
                 </tr>
             @empty
                 <tr class="even:bg-gray-50 hover:bg-gray-100">
-                    <td colspan="7" class="px-4 py-6 text-center text-gray-400">対象パートナーがいません。</td>
+                    <td colspan="8" class="px-4 py-6 text-center text-gray-400">対象パートナーがいません。</td>
                 </tr>
             @endforelse
         </tbody>
