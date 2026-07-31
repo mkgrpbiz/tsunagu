@@ -5,12 +5,38 @@
 @section('content')
 <h1 class="text-xl font-semibold mb-6">報酬管理</h1>
 
-<div class="bg-blue-50 border border-blue-100 rounded-lg p-6 mb-6 text-sm text-gray-700 leading-relaxed">
-    <p class="font-semibold mb-1">お支払いについて</p>
-    <p>TSUNAGUで着金を確認後、月末締め・翌月5日にお振込みいたします。</p>
-    <p>※5日が土日祝日の場合は、翌営業日のお振込みとなります。</p>
-    <p>※お支払い金額が1,000円未満の場合は、翌月へ繰り越しとなります。</p>
-</div>
+<details id="paymentNotice" class="bg-blue-50 border border-blue-100 rounded-lg p-6 mb-6 text-sm text-gray-700 leading-relaxed">
+    <summary class="font-semibold cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center gap-2">
+        <span id="paymentNoticeArrow" class="inline-block transition-transform">▶︎</span>
+        お支払いについて
+    </summary>
+    <div class="mt-2 space-y-1">
+        <p>TSUNAGUで着金を確認後、月末締め・翌月5日にお振込みいたします。</p>
+        <p>※5日が土日祝日の場合は、翌営業日のお振込みとなります。</p>
+        <p>※お支払い金額が1,000円未満の場合は、翌月へ繰り越しとなります。</p>
+    </div>
+</details>
+
+<script>
+(function () {
+    var key = 'tsunagu_payment_notice_seen';
+    var el = document.getElementById('paymentNotice');
+    var arrow = document.getElementById('paymentNoticeArrow');
+
+    if (localStorage.getItem(key)) {
+        el.open = false;
+    } else {
+        el.open = true;
+        localStorage.setItem(key, '1');
+    }
+
+    var syncArrow = function () {
+        arrow.style.transform = el.open ? 'rotate(90deg)' : 'rotate(0deg)';
+    };
+    syncArrow();
+    el.addEventListener('toggle', syncArrow);
+})();
+</script>
 
 <form method="GET" action="{{ route('agency.contracts.index') }}" class="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex flex-wrap gap-4 items-end">
     <div>
