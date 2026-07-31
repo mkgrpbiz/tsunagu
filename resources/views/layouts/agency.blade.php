@@ -24,7 +24,7 @@
                     <a href="{{ route('agency.home') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.home') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">ホーム</a>
                     @if ($navFullyOnboarded)
                         <a href="{{ route('agency.projects.index') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.projects.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">案件一覧</a>
-                        <a href="{{ route('agency.inquiries.index') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.inquiries.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">問い合わせ</a>
+                        <a href="{{ route('agency.inquiries.index') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.inquiries.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">問い合わせ管理</a>
                         <a href="{{ route('agency.contracts.index') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.contracts.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">報酬管理</a>
                     @endif
                     <a href="{{ route('agency.profile.edit') }}" class="hover:text-blue-600 {{ request()->routeIs('agency.profile.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">プロフィール</a>
@@ -44,7 +44,7 @@
                 <a href="{{ route('agency.home') }}" class="py-2 {{ request()->routeIs('agency.home') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">ホーム</a>
                 @if ($navFullyOnboarded)
                     <a href="{{ route('agency.projects.index') }}" class="py-2 {{ request()->routeIs('agency.projects.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">案件一覧</a>
-                    <a href="{{ route('agency.inquiries.index') }}" class="py-2 {{ request()->routeIs('agency.inquiries.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">問い合わせ</a>
+                    <a href="{{ route('agency.inquiries.index') }}" class="py-2 {{ request()->routeIs('agency.inquiries.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">問い合わせ管理</a>
                     <a href="{{ route('agency.contracts.index') }}" class="py-2 {{ request()->routeIs('agency.contracts.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">報酬管理</a>
                 @endif
                 <a href="{{ route('agency.profile.edit') }}" class="py-2 {{ request()->routeIs('agency.profile.*') ? 'font-semibold text-blue-600' : 'text-gray-600' }}">プロフィール</a>

@@ -1,9 +1,9 @@
 @extends('layouts.agency')
 
-@section('title', '問い合わせ')
+@section('title', '問い合わせ管理')
 
 @section('content')
-<h1 class="text-xl font-semibold mb-6">問い合わせ</h1>
+<h1 class="text-xl font-semibold mb-6">問い合わせ管理</h1>
 
 <form method="GET" action="{{ route('agency.inquiries.index') }}" class="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex flex-wrap gap-4 items-end">
     <div>
