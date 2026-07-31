@@ -5,7 +5,7 @@
 @section('content')
 <h1 class="text-xl font-semibold mb-6">報酬管理</h1>
 
-<details id="paymentNotice" class="bg-blue-50 border border-blue-100 rounded-lg p-6 mb-6 text-sm text-gray-700 leading-relaxed">
+<details id="paymentNotice" class="bg-blue-50 border border-blue-100 rounded-lg p-3 open:p-6 mb-6 text-sm text-gray-700 leading-relaxed">
     <summary class="font-semibold cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center gap-2">
         <span id="paymentNoticeArrow" class="inline-block transition-transform">▶︎</span>
         お支払いについて
