@@ -12,7 +12,6 @@
 .mk-case .hero-thumb{width:72px;height:72px;border-radius:14px;overflow:hidden;flex-shrink:0;background:#eff6ff}
 .mk-case .hero-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .mk-case .hero-title{font-weight:900;font-size:17px;line-height:1.4;color:#0f172a}
-.mk-case .hero-price{margin-top:6px;font-size:13.5px;line-height:1.6;color:#2563eb;font-weight:700;white-space:pre-line}
 .mk-case .box{border:1px solid #e5e7eb;border-radius:14px;background:#fff;padding:12px;margin:12px 0}
 .mk-case .box-title{font-weight:800;margin:0 0 8px;display:flex;align-items:center;gap:8px}
 .mk-case .box p{margin:0;font-size:14px;line-height:1.75;white-space:pre-line}
@@ -48,8 +47,12 @@
             </div>
             <div>
                 <div class="hero-title">{{ $project->name }}</div>
-                <div class="hero-price">{{ $project->description }}</div>
             </div>
+        </div>
+
+        <div class="box">
+            <p class="box-title">💰 成果単価</p>
+            <p>{{ $project->description }}</p>
         </div>
 
         <div class="box">
