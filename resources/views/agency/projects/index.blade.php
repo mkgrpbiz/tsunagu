@@ -12,9 +12,9 @@
 .mk-cases details.cat-card summary::-webkit-details-marker{display:none}
 .mk-cases .thumb{width:56px;height:56px;border-radius:12px;overflow:hidden;flex-shrink:0;background:#eff6ff}
 .mk-cases .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.mk-cases .cat-body{flex:1;min-width:0}
+.mk-cases .cat-body{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
 .mk-cases .cat-title{font-weight:900;font-size:16px;line-height:1.35;color:#0f172a}
-.mk-cases .cat-count{display:inline-block;margin-top:4px;padding:2px 10px;border-radius:999px;background:#dbeafe;color:#2563eb;font-size:11.5px;font-weight:800}
+.mk-cases .cat-count{flex-shrink:0;padding:2px 10px;border-radius:999px;background:#dbeafe;color:#2563eb;font-size:11.5px;font-weight:800}
 .mk-cases .chev{width:10px;height:10px;border-right:2px solid #9ca3af;border-bottom:2px solid #9ca3af;transform:rotate(45deg);transition:transform .18s ease;flex-shrink:0}
 .mk-cases details.cat-card[open] > summary .chev{transform:rotate(-135deg)}
 .mk-cases .cat-projects{padding:12px}
