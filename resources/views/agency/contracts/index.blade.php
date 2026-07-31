@@ -34,7 +34,7 @@
     <p class="text-sm text-gray-500">
         パートナー報酬合計
         @if ($payableItemsCount > 0)
-            <span class="text-xs text-gray-400">（{{ $paidItemsCount }}/{{ $payableItemsCount }}件 処理済）</span>
+            <span class="text-xs text-gray-400">（{{ $paidItemsCount }}/{{ $payableItemsCount }}件 支払済）</span>
         @endif
     </p>
     <p class="text-lg font-semibold mt-1">{{ $month ?: '全期間' }}：¥{{ number_format($monthlyTotal) }}</p>

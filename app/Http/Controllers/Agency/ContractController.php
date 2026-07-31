@@ -154,7 +154,7 @@ class ContractController extends Controller
             + $monthReferralCommissions->count()
             + $monthCollaborationRewards->count();
 
-        // 社内処理は振込を待たない扱いのため、支払済みとあわせて「処理済み」件数に含める
+        // パートナーから見ればどちらも自分の報酬が確定済みなので、社内処理も支払済みと同様にカウントする
         $paidItemsCount = $monthContracts->where('payment_status', '!=', PaymentStatus::Unpaid)->count()
             + $monthReferralCommissions->where('payment_status', '!=', PaymentStatus::Unpaid)->count()
             + $monthCollaborationRewards->where('payment_status', '!=', PaymentStatus::Unpaid)->count();
