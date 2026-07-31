@@ -30,10 +30,10 @@ class PaymentController extends Controller
     public function index(Request $request): View
     {
         $allContracts = Contract::with(['inquiry.project', 'inquiry.agency'])
-            ->orderBy('payment_due_date')
+            ->orderBy('deposit_date')
             ->get();
 
-        $allCommissions = ReferralCommission::with(['referrerAgency', 'sourceAgency'])
+        $allCommissions = ReferralCommission::with(['referrerAgency', 'sourceAgency', 'contract'])
             ->orderBy('payment_due_date')
             ->get();
 
@@ -66,24 +66,29 @@ class PaymentController extends Controller
 
         ['rows' => $carryOverAgencies, 'total' => $carryOverTotal] = Agency::carryOverSummary(self::CARRY_OVER_THRESHOLD);
 
-        $months = $allContracts->map(fn (Contract $contract) => $contract->payment_due_date->format('Y-m'))->toBase()
-            ->merge($allCommissions->map(fn (ReferralCommission $commission) => $commission->payment_due_date->format('Y-m')))
-            ->merge($allCollaborationRewards->map(fn (CollaborationReward $reward) => $reward->payment_due_date->format('Y-m')))
-            ->unique()->sortDesc()->values();
+        // 支払月は「支払予定日（翌月5日）」ではなく、実際の対象月（入金日/契約の入金日/報酬対象月）で判定する
+        $contractMonth = fn (Contract $contract) => $contract->deposit_date->format('Y-m');
+        $commissionMonth = fn (ReferralCommission $commission) => optional($commission->contract?->deposit_date)->format('Y-m');
+        $rewardMonth = fn (CollaborationReward $reward) => $reward->month->format('Y-m');
+
+        $months = $allContracts->map($contractMonth)->toBase()
+            ->merge($allCommissions->map($commissionMonth))
+            ->merge($allCollaborationRewards->map($rewardMonth))
+            ->filter()->unique()->sortDesc()->values();
 
         $month = $request->query('month', $months->first());
         $month = $month === 'all' ? null : $month;
 
         $monthContracts = $allContracts->when($month, fn ($collection) => $collection->filter(
-            fn (Contract $contract) => $contract->payment_due_date->format('Y-m') === $month
+            fn (Contract $contract) => $contractMonth($contract) === $month
         ));
 
         $monthCommissions = $allCommissions->when($month, fn ($collection) => $collection->filter(
-            fn (ReferralCommission $commission) => $commission->payment_due_date->format('Y-m') === $month
+            fn (ReferralCommission $commission) => $commissionMonth($commission) === $month
         ));
 
         $monthCollaborationRewards = $allCollaborationRewards->when($month, fn ($collection) => $collection->filter(
-            fn (CollaborationReward $reward) => $reward->payment_due_date->format('Y-m') === $month
+            fn (CollaborationReward $reward) => $rewardMonth($reward) === $month
         ));
 
         $isPayable = fn (?int $agencyId, PaymentStatus $status) => $status === PaymentStatus::Paid || $payableAgencyIds->contains($agencyId);

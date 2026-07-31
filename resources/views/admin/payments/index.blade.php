@@ -10,7 +10,7 @@
 
 <form method="GET" action="{{ route('admin.payments.index') }}" class="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex flex-wrap gap-4 items-end">
     <div>
-        <label for="month" class="block text-xs font-medium text-gray-700 mb-1">支払予定月で絞り込み</label>
+        <label for="month" class="block text-xs font-medium text-gray-700 mb-1">対象月で絞り込み</label>
         <div class="flex gap-2">
             <select name="month" id="month" onchange="this.form.submit()" class="rounded-md border border-gray-300 text-sm">
                 <option value="" disabled @selected(! $month)>月を選択</option>
