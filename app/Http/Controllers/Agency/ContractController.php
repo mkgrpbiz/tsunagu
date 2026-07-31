@@ -144,21 +144,20 @@ class ContractController extends Controller
             ];
         })->values();
 
-        // 社内利用パートナー（internal_processing）は通常の振込対象外のため、これまで通り集計から除外する
-        $payableStatuses = [PaymentStatus::Unpaid, PaymentStatus::Paid];
-
-        $monthlyPayoutTotal = $monthContracts->whereIn('payment_status', $payableStatuses)->sum('agency_reward_amount');
-        $monthlyReferralTotal = $monthReferralCommissions->whereIn('payment_status', $payableStatuses)->sum('amount');
-        $monthlyCollaborationRewardTotal = $monthCollaborationRewards->whereIn('payment_status', $payableStatuses)->sum('reward_amount');
+        // パートナー側は社内処理（internal_processing）分も自分の報酬として合計に含める
+        $monthlyPayoutTotal = $monthContracts->sum('agency_reward_amount');
+        $monthlyReferralTotal = $monthReferralCommissions->sum('amount');
+        $monthlyCollaborationRewardTotal = $monthCollaborationRewards->sum('reward_amount');
         $monthlyTotal = $monthlyPayoutTotal + $monthlyReferralTotal + $monthlyCollaborationRewardTotal;
 
-        $payableItemsCount = $monthContracts->whereIn('payment_status', $payableStatuses)->count()
-            + $monthReferralCommissions->whereIn('payment_status', $payableStatuses)->count()
-            + $monthCollaborationRewards->whereIn('payment_status', $payableStatuses)->count();
+        $payableItemsCount = $monthContracts->count()
+            + $monthReferralCommissions->count()
+            + $monthCollaborationRewards->count();
 
-        $paidItemsCount = $monthContracts->where('payment_status', PaymentStatus::Paid)->count()
-            + $monthReferralCommissions->where('payment_status', PaymentStatus::Paid)->count()
-            + $monthCollaborationRewards->where('payment_status', PaymentStatus::Paid)->count();
+        // 社内処理は振込を待たない扱いのため、支払済みとあわせて「処理済み」件数に含める
+        $paidItemsCount = $monthContracts->where('payment_status', '!=', PaymentStatus::Unpaid)->count()
+            + $monthReferralCommissions->where('payment_status', '!=', PaymentStatus::Unpaid)->count()
+            + $monthCollaborationRewards->where('payment_status', '!=', PaymentStatus::Unpaid)->count();
 
         return [
             'contracts' => $monthContracts,
