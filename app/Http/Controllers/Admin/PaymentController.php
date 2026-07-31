@@ -105,9 +105,10 @@ class PaymentController extends Controller
             fn (CollaborationReward $reward) => $isPayable($reward->referrerAgency->id, $reward->payment_status)
         )->values();
 
-        $monthlyTotal = $payableContracts->where('payment_status', PaymentStatus::Unpaid)->sum('agency_reward_amount')
-            + $payableCommissions->where('payment_status', PaymentStatus::Unpaid)->sum('amount')
-            + $payableCollaborationRewards->where('payment_status', PaymentStatus::Unpaid)->sum('reward_amount');
+        // パートナー別一覧の合計欄と揃え、支払済みも含めたその月の実績合計にする（未払いのみの見込み額は下の累計未払い合計を参照）
+        $monthlyTotal = $payableContracts->sum('agency_reward_amount')
+            + $payableCommissions->sum('amount')
+            + $payableCollaborationRewards->sum('reward_amount');
 
         $cumulativeTotal = $allContracts->where('payment_status', PaymentStatus::Unpaid)->sum('agency_reward_amount')
             + $allCommissions->where('payment_status', PaymentStatus::Unpaid)->sum('amount')
