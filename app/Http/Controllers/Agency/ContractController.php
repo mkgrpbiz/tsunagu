@@ -144,10 +144,21 @@ class ContractController extends Controller
             ];
         })->values();
 
-        $monthlyPayoutTotal = $monthContracts->where('payment_status', PaymentStatus::Unpaid)->sum('agency_reward_amount');
-        $monthlyReferralTotal = $monthReferralCommissions->where('payment_status', PaymentStatus::Unpaid)->sum('amount');
-        $monthlyCollaborationRewardTotal = $monthCollaborationRewards->where('payment_status', PaymentStatus::Unpaid)->sum('reward_amount');
+        // 社内利用パートナー（internal_processing）は通常の振込対象外のため、これまで通り集計から除外する
+        $payableStatuses = [PaymentStatus::Unpaid, PaymentStatus::Paid];
+
+        $monthlyPayoutTotal = $monthContracts->whereIn('payment_status', $payableStatuses)->sum('agency_reward_amount');
+        $monthlyReferralTotal = $monthReferralCommissions->whereIn('payment_status', $payableStatuses)->sum('amount');
+        $monthlyCollaborationRewardTotal = $monthCollaborationRewards->whereIn('payment_status', $payableStatuses)->sum('reward_amount');
         $monthlyTotal = $monthlyPayoutTotal + $monthlyReferralTotal + $monthlyCollaborationRewardTotal;
+
+        $payableItemsCount = $monthContracts->whereIn('payment_status', $payableStatuses)->count()
+            + $monthReferralCommissions->whereIn('payment_status', $payableStatuses)->count()
+            + $monthCollaborationRewards->whereIn('payment_status', $payableStatuses)->count();
+
+        $paidItemsCount = $monthContracts->where('payment_status', PaymentStatus::Paid)->count()
+            + $monthReferralCommissions->where('payment_status', PaymentStatus::Paid)->count()
+            + $monthCollaborationRewards->where('payment_status', PaymentStatus::Paid)->count();
 
         return [
             'contracts' => $monthContracts,
@@ -157,6 +168,8 @@ class ContractController extends Controller
             'collaborationRewardRows' => $collaborationRewardRows,
             'monthlyCollaborationRewardTotal' => $monthlyCollaborationRewardTotal,
             'monthlyTotal' => $monthlyTotal,
+            'paidItemsCount' => $paidItemsCount,
+            'payableItemsCount' => $payableItemsCount,
             'months' => $months,
             'month' => $month,
         ];
