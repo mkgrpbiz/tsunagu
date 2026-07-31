@@ -326,6 +326,7 @@ Route::prefix('agency')->name('agency.')->group(function () {
 
             Route::middleware(['agency.approved', 'agency.consents_submitted', 'agency.line_connected'])->group(function () {
                 Route::get('projects', [AgencyProjectController::class, 'index'])->name('projects.index');
+                Route::get('projects/{project}', [AgencyProjectController::class, 'show'])->name('projects.show');
                 Route::get('inquiries', [AgencyInquiryController::class, 'index'])->name('inquiries.index');
                 Route::get('contracts', [AgencyContractController::class, 'index'])->name('contracts.index');
                 Route::get('contracts/statement', [AgencyContractController::class, 'downloadStatement'])->name('contracts.statement');

@@ -14,8 +14,6 @@ class ProjectController extends Controller
 {
     public function index(): View
     {
-        $agency = Auth::guard('agency')->user();
-
         $projects = Project::query()
             ->select('projects.*')
             ->join('categories', 'categories.id', '=', 'projects.category_id')
@@ -25,20 +23,30 @@ class ProjectController extends Controller
             ->orderBy('projects.sort_order')
             ->get();
 
-        $inviteData = $projects->mapWithKeys(function (Project $project) use ($agency) {
-            $inviteLink = InviteLink::firstOrCreate(
-                ['agency_id' => $agency->id, 'project_id' => $project->id],
-                ['token' => Str::random(10)],
-            );
-
-            return [$project->id => [
-                'url' => url('/apply/'.$inviteLink->token),
-            ]];
-        });
+        $categories = $projects->groupBy('category_id')->map(fn ($group) => [
+            'category' => $group->first()->category,
+            'projects' => $group,
+        ])->values();
 
         return view('agency.projects.index', [
-            'projectsByCategory' => $projects->groupBy(fn (Project $project) => $project->category->name),
-            'inviteData' => $inviteData,
+            'categories' => $categories,
+        ]);
+    }
+
+    public function show(Project $project): View
+    {
+        abort_unless($project->status === ProjectStatus::Published, 404);
+
+        $agency = Auth::guard('agency')->user();
+
+        $inviteLink = InviteLink::firstOrCreate(
+            ['agency_id' => $agency->id, 'project_id' => $project->id],
+            ['token' => Str::random(10)],
+        );
+
+        return view('agency.projects.show', [
+            'project' => $project,
+            'inviteUrl' => url('/apply/'.$inviteLink->token),
         ]);
     }
 }
