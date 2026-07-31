@@ -5,6 +5,39 @@
 @section('content')
 <h1 class="text-xl font-semibold mb-6">問い合わせ管理</h1>
 
+<details id="inquiryNotice" class="bg-blue-50 border border-blue-100 rounded-lg p-3 open:p-6 mb-6 text-sm text-gray-700 leading-relaxed">
+    <summary class="font-semibold cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden flex items-center gap-2">
+        <span id="inquiryNoticeArrow" class="inline-block transition-transform">▶︎</span>
+        お問い合わせ管理について
+    </summary>
+    <div class="mt-2 space-y-1">
+        <p>TSUNAGUでは、「案内状況」および「着金（成果確定）」を表示しております。</p>
+        <p>広告主・共創先での進捗状況については、個別の確認・管理は行っておりません。</p>
+        <p>進捗状況を把握されたい場合は、お客様との関係構築・フォローをパートナー様にてお願いいたします。</p>
+    </div>
+</details>
+
+<script>
+(function () {
+    var key = 'tsunagu_inquiry_notice_seen';
+    var el = document.getElementById('inquiryNotice');
+    var arrow = document.getElementById('inquiryNoticeArrow');
+
+    if (localStorage.getItem(key)) {
+        el.open = false;
+    } else {
+        el.open = true;
+        localStorage.setItem(key, '1');
+    }
+
+    var syncArrow = function () {
+        arrow.style.transform = el.open ? 'rotate(90deg)' : 'rotate(0deg)';
+    };
+    syncArrow();
+    el.addEventListener('toggle', syncArrow);
+})();
+</script>
+
 <form method="GET" action="{{ route('agency.inquiries.index') }}" class="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex flex-wrap gap-4 items-end">
     <div>
         <label for="project_id" class="block text-xs font-medium text-gray-700 mb-1">案件で絞り込み</label>
