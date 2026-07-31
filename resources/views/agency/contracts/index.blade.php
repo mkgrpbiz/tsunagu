@@ -47,7 +47,7 @@
 </div>
 
 @php
-    $referralRewardTsv = collect([['着金日', '案件名', '名前', 'フリガナ', '単価', '件数', '合計', '支払予定日']])
+    $referralRewardTsv = collect([['着金日', '案件名', '名前', 'フリガナ', '単価', '件数', '合計']])
         ->concat($contracts->map(fn ($contract) => [
             $contract->deposit_date->format('Y-m-d'),
             $contract->effectiveProject()->name,
@@ -56,7 +56,6 @@
             $contract->agency_unit_price ?? '',
             $contract->count ?? '',
             $contract->agency_reward_amount,
-            $contract->payment_due_date->format('Y-m-d'),
         ]))
         ->map(fn ($row) => implode("\t", $row))
         ->implode("\n");
@@ -78,7 +77,6 @@
                 <th class="px-4 py-3 font-medium">単価</th>
                 <th class="px-4 py-3 font-medium">件数</th>
                 <th class="px-4 py-3 font-medium">合計</th>
-                <th class="px-4 py-3 font-medium">支払予定日</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
@@ -91,11 +89,10 @@
                     <td class="px-4 py-3">{{ $contract->agency_unit_price !== null ? '¥'.number_format($contract->agency_unit_price) : '－' }}</td>
                     <td class="px-4 py-3">{{ $contract->count ?? '－' }}</td>
                     <td class="px-4 py-3">¥{{ number_format($contract->agency_reward_amount) }}</td>
-                    <td class="px-4 py-3">{{ $contract->payment_due_date->format('Y-m-d') }}</td>
                 </tr>
             @empty
                 <tr class="even:bg-gray-50 hover:bg-gray-100">
-                    <td colspan="8" class="px-4 py-6 text-center text-gray-400">着金はまだありません。</td>
+                    <td colspan="7" class="px-4 py-6 text-center text-gray-400">着金はまだありません。</td>
                 </tr>
             @endforelse
         </tbody>
@@ -110,7 +107,6 @@
                 <th class="px-4 py-3 font-medium">紹介先パートナー</th>
                 <th class="px-4 py-3 font-medium">着金数</th>
                 <th class="px-4 py-3 font-medium">紹介報酬10%</th>
-                <th class="px-4 py-3 font-medium">支払予定日</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
@@ -119,11 +115,10 @@
                     <td class="px-4 py-3">{{ $group['sourceAgency']->name }}</td>
                     <td class="px-4 py-3">{{ $group['count'] }}</td>
                     <td class="px-4 py-3">¥{{ number_format($group['total']) }}</td>
-                    <td class="px-4 py-3">{{ $group['paymentDueDate']->format('Y-m-d') }}</td>
                 </tr>
             @empty
                 <tr class="even:bg-gray-50 hover:bg-gray-100">
-                    <td colspan="4" class="px-4 py-6 text-center text-gray-400">紹介報酬はまだありません。</td>
+                    <td colspan="3" class="px-4 py-6 text-center text-gray-400">紹介報酬はまだありません。</td>
                 </tr>
             @endforelse
         </tbody>
@@ -139,7 +134,6 @@
                 <th class="px-4 py-3 font-medium">案件数</th>
                 <th class="px-4 py-3 font-medium">着金数</th>
                 <th class="px-4 py-3 font-medium">紹介報酬30%</th>
-                <th class="px-4 py-3 font-medium">支払予定日</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
@@ -149,11 +143,10 @@
                     <td class="px-4 py-3">{{ $row['projectCount'] }}</td>
                     <td class="px-4 py-3">{{ $row['depositCount'] }}</td>
                     <td class="px-4 py-3">¥{{ number_format($row['rewardAmount']) }}</td>
-                    <td class="px-4 py-3">{{ $row['paymentDueDate']->format('Y-m-d') }}</td>
                 </tr>
             @empty
                 <tr class="even:bg-gray-50 hover:bg-gray-100">
-                    <td colspan="5" class="px-4 py-6 text-center text-gray-400">共創報酬はまだありません。</td>
+                    <td colspan="4" class="px-4 py-6 text-center text-gray-400">共創報酬はまだありません。</td>
                 </tr>
             @endforelse
         </tbody>
