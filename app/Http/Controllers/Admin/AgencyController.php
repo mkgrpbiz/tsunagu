@@ -408,12 +408,15 @@ class AgencyController extends Controller
             'phone' => ['required', 'string', 'max:20'],
             'email' => ['required', 'email', 'max:255', Rule::unique('agencies', 'email')->ignore($agency)],
             'bank_name' => ['nullable', 'string', 'max:255'],
-            'bank_code' => ['nullable', 'string', 'max:10'],
+            'bank_code' => ['nullable', 'required_with:bank_name', 'string', 'max:10'],
             'bank_branch_name' => ['nullable', 'string', 'max:255'],
-            'bank_branch_code' => ['nullable', 'string', 'max:10'],
+            'bank_branch_code' => ['nullable', 'required_with:bank_branch_name', 'string', 'max:10'],
             'bank_account_type' => ['nullable', Rule::enum(BankAccountType::class)],
             'bank_account_number' => ['nullable', 'string', 'max:255'],
             'bank_account_holder' => ['nullable', 'string', 'max:255'],
+        ], [
+            'bank_code.required_with' => '銀行名は候補一覧から選択してください。',
+            'bank_branch_code.required_with' => '支店名は候補一覧から選択してください。',
         ]);
     }
 }
