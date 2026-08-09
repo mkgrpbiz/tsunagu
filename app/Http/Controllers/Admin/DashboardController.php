@@ -12,6 +12,7 @@ use App\Models\CollaborationPartnerApplication;
 use App\Models\CollaborationReward;
 use App\Models\Contract;
 use App\Models\Inquiry;
+use App\Models\Project;
 use App\Models\ReferralCommission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -96,18 +97,6 @@ class DashboardController extends Controller
 
     private function alerts(): array
     {
-        $overdueThreshold = now()->subDays(5)->toDateString();
-
-        $overduePayments = Contract::where('payment_status', PaymentStatus::Unpaid)
-            ->where('payment_due_date', '<=', $overdueThreshold)
-            ->count()
-            + ReferralCommission::where('payment_status', PaymentStatus::Unpaid)
-                ->where('payment_due_date', '<=', $overdueThreshold)
-                ->count()
-            + CollaborationReward::where('payment_status', PaymentStatus::Unpaid)
-                ->where('payment_due_date', '<=', $overdueThreshold)
-                ->count();
-
         return [
             [
                 'label' => 'パートナー登録審査待ち',
@@ -126,10 +115,53 @@ class DashboardController extends Controller
             ],
             [
                 'label' => '支払日から5日経過した未払い',
-                'count' => $overduePayments,
+                'count' => $this->overduePaymentCount(),
                 'route' => route('admin.payments.index'),
             ],
         ];
+    }
+
+    /**
+     * 累計未払いが¥1,000未満（繰り越し対象）のパートナーは、そもそも支払い対象になっておらず
+     * payment_due_dateが過ぎているのは正常な繰り越し状態のため、「支払日から5日経過した未払い」
+     * のアラートからは除外する。
+     */
+    private function overduePaymentCount(): int
+    {
+        $overdueThreshold = now()->subDays(5)->toDateString();
+
+        $overdueContracts = Contract::where('payment_status', PaymentStatus::Unpaid)
+            ->where('payment_due_date', '<=', $overdueThreshold)
+            ->with('inquiry')
+            ->get();
+
+        $overdueCommissions = ReferralCommission::where('payment_status', PaymentStatus::Unpaid)
+            ->where('payment_due_date', '<=', $overdueThreshold)
+            ->get();
+
+        $overdueRewards = CollaborationReward::where('payment_status', PaymentStatus::Unpaid)
+            ->where('payment_due_date', '<=', $overdueThreshold)
+            ->get();
+
+        $rewardAgencyIds = $overdueRewards->mapWithKeys(fn (CollaborationReward $reward) => [
+            $reward->id => Project::where('client_name', $reward->client_name)
+                ->whereNotNull('referrer_agency_id')
+                ->value('referrer_agency_id'),
+        ]);
+
+        $agencyIds = collect()
+            ->merge($overdueContracts->map(fn (Contract $c) => $c->inquiry->agency_id))
+            ->merge($overdueCommissions->pluck('referrer_agency_id'))
+            ->merge($rewardAgencyIds->values())
+            ->unique()->filter();
+
+        $payableAgencyIds = Agency::whereIn('id', $agencyIds)->get()
+            ->filter(fn (Agency $a) => $a->totalPendingPayout() >= 1000)
+            ->pluck('id');
+
+        return $overdueContracts->filter(fn (Contract $c) => $payableAgencyIds->contains($c->inquiry->agency_id))->count()
+            + $overdueCommissions->filter(fn (ReferralCommission $c) => $payableAgencyIds->contains($c->referrer_agency_id))->count()
+            + $overdueRewards->filter(fn (CollaborationReward $r) => $payableAgencyIds->contains($rewardAgencyIds[$r->id] ?? null))->count();
     }
 
     private function revenueAndPayout($contracts, $referralCommissions, ?string $ym): array
