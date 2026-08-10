@@ -108,9 +108,12 @@ class BimoniSharePoyLinkController extends Controller
         $result = $this->parseBulkText($data['pasted_text']);
 
         $savedCount = 0;
+        $noSharePoyUserCount = 0;
 
         foreach ($result['groups'] as $group) {
             if (! $group['sharePoyUser']) {
+                $noSharePoyUserCount += count($group['rows']);
+
                 continue;
             }
 
@@ -129,7 +132,7 @@ class BimoniSharePoyLinkController extends Controller
             }
         }
 
-        $unmatchedCount = count($result['unmatched']);
+        $unmatchedCount = count($result['unmatched']) + $noSharePoyUserCount;
 
         $status = "{$savedCount}件をSharePoy+ユーザーの着金履歴に記録しました。";
         if ($unmatchedCount > 0) {
