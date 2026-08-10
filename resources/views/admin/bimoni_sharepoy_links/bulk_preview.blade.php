@@ -67,18 +67,6 @@
     </div>
 @endif
 
-<div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-    <p class="text-xs text-gray-500 mb-3">確定すると、名前・フリガナでSharePoy+ユーザーと一致した行が、紐付け先のコードに関わらず着金履歴として記録されます（一致しなかった行は記録されません）。</p>
-    <form method="POST" action="{{ route('admin.bimoni-sharepoy-links.bulk-store') }}" class="flex gap-3">
-        @csrf
-        <textarea name="pasted_text" hidden>{{ $pastedText }}</textarea>
-        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md px-4 py-2" @disabled(count($groups) === 0)>
-            確定して履歴に記録
-        </button>
-        <a href="{{ route('admin.bimoni-sharepoy-links.index') }}" class="text-sm text-gray-500 px-4 py-2">戻る</a>
-    </form>
-</div>
-
 <div class="border-t border-gray-200 pt-6 mt-2">
     <h2 class="text-sm font-semibold text-gray-700 mb-3">TSUNAGU側 一括着金紐付け（A01 / シェアポイ）</h2>
     <p class="text-xs text-gray-500 mb-3">
@@ -118,13 +106,19 @@
             </ul>
         </div>
     @endif
+</div>
 
-    <form method="POST" action="{{ route('admin.bimoni-sharepoy-links.bulk-store-deposit') }}" class="flex gap-3">
+<div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+    <p class="text-xs text-gray-500 mb-3">
+        「SharePoy+ユーザーの着金履歴への記録」と「A01への一括着金紐付け」は1つの操作としてまとめて実行します。次の画面で最終確認できます。
+    </p>
+    <form method="POST" action="{{ route('admin.bimoni-sharepoy-links.bulk-confirm') }}" class="flex gap-3">
         @csrf
         <textarea name="pasted_text" hidden>{{ $pastedText }}</textarea>
-        <button type="submit" class="bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md px-4 py-2" @disabled(count($amountGroups) === 0)>
-            A01に一括着金紐付け
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md px-4 py-2" @disabled(count($groups) === 0 && count($amountGroups) === 0)>
+            この内容で確認する
         </button>
+        <a href="{{ route('admin.bimoni-sharepoy-links.index') }}" class="text-sm text-gray-500 px-4 py-2">戻る</a>
     </form>
 </div>
 @endsection

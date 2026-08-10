@@ -5,14 +5,17 @@
 @section('content')
 <h1 class="text-xl font-semibold mb-6">BIMONI(SharePoy) 一括紐付け</h1>
 
-<div class="bg-amber-50 border border-amber-100 rounded-lg p-4 mb-6 text-sm text-gray-700">
-    <p class="font-bold text-amber-600 mb-1">プレビュー画面で2つの一括処理ができます。</p>
-    <p>①SharePoy+ポイント付与用の履歴記録　②TSUNAGU側でA01（シェアポイ）への一括着金紐付け。それぞれ別ボタンで、どちらか一方だけ・両方どちらも実行できます。</p>
+<div class="bg-amber-50 border border-amber-100 rounded-lg p-4 mb-6 text-sm text-gray-700 space-y-1">
+    <p class="font-bold text-amber-600">貼り付けた1行から、列ごとに3つの処理を行います。</p>
+    <p>・紹介コード列（SHAREPOY/SP...）→ SharePoy+へ貼り付けるコピー用テキスト作成（件数×300ポイント）。これは自動反映されないので、コピーして手動でSharePoy+に転記してください。</p>
+    <p>・名前・フリガナ列 → コードに関係なく全行をSharePoy+管理のユーザーと照合し、一致した分だけそのユーザーの着金履歴に記録。</p>
+    <p>・金額列 → コード・名前の一致有無に関係なく、金額ごとに件数をまとめてA01（シェアポイ）名義でTSUNAGU側に一括着金紐付け。</p>
+    <p>着金履歴への記録とA01への一括着金紐付けは1つの操作としてまとめて実行します（プレビュー→最終確認→実行の順）。</p>
 </div>
 
 <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
     <p class="text-xs text-gray-500 mb-3">
-        「日付 - 紹介コード - 名前 - フリガナ - 商品名 - 金額」の順にタブ区切りで貼り付けてください。1行1件です。日付は参考表示のみです。紹介コードはSharePoy+側の集計用の情報で、「SHAREPOY」または「SP」から始まるコードに対応しています。着金履歴の紐付け先はコードに関係なく、すべての行を名前・フリガナでSharePoy+管理のユーザーを検索して判定します。同じ紹介コードは合算し、件数×300ポイント（BIMONI紹介）としてコピー用一覧に表示します。金額はA01（シェアポイ）への一括着金紐付けで実際に使用します（金額ごとに件数をまとめてTSUNAGU側のContractを作成）。
+        「日付 - 紹介コード - 名前 - フリガナ - 商品名 - 金額」の順にタブ区切りで貼り付けてください。1行1件です。日付は参考表示のみです。
     </p>
     <form method="POST" action="{{ route('admin.bimoni-sharepoy-links.bulk-preview') }}">
         @csrf
