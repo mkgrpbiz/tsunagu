@@ -32,9 +32,6 @@
             <thead class="bg-gray-50 text-gray-600">
                 <tr>
                     <th class="text-left px-4 py-2 font-medium">紹介コード</th>
-                    <th class="text-left px-4 py-2 font-medium">名前</th>
-                    <th class="text-left px-4 py-2 font-medium">フリガナ</th>
-                    <th class="text-left px-4 py-2 font-medium">SharePoy+ユーザー</th>
                     <th class="text-right px-4 py-2 font-medium">件数</th>
                     <th class="text-right px-4 py-2 font-medium">ポイント</th>
                 </tr>
@@ -43,15 +40,6 @@
                 @foreach ($groups as $group)
                     <tr class="even:bg-gray-50 hover:bg-gray-100">
                         <td class="px-4 py-2">{{ $group['code'] }}</td>
-                        <td class="px-4 py-2">{{ $group['name'] }}</td>
-                        <td class="px-4 py-2">{{ $group['nameKana'] }}</td>
-                        <td class="px-4 py-2">
-                            @if ($group['sharePoyUser'])
-                                <a href="{{ route('admin.sharepoy-users.show', $group['sharePoyUser']) }}" class="text-blue-600 hover:underline">紐付け済み</a>
-                            @else
-                                <span class="text-gray-400">SPコード直接指定</span>
-                            @endif
-                        </td>
                         <td class="px-4 py-2 text-right">{{ $group['count'] }}</td>
                         <td class="px-4 py-2 text-right">{{ number_format($group['points']) }}pt</td>
                     </tr>
