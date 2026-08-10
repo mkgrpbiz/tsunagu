@@ -198,7 +198,9 @@ class BimoniSharePoyLinkController extends Controller
                 $resolvedKey = 'user:'.$sharePoyUser->id;
                 $resolvedCode = $sharePoyUser->sharepoy_user_id;
             } elseif (str_starts_with($code, 'SP')) {
-                $sharePoyUser = null;
+                // コードは紹介者側の情報でしかなく、着金履歴の紐付け先とは無関係。
+                // SHAREPOY行と同様に名前・フリガナでSharePoy+ユーザーを検索する（見つからなくてもコードはそのまま使う）
+                $sharePoyUser = SharePoyUser::where('name', $name)->where('name_kana', $nameKana)->first();
                 $resolvedKey = 'code:'.$code;
                 $resolvedCode = $code;
             } else {

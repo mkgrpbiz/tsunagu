@@ -68,7 +68,7 @@
 @endif
 
 <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-    <p class="text-xs text-gray-500 mb-3">確定すると、SHAREPOYで紐付いた行だけ、SharePoy+ユーザーの着金履歴として記録されます（SPコード直接指定の行は記録されません）。</p>
+    <p class="text-xs text-gray-500 mb-3">確定すると、名前・フリガナでSharePoy+ユーザーと一致した行が、紐付け先のコードに関わらず着金履歴として記録されます（一致しなかった行は記録されません）。</p>
     <form method="POST" action="{{ route('admin.bimoni-sharepoy-links.bulk-store') }}" class="flex gap-3">
         @csrf
         <textarea name="pasted_text" hidden>{{ $pastedText }}</textarea>
