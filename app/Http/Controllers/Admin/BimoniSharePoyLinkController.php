@@ -227,13 +227,35 @@ class BimoniSharePoyLinkController extends Controller
     }
 
     /**
+     * 姓名間のスペース（半角・全角とも）の有無だけの表記ゆれを吸収するため、比較前に取り除く。
+     */
+    private function normalizeForMatch(string $value): string
+    {
+        return str_replace([' ', '　'], '', $value);
+    }
+
+    private function findExactMatch(string $name, string $nameKana): ?SharePoyUser
+    {
+        $normalizedName = $this->normalizeForMatch($name);
+        $normalizedKana = $this->normalizeForMatch($nameKana);
+
+        return SharePoyUser::query()
+            ->whereRaw("REPLACE(REPLACE(name, ' ', ''), '　', '') = ?", [$normalizedName])
+            ->whereRaw("REPLACE(REPLACE(name_kana, ' ', ''), '　', '') = ?", [$normalizedKana])
+            ->first();
+    }
+
+    /**
      * 名前・フリガナが完全一致しない場合に、片方だけ一致するSharePoy+ユーザーを候補として探す
      * （表記ゆれ・入力ミスの救済用。自動では紐付けず、確認画面でのチェック選択が必要）。
      */
     private function findCandidate(string $name, string $nameKana): ?SharePoyUser
     {
-        return SharePoyUser::where('name', $name)->first()
-            ?? SharePoyUser::where('name_kana', $nameKana)->first();
+        $normalizedName = $this->normalizeForMatch($name);
+        $normalizedKana = $this->normalizeForMatch($nameKana);
+
+        return SharePoyUser::query()->whereRaw("REPLACE(REPLACE(name, ' ', ''), '　', '') = ?", [$normalizedName])->first()
+            ?? SharePoyUser::query()->whereRaw("REPLACE(REPLACE(name_kana, ' ', ''), '　', '') = ?", [$normalizedKana])->first();
     }
 
     /**
@@ -255,7 +277,7 @@ class BimoniSharePoyLinkController extends Controller
             }
 
             if ($code === 'SHAREPOY') {
-                $sharePoyUser = SharePoyUser::where('name', $name)->where('name_kana', $nameKana)->first();
+                $sharePoyUser = $this->findExactMatch($name, $nameKana);
 
                 if (! $sharePoyUser) {
                     $candidate = $this->findCandidate($name, $nameKana);
@@ -287,7 +309,7 @@ class BimoniSharePoyLinkController extends Controller
             } elseif (str_starts_with($code, 'SP')) {
                 // コードは紹介者側の情報でしかなく、着金履歴の紐付け先とは無関係。
                 // SHAREPOY行と同様に名前・フリガナでSharePoy+ユーザーを検索する（見つからなくてもコードはそのまま使う）
-                $sharePoyUser = SharePoyUser::where('name', $name)->where('name_kana', $nameKana)->first();
+                $sharePoyUser = $this->findExactMatch($name, $nameKana);
                 $candidate = $sharePoyUser ? null : $this->findCandidate($name, $nameKana);
                 $resolvedKey = 'code:'.$code;
                 $resolvedCode = $code;
