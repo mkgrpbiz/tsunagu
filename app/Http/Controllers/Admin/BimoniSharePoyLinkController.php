@@ -73,11 +73,12 @@ class BimoniSharePoyLinkController extends Controller
             ->sum(fn (array $g) => count($g['rows']));
 
         $noMatchCount = count($result['unmatched'])
-            + collect($result['groups'])->filter(fn (array $g) => ! $g['sharePoyUser'])->sum(fn (array $g) => count($g['rows']));
+            + collect($result['groups'])->filter(fn (array $g) => ! $g['sharePoyUser'] && ! $g['candidate'])->sum(fn (array $g) => count($g['rows']));
 
         return view('admin.bimoni_sharepoy_links.bulk_confirm', [
             'pastedText' => $data['pasted_text'],
             'recordCount' => $recordCount,
+            'candidates' => $result['candidates'],
             'noMatchCount' => $noMatchCount,
             'amountGroups' => $result['amountGroups'],
             'depositLinkCount' => collect($result['amountGroups'])->sum('count'),
@@ -93,15 +94,24 @@ class BimoniSharePoyLinkController extends Controller
     {
         $data = $request->validate([
             'pasted_text' => ['required', 'string'],
+            'accept_candidates' => ['array'],
+            'accept_candidates.*' => ['string'],
         ]);
 
         $result = $this->parseBulkText($data['pasted_text']);
+        $acceptedKeys = collect($data['accept_candidates'] ?? []);
 
         $savedCount = 0;
         $noSharePoyUserCount = 0;
 
         foreach ($result['groups'] as $group) {
-            if (! $group['sharePoyUser']) {
+            $sharePoyUser = $group['sharePoyUser'];
+
+            if (! $sharePoyUser && $group['candidate'] && $acceptedKeys->contains($group['resolvedKey'])) {
+                $sharePoyUser = $group['candidate'];
+            }
+
+            if (! $sharePoyUser) {
                 $noSharePoyUserCount += count($group['rows']);
 
                 continue;
@@ -109,7 +119,34 @@ class BimoniSharePoyLinkController extends Controller
 
             foreach ($group['rows'] as $row) {
                 SharePoyDepositRecord::create([
-                    'sharepoy_user_id' => $group['sharePoyUser']->id,
+                    'sharepoy_user_id' => $sharePoyUser->id,
+                    'inquiry_id' => null,
+                    'source' => 'bimoni_sharepoy',
+                    'deposit_date' => Carbon::now(),
+                    'tsunagu_unit_price' => $row['amount'],
+                    'agency_unit_price' => 0,
+                    'count' => 1,
+                    'memo' => $row['memo'],
+                ]);
+                $savedCount++;
+            }
+        }
+
+        // groups由来の候補（SPコード行）は上のループで処理済みなので、SHAREPOY専用の候補（keyが"name:"始まり）だけを処理する
+        foreach ($result['candidates'] as $candidateEntry) {
+            if (! str_starts_with($candidateEntry['key'], 'name:')) {
+                continue;
+            }
+
+            if (! $acceptedKeys->contains($candidateEntry['key'])) {
+                $noSharePoyUserCount += count($candidateEntry['rows']);
+
+                continue;
+            }
+
+            foreach ($candidateEntry['rows'] as $row) {
+                SharePoyDepositRecord::create([
+                    'sharepoy_user_id' => $candidateEntry['candidate']->id,
                     'inquiry_id' => null,
                     'source' => 'bimoni_sharepoy',
                     'deposit_date' => Carbon::now(),
@@ -190,12 +227,23 @@ class BimoniSharePoyLinkController extends Controller
     }
 
     /**
-     * @return array{groups: array<int, array{code: string, name: string, nameKana: string, sharePoyUser: ?SharePoyUser, count: int, points: int, rows: array<int, array{raw: string, memo: string, amount: int}>}>, unmatched: array<int, array{raw: string, reason: string}>}
+     * 名前・フリガナが完全一致しない場合に、片方だけ一致するSharePoy+ユーザーを候補として探す
+     * （表記ゆれ・入力ミスの救済用。自動では紐付けず、確認画面でのチェック選択が必要）。
+     */
+    private function findCandidate(string $name, string $nameKana): ?SharePoyUser
+    {
+        return SharePoyUser::where('name', $name)->first()
+            ?? SharePoyUser::where('name_kana', $nameKana)->first();
+    }
+
+    /**
+     * @return array{groups: array<int, array{resolvedKey: string, code: string, name: string, nameKana: string, sharePoyUser: ?SharePoyUser, candidate: ?SharePoyUser, count: int, points: int, rows: array<int, array{raw: string, memo: string, amount: int}>}>, unmatched: array<int, array{raw: string, reason: string}>, candidates: array<int, array{key: string, name: string, nameKana: string, candidate: SharePoyUser, rows: array<int, array{raw: string, memo: string, amount: int}>}>}
      */
     private function parseBulkText(string $text): array
     {
         $resolvedRows = [];
         $unmatched = [];
+        $candidateOnlyRows = [];
 
         foreach ($this->splitLines($text) as $lineText) {
             ['code' => $code, 'name' => $name, 'nameKana' => $nameKana, 'memo' => $memo, 'amount' => $amount] = $this->extractColumns($lineText);
@@ -210,17 +258,37 @@ class BimoniSharePoyLinkController extends Controller
                 $sharePoyUser = SharePoyUser::where('name', $name)->where('name_kana', $nameKana)->first();
 
                 if (! $sharePoyUser) {
-                    $unmatched[] = ['raw' => $lineText, 'reason' => '一致するSharePoy+ユーザーが見つかりません(名前・フリガナをご確認ください)'];
+                    $candidate = $this->findCandidate($name, $nameKana);
+
+                    if (! $candidate) {
+                        $unmatched[] = ['raw' => $lineText, 'reason' => '一致するSharePoy+ユーザーが見つかりません(名前・フリガナをご確認ください)'];
+
+                        continue;
+                    }
+
+                    // 紹介コード用の実IDが確定していないためコピー用一覧には含めず、
+                    // 着金履歴の候補としてのみ持ち回る（確認画面でのチェック選択が必要）
+                    $candidateOnlyRows[] = [
+                        'key' => 'name:'.$name.'|'.$nameKana,
+                        'name' => $name,
+                        'nameKana' => $nameKana,
+                        'candidate' => $candidate,
+                        'raw' => $lineText,
+                        'memo' => $memo,
+                        'amount' => $amount,
+                    ];
 
                     continue;
                 }
 
                 $resolvedKey = 'user:'.$sharePoyUser->id;
                 $resolvedCode = $sharePoyUser->sharepoy_user_id;
+                $candidate = null;
             } elseif (str_starts_with($code, 'SP')) {
                 // コードは紹介者側の情報でしかなく、着金履歴の紐付け先とは無関係。
                 // SHAREPOY行と同様に名前・フリガナでSharePoy+ユーザーを検索する（見つからなくてもコードはそのまま使う）
                 $sharePoyUser = SharePoyUser::where('name', $name)->where('name_kana', $nameKana)->first();
+                $candidate = $sharePoyUser ? null : $this->findCandidate($name, $nameKana);
                 $resolvedKey = 'code:'.$code;
                 $resolvedCode = $code;
             } else {
@@ -236,6 +304,7 @@ class BimoniSharePoyLinkController extends Controller
                 'name' => $name,
                 'nameKana' => $nameKana,
                 'sharePoyUser' => $sharePoyUser,
+                'candidate' => $candidate,
                 'memo' => $memo,
                 'amount' => $amount,
             ];
@@ -243,14 +312,16 @@ class BimoniSharePoyLinkController extends Controller
 
         $groups = collect($resolvedRows)
             ->groupBy('resolvedKey')
-            ->map(function ($rows) {
+            ->map(function ($rows, $resolvedKey) {
                 $first = $rows->first();
 
                 return [
+                    'resolvedKey' => $resolvedKey,
                     'code' => $first['code'],
                     'name' => $first['name'],
                     'nameKana' => $first['nameKana'],
                     'sharePoyUser' => $first['sharePoyUser'],
+                    'candidate' => $first['candidate'],
                     'count' => $rows->count(),
                     'points' => $rows->count() * self::POINTS_PER_LINE,
                     'rows' => $rows->map(fn (array $r) => [
@@ -263,9 +334,45 @@ class BimoniSharePoyLinkController extends Controller
             ->values()
             ->all();
 
+        $candidatesFromGroups = collect($groups)
+            ->filter(fn (array $g) => ! $g['sharePoyUser'] && $g['candidate'])
+            ->map(fn (array $g) => [
+                'key' => $g['resolvedKey'],
+                'name' => $g['name'],
+                'nameKana' => $g['nameKana'],
+                'candidate' => $g['candidate'],
+                'rows' => $g['rows'],
+            ]);
+
+        $candidatesFromShareoy = collect($candidateOnlyRows)
+            ->groupBy('key')
+            ->map(function ($rows) {
+                $first = $rows->first();
+
+                return [
+                    'key' => $first['key'],
+                    'name' => $first['name'],
+                    'nameKana' => $first['nameKana'],
+                    'candidate' => $first['candidate'],
+                    'rows' => $rows->map(fn (array $r) => [
+                        'raw' => $r['raw'],
+                        'memo' => $r['memo'],
+                        'amount' => $r['amount'],
+                    ])->values()->all(),
+                ];
+            });
+
+        $candidates = $candidatesFromGroups->concat($candidatesFromShareoy)->values()->all();
+
         $amountResult = $this->groupByAmount($text);
 
-        return ['groups' => $groups, 'unmatched' => $unmatched, 'amountGroups' => $amountResult['amountGroups'], 'noAmount' => $amountResult['noAmount']];
+        return [
+            'groups' => $groups,
+            'unmatched' => $unmatched,
+            'candidates' => $candidates,
+            'amountGroups' => $amountResult['amountGroups'],
+            'noAmount' => $amountResult['noAmount'],
+        ];
     }
 
     /**
