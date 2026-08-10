@@ -17,6 +17,17 @@
 </div>
 
 <h2 class="text-sm font-medium text-gray-700 mb-3">TSUNAGU着金履歴</h2>
+
+@if (count($amountGroups) > 0)
+    <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+        <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+            @foreach ($amountGroups as $group)
+                <span class="text-gray-700">{{ number_format($group['amount']) }}円 × {{ $group['count'] }}件</span>
+            @endforeach
+        </div>
+    </div>
+@endif
+
 <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
     <table class="w-full text-sm">
         <thead class="bg-gray-50 text-gray-600">

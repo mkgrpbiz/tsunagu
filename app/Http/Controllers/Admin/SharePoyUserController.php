@@ -32,9 +32,19 @@ class SharePoyUserController extends Controller
 
     public function show(SharePoyUser $sharepoyUser): View
     {
+        $depositRecords = $sharepoyUser->depositRecords()->with('inquiry')->latest('deposit_date')->get();
+
+        $amountGroups = $depositRecords
+            ->groupBy('tsunagu_unit_price')
+            ->map(fn ($records, $unitPrice) => ['amount' => (int) $unitPrice, 'count' => $records->sum('count')])
+            ->sortByDesc('amount')
+            ->values()
+            ->all();
+
         return view('admin.sharepoy_users.show', [
             'sharepoyUser' => $sharepoyUser,
-            'depositRecords' => $sharepoyUser->depositRecords()->with('inquiry')->latest('deposit_date')->get(),
+            'depositRecords' => $depositRecords,
+            'amountGroups' => $amountGroups,
         ]);
     }
 
