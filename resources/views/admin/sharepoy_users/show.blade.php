@@ -17,16 +17,7 @@
 </div>
 
 <h2 class="text-sm font-medium text-gray-700 mb-3">TSUNAGU着金履歴</h2>
-
-@if (count($amountGroups) > 0)
-    <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-        <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-            @foreach ($amountGroups as $group)
-                <span class="text-gray-700">{{ number_format($group['amount']) }}円 × {{ $group['count'] }}件</span>
-            @endforeach
-        </div>
-    </div>
-@endif
+<p class="text-xs text-gray-500 mb-3">BIMONI(SharePoy)分は着金日・単価が同じ行をまとめて表示しています。</p>
 
 <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
     <table class="w-full text-sm">
@@ -41,14 +32,14 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-            @forelse ($depositRecords as $record)
+            @forelse ($depositRows as $row)
                 <tr class="even:bg-gray-50 hover:bg-gray-100">
-                    <td class="px-4 py-2">{{ $record->deposit_date->format('Y/m/d') }}</td>
-                    <td class="px-4 py-2">{{ $record->sourceLabel() }}</td>
-                    <td class="px-4 py-2">{{ $record->inquiry?->name ?? '-' }}</td>
-                    <td class="px-4 py-2 text-right">¥{{ number_format($record->tsunagu_unit_price) }}</td>
-                    <td class="px-4 py-2 text-right">¥{{ number_format($record->agency_unit_price) }}</td>
-                    <td class="px-4 py-2 text-right">{{ $record->count }}</td>
+                    <td class="px-4 py-2">{{ $row['depositDate']->format('Y/m/d') }}</td>
+                    <td class="px-4 py-2">{{ $row['sourceLabel'] }}</td>
+                    <td class="px-4 py-2">{{ $row['inquiryName'] ?? '-' }}</td>
+                    <td class="px-4 py-2 text-right">¥{{ number_format($row['tsunaguUnitPrice']) }}</td>
+                    <td class="px-4 py-2 text-right">¥{{ number_format($row['agencyUnitPrice']) }}</td>
+                    <td class="px-4 py-2 text-right">{{ $row['count'] }}</td>
                 </tr>
             @empty
                 <tr class="even:bg-gray-50 hover:bg-gray-100">

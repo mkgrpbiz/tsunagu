@@ -34,17 +34,35 @@ class SharePoyUserController extends Controller
     {
         $depositRecords = $sharepoyUser->depositRecords()->with('inquiry')->latest('deposit_date')->get();
 
-        $amountGroups = $depositRecords
-            ->groupBy('tsunagu_unit_price')
-            ->map(fn ($records, $unitPrice) => ['amount' => (int) $unitPrice, 'count' => $records->sum('count')])
-            ->sortByDesc('amount')
-            ->values()
-            ->all();
+        // BIMONI(SharePoy)分は商品ごとに1行ずつ入っていて件数が多くなりがちなので、
+        // 着金日×単価でまとめて1行に集約する（他のソースはinquiryと紐づく個別取引なのでそのまま列挙）
+        [$bimoniRecords, $otherRecords] = $depositRecords->partition(fn ($r) => $r->source === 'bimoni_sharepoy');
+
+        $bimoniRows = $bimoniRecords
+            ->groupBy(fn ($r) => $r->deposit_date->format('Y-m-d').'|'.$r->tsunagu_unit_price)
+            ->map(fn ($records) => [
+                'depositDate' => $records->first()->deposit_date,
+                'sourceLabel' => $records->first()->sourceLabel(),
+                'inquiryName' => null,
+                'tsunaguUnitPrice' => $records->first()->tsunagu_unit_price,
+                'agencyUnitPrice' => $records->first()->agency_unit_price,
+                'count' => $records->sum('count'),
+            ]);
+
+        $otherRows = $otherRecords->map(fn ($r) => [
+            'depositDate' => $r->deposit_date,
+            'sourceLabel' => $r->sourceLabel(),
+            'inquiryName' => $r->inquiry?->name,
+            'tsunaguUnitPrice' => $r->tsunagu_unit_price,
+            'agencyUnitPrice' => $r->agency_unit_price,
+            'count' => $r->count,
+        ]);
+
+        $depositRows = $bimoniRows->concat($otherRows)->sortByDesc('depositDate')->values()->all();
 
         return view('admin.sharepoy_users.show', [
             'sharepoyUser' => $sharepoyUser,
-            'depositRecords' => $depositRecords,
-            'amountGroups' => $amountGroups,
+            'depositRows' => $depositRows,
         ]);
     }
 
