@@ -7,7 +7,7 @@
 
 <div class="bg-amber-50 border border-amber-100 rounded-lg p-4 mb-6 text-sm text-gray-700">
     <p class="font-bold text-amber-600 mb-1">プレビュー画面で2つの一括処理ができます。</p>
-    <p>①SharePoy+ポイント付与用の履歴記録（従来通り）　②TSUNAGU側でA01（シェアポイ）への一括着金紐付け（新規）。それぞれ別ボタンで、どちらか一方だけ・両方どちらも実行できます。</p>
+    <p>①SharePoy+ポイント付与用の履歴記録　②TSUNAGU側でA01（シェアポイ）への一括着金紐付け。それぞれ別ボタンで、どちらか一方だけ・両方どちらも実行できます。</p>
 </div>
 
 <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
