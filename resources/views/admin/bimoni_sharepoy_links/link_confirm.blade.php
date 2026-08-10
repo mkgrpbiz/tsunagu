@@ -1,9 +1,13 @@
 @extends('layouts.admin')
 
-@section('title', 'BIMONI(SharePoy) - 一括紐付けプレビュー')
+@section('title', 'BIMONI(SharePoy) - 紹介ポイント・一括紐付け')
 
 @section('content')
-<h1 class="text-xl font-semibold mb-6">一括紐付けプレビュー</h1>
+<h1 class="text-xl font-semibold mb-6">紹介ポイント・一括紐付けの確認</h1>
+
+<div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-sm text-gray-700">
+    <p>月末締め翌月末サイクルの処理です。ユーザー着金履歴反映とは別に実行されます。</p>
+</div>
 
 <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
     <p class="text-sm text-gray-700 mb-1">紹介コード: {{ count($groups) }}件</p>
@@ -20,6 +24,7 @@
                     class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md px-3 py-1.5">コピー</button>
         </div>
         <textarea readonly rows="{{ count($groups) }}" class="w-full rounded-md border border-gray-300 font-mono text-xs bg-gray-50">{{ $copyText }}</textarea>
+        <p class="text-xs text-gray-500 mt-2">これは自動反映されないので、コピーして手動でSharePoy+に転記してください。</p>
     </div>
 
     <div class="bg-white border border-gray-200 rounded-lg overflow-hidden mb-6">
@@ -70,7 +75,7 @@
 <div class="border-t border-gray-200 pt-6 mt-2">
     <h2 class="text-sm font-semibold text-gray-700 mb-3">TSUNAGU側 一括着金紐付け（A01 / シェアポイ）</h2>
     <p class="text-xs text-gray-500 mb-3">
-        SharePoy+ユーザーとの紐付け有無に関わらず、金額が読み取れた行はすべて対象です。金額ごとに件数をまとめて、A01（シェアポイ）名義でBIMONI【募集モニター30件以上】に一括で着金紐付けします。
+        SharePoy+ユーザーとの紐付け有無に関わらず、金額が読み取れた行はすべて対象です。金額ごとに件数をまとめて、A01（シェアポイ）名義でBIMONI【招待制モニター】に一括で着金紐付けします。
     </p>
 
     @if (count($amountGroups) > 0)
@@ -92,6 +97,7 @@
                 </tbody>
             </table>
         </div>
+        <p class="text-sm font-medium text-gray-700 mb-4">合計 {{ $depositLinkCount }}件をA01（シェアポイ）名義で一括着金紐付けします。</p>
     @else
         <p class="text-sm text-gray-400 mb-4">金額が読み取れる行がありません。</p>
     @endif
@@ -109,14 +115,11 @@
 </div>
 
 <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-    <p class="text-xs text-gray-500 mb-3">
-        「SharePoy+ユーザーの着金履歴への記録」と「A01への一括着金紐付け」は1つの操作としてまとめて実行します。次の画面で最終確認できます。
-    </p>
-    <form method="POST" action="{{ route('admin.bimoni-sharepoy-links.bulk-confirm') }}" class="flex gap-3">
+    <form method="POST" action="{{ route('admin.bimoni-sharepoy-links.link-execute') }}" class="flex gap-3">
         @csrf
         <textarea name="pasted_text" hidden>{{ $pastedText }}</textarea>
-        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md px-4 py-2" @disabled(count($groups) === 0 && count($amountGroups) === 0)>
-            この内容で確認する
+        <button type="submit" class="bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md px-4 py-2" @disabled(count($amountGroups) === 0)>
+            一括紐付け確定
         </button>
         <a href="{{ route('admin.bimoni-sharepoy-links.index') }}" class="text-sm text-gray-500 px-4 py-2">戻る</a>
     </form>

@@ -184,9 +184,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::middleware('menu:bimoni_sharepoy_links')->group(function () {
                 Route::get('bimoni-sharepoy-links', [BimoniSharePoyLinkController::class, 'index'])->name('bimoni-sharepoy-links.index');
-                Route::post('bimoni-sharepoy-links/bulk-preview', [BimoniSharePoyLinkController::class, 'bulkPreview'])->name('bimoni-sharepoy-links.bulk-preview');
-                Route::post('bimoni-sharepoy-links/bulk-confirm', [BimoniSharePoyLinkController::class, 'bulkConfirm'])->name('bimoni-sharepoy-links.bulk-confirm');
-                Route::post('bimoni-sharepoy-links/bulk-execute', [BimoniSharePoyLinkController::class, 'bulkExecute'])->name('bimoni-sharepoy-links.bulk-execute');
+                Route::post('bimoni-sharepoy-links/history-confirm', [BimoniSharePoyLinkController::class, 'historyConfirm'])->name('bimoni-sharepoy-links.history-confirm');
+                Route::post('bimoni-sharepoy-links/history-execute', [BimoniSharePoyLinkController::class, 'historyExecute'])->name('bimoni-sharepoy-links.history-execute');
+                Route::post('bimoni-sharepoy-links/link-confirm', [BimoniSharePoyLinkController::class, 'linkConfirm'])->name('bimoni-sharepoy-links.link-confirm');
+                Route::post('bimoni-sharepoy-links/link-execute', [BimoniSharePoyLinkController::class, 'linkExecute'])->name('bimoni-sharepoy-links.link-execute');
             });
 
             Route::middleware('menu:product_monitor_links')->group(function () {

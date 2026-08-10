@@ -34,33 +34,12 @@ class BimoniSharePoyLinkController extends Controller
         return view('admin.bimoni_sharepoy_links.index');
     }
 
-    public function bulkPreview(Request $request): View
-    {
-        $data = $request->validate([
-            'pasted_text' => ['required', 'string'],
-        ]);
-
-        $result = $this->parseBulkText($data['pasted_text']);
-
-        $copyText = collect($result['groups'])
-            ->map(fn (array $g) => implode("\t", [$g['code'], $g['points'], self::LABEL]))
-            ->implode("\n");
-
-        return view('admin.bimoni_sharepoy_links.bulk_preview', [
-            'pastedText' => $data['pasted_text'],
-            'groups' => $result['groups'],
-            'unmatched' => $result['unmatched'],
-            'copyText' => $copyText,
-            'amountGroups' => $result['amountGroups'],
-            'noAmount' => $result['noAmount'],
-        ]);
-    }
-
     /**
-     * 着金履歴記録（SharePoy+ユーザー紐付け分）とA01一括着金紐付けをまとめて実行する前の、
-     * 最終確認画面。件数の内訳だけを見せ、確定はbulkExecuteで一括して行う。
+     * ユーザー着金履歴反映の確認画面（月末締め翌月10日サイクル）。
+     * 名前・フリガナが一致したSharePoy+ユーザー分を金額グループで集計表示し、
+     * 片方だけ一致する候補はチェックボックスで個別に選べるようにする。
      */
-    public function bulkConfirm(Request $request): View
+    public function historyConfirm(Request $request): View
     {
         $data = $request->validate([
             'pasted_text' => ['required', 'string'],
@@ -68,29 +47,34 @@ class BimoniSharePoyLinkController extends Controller
 
         $result = $this->parseBulkText($data['pasted_text']);
 
-        $recordCount = collect($result['groups'])
+        $matchedRows = collect($result['groups'])
             ->filter(fn (array $g) => $g['sharePoyUser'])
-            ->sum(fn (array $g) => count($g['rows']));
+            ->flatMap(fn (array $g) => $g['rows']);
+
+        $recordAmountGroups = $matchedRows
+            ->groupBy('amount')
+            ->map(fn ($rows, $amount) => ['amount' => (int) $amount, 'count' => $rows->count()])
+            ->sortByDesc('amount')
+            ->values()
+            ->all();
 
         $noMatchCount = count($result['unmatched'])
             + collect($result['groups'])->filter(fn (array $g) => ! $g['sharePoyUser'] && ! $g['candidate'])->sum(fn (array $g) => count($g['rows']));
 
-        return view('admin.bimoni_sharepoy_links.bulk_confirm', [
+        return view('admin.bimoni_sharepoy_links.history_confirm', [
             'pastedText' => $data['pasted_text'],
-            'recordCount' => $recordCount,
+            'recordAmountGroups' => $recordAmountGroups,
+            'recordCount' => $matchedRows->count(),
             'candidates' => $result['candidates'],
             'noMatchCount' => $noMatchCount,
-            'amountGroups' => $result['amountGroups'],
-            'depositLinkCount' => collect($result['amountGroups'])->sum('count'),
         ]);
     }
 
     /**
-     * 着金履歴記録とA01一括着金紐付けを1つの操作としてまとめて実行する。
-     * SharePoy+ユーザーとの紐付け有無に関わらず、金額が読み取れた行はすべてA01紐付けの対象にする
-     * （点数付与の可否とTSUNAGU側の売上計上は別物のため）。
+     * ユーザー着金履歴反映を実行する。SharePoy+ユーザーとの紐付け分のみが対象で、
+     * 紹介ポイント・A01一括紐付けとは無関係（サイクルが異なるため別処理）。
      */
-    public function bulkExecute(Request $request): RedirectResponse
+    public function historyExecute(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'pasted_text' => ['required', 'string'],
@@ -159,41 +143,83 @@ class BimoniSharePoyLinkController extends Controller
             }
         }
 
-        $depositLinkedCount = 0;
-
-        if (! empty($result['amountGroups'])) {
-            $a01Agency = Agency::where('legacy_code', 'A01')->firstOrFail();
-
-            $inquiry = Inquiry::create([
-                'agency_id' => $a01Agency->id,
-                'project_id' => self::DEPOSIT_PROJECT_ID,
-                'name' => 'BIMONI(SharePoy)一括 '.Carbon::now()->format('Y-m-d H:i'),
-                'name_kana' => '',
-                'email' => '',
-                'status' => InquiryStatus::Contracted,
-                'inquired_at' => now(),
-                'is_legacy_import' => false,
-            ]);
-
-            $lines = collect($result['amountGroups'])->map(fn (array $g) => [
-                'tsunagu_unit_price' => $g['amount'],
-                'agency_unit_price' => $g['amount'],
-                'count' => $g['count'],
-            ])->all();
-
-            $this->contractLinkingService->linkInquiry($inquiry, $lines, self::DEPOSIT_PROJECT_ID);
-
-            $depositLinkedCount = collect($result['amountGroups'])->sum('count');
-        }
-
         $unmatchedCount = count($result['unmatched']) + $noSharePoyUserCount;
 
-        $status = "{$savedCount}件をSharePoy+ユーザーの着金履歴に記録し、{$depositLinkedCount}件をA01（シェアポイ）に一括着金紐付けしました。";
+        $status = "{$savedCount}件をSharePoy+ユーザーの着金履歴に記録しました。";
         if ($unmatchedCount > 0) {
             $status .= "{$unmatchedCount}件は一致しなかったためスキップしました。";
         }
 
         return redirect()->route('admin.bimoni-sharepoy-links.index')->with('status', $status);
+    }
+
+    /**
+     * 紹介ポイント・一括紐付けの確認画面（月末締め翌月末サイクル）。
+     * SharePoy+へのポイント付与用コピーテキストと、A01一括着金紐付けの内容を表示する。
+     */
+    public function linkConfirm(Request $request): View
+    {
+        $data = $request->validate([
+            'pasted_text' => ['required', 'string'],
+        ]);
+
+        $result = $this->parseBulkText($data['pasted_text']);
+
+        $copyText = collect($result['groups'])
+            ->map(fn (array $g) => implode("\t", [$g['code'], $g['points'], self::LABEL]))
+            ->implode("\n");
+
+        return view('admin.bimoni_sharepoy_links.link_confirm', [
+            'pastedText' => $data['pasted_text'],
+            'groups' => $result['groups'],
+            'unmatched' => $result['unmatched'],
+            'copyText' => $copyText,
+            'amountGroups' => $result['amountGroups'],
+            'noAmount' => $result['noAmount'],
+            'depositLinkCount' => collect($result['amountGroups'])->sum('count'),
+        ]);
+    }
+
+    /**
+     * A01（シェアポイ）への一括着金紐付けを実行する。紹介ポイントのコピーテキストは
+     * 手動でSharePoy+に転記するだけなのでDB操作は不要（ここでは行わない）。
+     */
+    public function linkExecute(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'pasted_text' => ['required', 'string'],
+        ]);
+
+        $result = $this->parseBulkText($data['pasted_text']);
+
+        if (empty($result['amountGroups'])) {
+            return redirect()->route('admin.bimoni-sharepoy-links.index')->with('error', '金額が読み取れる行がありませんでした。');
+        }
+
+        $a01Agency = Agency::where('legacy_code', 'A01')->firstOrFail();
+
+        $inquiry = Inquiry::create([
+            'agency_id' => $a01Agency->id,
+            'project_id' => self::DEPOSIT_PROJECT_ID,
+            'name' => 'BIMONI(SharePoy)一括 '.Carbon::now()->format('Y-m-d H:i'),
+            'name_kana' => '',
+            'email' => '',
+            'status' => InquiryStatus::Contracted,
+            'inquired_at' => now(),
+            'is_legacy_import' => false,
+        ]);
+
+        $lines = collect($result['amountGroups'])->map(fn (array $g) => [
+            'tsunagu_unit_price' => $g['amount'],
+            'agency_unit_price' => $g['amount'],
+            'count' => $g['count'],
+        ])->all();
+
+        $this->contractLinkingService->linkInquiry($inquiry, $lines, self::DEPOSIT_PROJECT_ID);
+
+        $depositLinkedCount = collect($result['amountGroups'])->sum('count');
+
+        return redirect()->route('admin.bimoni-sharepoy-links.index')->with('status', "{$depositLinkedCount}件をA01（シェアポイ）に一括着金紐付けしました。");
     }
 
     /**
