@@ -186,6 +186,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('bimoni-sharepoy-links', [BimoniSharePoyLinkController::class, 'index'])->name('bimoni-sharepoy-links.index');
                 Route::post('bimoni-sharepoy-links/bulk-preview', [BimoniSharePoyLinkController::class, 'bulkPreview'])->name('bimoni-sharepoy-links.bulk-preview');
                 Route::post('bimoni-sharepoy-links/bulk-store', [BimoniSharePoyLinkController::class, 'bulkStore'])->name('bimoni-sharepoy-links.bulk-store');
+                Route::post('bimoni-sharepoy-links/bulk-store-deposit', [BimoniSharePoyLinkController::class, 'bulkStoreDeposit'])->name('bimoni-sharepoy-links.bulk-store-deposit');
             });
 
             Route::middleware('menu:product_monitor_links')->group(function () {

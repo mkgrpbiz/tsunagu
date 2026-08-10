@@ -78,4 +78,53 @@
         <a href="{{ route('admin.bimoni-sharepoy-links.index') }}" class="text-sm text-gray-500 px-4 py-2">戻る</a>
     </form>
 </div>
+
+<div class="border-t border-gray-200 pt-6 mt-2">
+    <h2 class="text-sm font-semibold text-gray-700 mb-3">TSUNAGU側 一括着金紐付け（A01 / シェアポイ）</h2>
+    <p class="text-xs text-gray-500 mb-3">
+        SharePoy+ユーザーとの紐付け有無に関わらず、金額が読み取れた行はすべて対象です。金額ごとに件数をまとめて、A01（シェアポイ）名義でBIMONI【募集モニター30件以上】に一括で着金紐付けします。
+    </p>
+
+    @if (count($amountGroups) > 0)
+        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden mb-4">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 text-gray-600">
+                    <tr>
+                        <th class="text-left px-4 py-2 font-medium">内容</th>
+                        <th class="text-right px-4 py-2 font-medium">件数</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @foreach ($amountGroups as $group)
+                        <tr class="even:bg-gray-50">
+                            <td class="px-4 py-2">BIMONI　{{ number_format($group['amount']) }}円</td>
+                            <td class="px-4 py-2 text-right">{{ $group['count'] }}件</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @else
+        <p class="text-sm text-gray-400 mb-4">金額が読み取れる行がありません。</p>
+    @endif
+
+    @if (count($noAmount) > 0)
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+            <p class="text-sm font-medium text-amber-700 mb-2">金額が読み取れなかった行（着金紐付けの対象外）</p>
+            <ul class="text-xs text-amber-700 space-y-1">
+                @foreach ($noAmount as $line)
+                    <li>{{ $line['raw'] }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form method="POST" action="{{ route('admin.bimoni-sharepoy-links.bulk-store-deposit') }}" class="flex gap-3">
+        @csrf
+        <textarea name="pasted_text" hidden>{{ $pastedText }}</textarea>
+        <button type="submit" class="bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md px-4 py-2" @disabled(count($amountGroups) === 0)>
+            A01に一括着金紐付け
+        </button>
+    </form>
+</div>
 @endsection
