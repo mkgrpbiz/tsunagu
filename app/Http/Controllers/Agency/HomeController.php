@@ -34,6 +34,8 @@ class HomeController extends Controller
             'announcements' => Announcement::where('is_draft', false)->latest()->take(10)->get(),
             'salesMaterials' => SalesMaterial::where('is_draft', false)->latest()->get(),
             'referralUrl' => url('/agency/register?ref='.$agency->referral_code),
+            'referredPartnerCount' => $agency->referrals()->where('is_collaboration_partner', false)->count(),
+            'referredCollaborationPartnerCount' => $agency->referrals()->where('is_collaboration_partner', true)->count(),
             'restrictedReason' => $restrictedReason,
             'bannerReason' => $bannerReason,
             'liffId' => config('services.line_partner.liff_id'),

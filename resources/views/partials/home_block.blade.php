@@ -3,6 +3,8 @@
     $announcements ??= collect();
     $restrictedReason ??= null;
     $agency ??= null;
+    $referredPartnerCount ??= 0;
+    $referredCollaborationPartnerCount ??= 0;
     $restrictedMessages = [
         'pending_review' => ['審査中のため利用できません', '承認後にご利用いただけます。'],
         'consent_required' => ['契約書類へのご同意が必要です', '追加情報のご入力よりご同意いただくとご利用いただけます。'],
@@ -68,6 +70,10 @@
         <div class="cta-card">
             @if ($block->title)<div class="cta-title">{{ $block->title }}</div>@endif
             @if ($block->body)<div class="cta-body">{{ $block->body }}</div>@endif
+            <div class="referral-stats-card">
+                <div class="referral-stats-title">紹介実績</div>
+                <div class="referral-stats-body">パートナー：{{ $referredPartnerCount }}名　共創パートナー：{{ $referredCollaborationPartnerCount }}名</div>
+            </div>
             <button type="button" class="copy" @if($agency ?? null) onclick="copyToClipboard({{ Illuminate\Support\Js::from($referralUrl) }})" @endif>紹介リンクをコピー</button>
         </div>
     @endif

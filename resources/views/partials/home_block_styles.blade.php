@@ -33,6 +33,9 @@
 .tsn-home .cta-card{background:linear-gradient(180deg,#eff6ff,#fff);border:1px solid #dbeafe;border-radius:18px;padding:18px;box-shadow:0 10px 24px rgba(0,0,0,.05)}
 .tsn-home .cta-card .cta-title{font-weight:900;font-size:15px;color:#0f172a;margin-bottom:6px}
 .tsn-home .cta-card .cta-body{font-size:13px;color:#475569;line-height:1.7;margin-bottom:12px;white-space:pre-line}
+.tsn-home .cta-card .referral-stats-card{background:#fff;border:1px solid #dbeafe;border-radius:12px;padding:12px 14px;margin-bottom:12px}
+.tsn-home .cta-card .referral-stats-title{font-weight:800;font-size:12px;color:#2563eb;margin-bottom:4px}
+.tsn-home .cta-card .referral-stats-body{font-size:13px;color:#0f172a;font-weight:700}
 .tsn-home .cta-card input[readonly]{width:100%;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;font-size:12.5px;background:#f9fafb;color:#374151}
 .tsn-home .cta-card button.copy{margin-top:8px;width:100%;border:none;border-radius:10px;padding:11px 14px;font-weight:800;cursor:pointer;background:#2563eb;color:#fff}
 .tsn-home .cta-card .cta-link{display:block;text-align:center;margin-top:4px;width:100%;box-sizing:border-box;border-radius:10px;padding:11px 14px;font-weight:800;background:#2563eb;color:#fff;text-decoration:none}

@@ -38,7 +38,7 @@
 
     @foreach ($blocks as $block)
         <div class="block">
-            @include('partials.home_block', compact('block', 'agency', 'referralUrl', 'salesMaterials', 'announcements', 'restrictedReason'))
+            @include('partials.home_block', compact('block', 'agency', 'referralUrl', 'salesMaterials', 'announcements', 'restrictedReason', 'referredPartnerCount', 'referredCollaborationPartnerCount'))
         </div>
     @endforeach
 
