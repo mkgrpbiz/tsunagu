@@ -103,7 +103,7 @@
         @if (count($projectInquiryCounts) > 0)
             <div class="divide-y divide-gray-100">
                 @foreach ($projectInquiryCounts as $row)
-                    <div class="flex items-center justify-between py-2 text-sm">
+                    <div class="flex items-center justify-between px-2 py-2 text-sm even:bg-gray-50 hover:bg-gray-100">
                         <span class="text-gray-700">{{ $row['project']->name }}</span>
                         <span class="font-semibold text-gray-900">{{ number_format($row['count']) }}件</span>
                     </div>
@@ -119,7 +119,7 @@
         @if (count($projectDepositCounts) > 0)
             <div class="divide-y divide-gray-100">
                 @foreach ($projectDepositCounts as $row)
-                    <div class="flex items-center justify-between py-2 text-sm">
+                    <div class="flex items-center justify-between px-2 py-2 text-sm even:bg-gray-50 hover:bg-gray-100">
                         <span class="text-gray-700">{{ $row['project']->name }}</span>
                         <span class="font-semibold text-gray-900">{{ number_format($row['count']) }}件</span>
                     </div>
