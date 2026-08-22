@@ -25,7 +25,7 @@ class DashboardController extends Controller
         $agencies = Agency::all();
         $collaborationPartners = Agency::where('is_collaboration_partner', true)->get();
         $inquiries = Inquiry::with('project')->get();
-        $contracts = Contract::all();
+        $contracts = Contract::with(['project', 'inquiry.project'])->get();
         $referralCommissions = ReferralCommission::with('contract')->get();
 
         // データが無くても当月は選択肢・初期選択に必ず含める（前月のまま止まって見えないように）
@@ -94,6 +94,15 @@ class DashboardController extends Controller
             ->sortByDesc('count')
             ->values();
 
+        $monthContracts = $month ? $contracts->filter(fn (Contract $c) => $c->deposit_date->format('Y-m') === $month) : $contracts;
+
+        $projectDepositCounts = $monthContracts
+            ->filter(fn (Contract $c) => $c->effectiveProject() !== null)
+            ->groupBy(fn (Contract $c) => $c->effectiveProject()->id)
+            ->map(fn ($group) => ['project' => $group->first()->effectiveProject(), 'count' => $group->count()])
+            ->sortByDesc('count')
+            ->values();
+
         return view('admin.dashboard.index', [
             'months' => $months,
             'month' => $month,
@@ -102,6 +111,7 @@ class DashboardController extends Controller
             'carryOverTotal' => $carryOverTotal,
             'alerts' => $this->alerts(),
             'projectInquiryCounts' => $projectInquiryCounts,
+            'projectDepositCounts' => $projectDepositCounts,
         ]);
     }
 

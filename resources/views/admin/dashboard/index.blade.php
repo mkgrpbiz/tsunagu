@@ -97,19 +97,37 @@
     </div>
 </div>
 
-<div class="bg-white border border-gray-200 rounded-lg p-6 mt-6">
-    <h2 class="text-sm font-semibold text-gray-700 mb-4">案件別問い合わせ数{{ $month ? '（'.$month.'）' : '（累計）' }}</h2>
-    @if (count($projectInquiryCounts) > 0)
-        <div class="divide-y divide-gray-100">
-            @foreach ($projectInquiryCounts as $row)
-                <div class="flex items-center justify-between py-2 text-sm">
-                    <span class="text-gray-700">{{ $row['project']->name }}</span>
-                    <span class="font-semibold text-gray-900">{{ number_format($row['count']) }}件</span>
-                </div>
-            @endforeach
-        </div>
-    @else
-        <p class="text-sm text-gray-400">対象の問い合わせがありません。</p>
-    @endif
+<div class="grid md:grid-cols-2 gap-6 mt-6">
+    <div class="bg-white border border-gray-200 rounded-lg p-6">
+        <h2 class="text-sm font-semibold text-gray-700 mb-4">案件別問い合わせ数{{ $month ? '（'.$month.'）' : '（累計）' }}</h2>
+        @if (count($projectInquiryCounts) > 0)
+            <div class="divide-y divide-gray-100">
+                @foreach ($projectInquiryCounts as $row)
+                    <div class="flex items-center justify-between py-2 text-sm">
+                        <span class="text-gray-700">{{ $row['project']->name }}</span>
+                        <span class="font-semibold text-gray-900">{{ number_format($row['count']) }}件</span>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <p class="text-sm text-gray-400">対象の問い合わせがありません。</p>
+        @endif
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-lg p-6">
+        <h2 class="text-sm font-semibold text-gray-700 mb-4">案件別着金数{{ $month ? '（'.$month.'）' : '（累計）' }}</h2>
+        @if (count($projectDepositCounts) > 0)
+            <div class="divide-y divide-gray-100">
+                @foreach ($projectDepositCounts as $row)
+                    <div class="flex items-center justify-between py-2 text-sm">
+                        <span class="text-gray-700">{{ $row['project']->name }}</span>
+                        <span class="font-semibold text-gray-900">{{ number_format($row['count']) }}件</span>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <p class="text-sm text-gray-400">対象の着金がありません。</p>
+        @endif
+    </div>
 </div>
 @endsection
