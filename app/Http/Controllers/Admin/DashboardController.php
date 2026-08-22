@@ -24,7 +24,7 @@ class DashboardController extends Controller
     {
         $agencies = Agency::all();
         $collaborationPartners = Agency::where('is_collaboration_partner', true)->get();
-        $inquiries = Inquiry::all();
+        $inquiries = Inquiry::with('project')->get();
         $contracts = Contract::all();
         $referralCommissions = ReferralCommission::with('contract')->get();
 
@@ -85,6 +85,15 @@ class DashboardController extends Controller
 
         $carryOverTotal = Agency::carryOverSummary()['total'];
 
+        $monthInquiries = $month ? $inquiries->filter(fn (Inquiry $i) => $i->inquired_at->format('Y-m') === $month) : $inquiries;
+
+        $projectInquiryCounts = $monthInquiries
+            ->filter(fn (Inquiry $i) => $i->project !== null)
+            ->groupBy('project_id')
+            ->map(fn ($group) => ['project' => $group->first()->project, 'count' => $group->count()])
+            ->sortByDesc('count')
+            ->values();
+
         return view('admin.dashboard.index', [
             'months' => $months,
             'month' => $month,
@@ -92,6 +101,7 @@ class DashboardController extends Controller
             'chartData' => $chartData,
             'carryOverTotal' => $carryOverTotal,
             'alerts' => $this->alerts(),
+            'projectInquiryCounts' => $projectInquiryCounts,
         ]);
     }
 
