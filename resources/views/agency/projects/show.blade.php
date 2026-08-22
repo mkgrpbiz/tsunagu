@@ -26,6 +26,8 @@
 .mk-case .dl-btn svg{width:16px;height:16px;flex-shrink:0}
 .mk-case .mini-acc summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;margin:0}
 .mk-case .mini-acc summary::-webkit-details-marker{display:none}
+.mk-case .mini-acc .mini-copy-btn{display:none;align-items:center;justify-content:center;width:22px;height:22px;border:none;border-radius:6px;background:#eff6ff;color:#2563eb;font-size:12px;cursor:pointer;flex-shrink:0}
+.mk-case .mini-acc[open] summary .mini-copy-btn{display:inline-flex}
 .mk-case .mini-acc .mini-chev{width:8px;height:8px;border-right:2px solid #9ca3af;border-bottom:2px solid #9ca3af;transform:rotate(45deg);transition:transform .18s ease;margin-left:auto;flex-shrink:0}
 .mk-case .mini-acc[open] .mini-chev{transform:rotate(-135deg)}
 .mk-case .mini-acc p{margin-top:8px}
@@ -72,7 +74,12 @@
 
         <div class="box">
             <details class="mini-acc">
-                <summary class="box-title">📝 案件概要<span class="mini-chev"></span></summary>
+                <summary class="box-title">
+                    📝 案件概要
+                    <button type="button" class="mini-copy-btn" title="コピー"
+                            onclick="event.stopPropagation(); copyToClipboard({{ Illuminate\Support\Js::from($project->overviewText()) }})">📋</button>
+                    <span class="mini-chev"></span>
+                </summary>
                 <p>{{ $project->overviewText() }}</p>
             </details>
         </div>
