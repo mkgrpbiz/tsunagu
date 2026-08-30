@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -55,8 +57,18 @@ class InquiryController extends Controller
         $filtered = $monthInquiries
             ->when($projectId, fn ($collection) => $collection->where('project_id', (int) $projectId));
 
+        $perPage = 100;
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $pagedInquiries = new LengthAwarePaginator(
+            $filtered->values()->forPage($page, $perPage)->values(),
+            $filtered->count(),
+            $perPage,
+            $page,
+            ['path' => Paginator::resolveCurrentPath(), 'query' => $request->query()],
+        );
+
         return view('agency.inquiries.index', [
-            'inquiries' => $filtered,
+            'inquiries' => $pagedInquiries,
             'monthlyTotal' => $monthlyTotal,
             'cumulativeTotal' => $cumulativeTotal,
             'projectSummary' => $projectSummary,
