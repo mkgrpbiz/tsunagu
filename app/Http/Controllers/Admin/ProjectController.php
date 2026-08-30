@@ -108,11 +108,13 @@ class ProjectController extends Controller
 
         $project = Project::create($data);
 
-        Announcement::create([
-            'body' => "{$project->name}を{$project->category->name}に追加しました。",
-            'category' => AnnouncementCategory::ProjectInfo,
-            'is_draft' => true,
-        ]);
+        if ($project->status === ProjectStatus::Published) {
+            Announcement::create([
+                'body' => "{$project->name}を{$project->category->name}に追加しました。",
+                'category' => AnnouncementCategory::ProjectInfo,
+                'is_draft' => true,
+            ]);
+        }
 
         return redirect()->route('admin.projects.index')->with('status', '案件を作成しました。');
     }
@@ -157,6 +159,7 @@ class ProjectController extends Controller
         if (! $wasPublished && $project->status === ProjectStatus::Published) {
             Announcement::create([
                 'body' => "{$project->name}を{$project->category->name}に追加しました。",
+                'category' => AnnouncementCategory::ProjectInfo,
                 'is_draft' => true,
             ]);
         }
