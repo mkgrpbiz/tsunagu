@@ -31,7 +31,7 @@
 <div class="mk-cases" id="mkCases">
     <div class="mk-wrap">
         @forelse ($categories as $row)
-            <details class="cat-card" open>
+            <details class="cat-card">
                 <summary>
                     <div class="thumb">
                         <img src="{{ asset('tsunagu-logo.png') }}" alt="">
