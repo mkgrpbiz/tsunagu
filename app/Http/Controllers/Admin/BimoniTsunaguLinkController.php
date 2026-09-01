@@ -25,7 +25,11 @@ class BimoniTsunaguLinkController extends Controller
 
     public function index(): View
     {
-        return view('admin.bimoni_tsunagu_links.index');
+        $project = Project::findByAnyName(self::TARGET_PROJECT_NAME);
+
+        return view('admin.bimoni_tsunagu_links.index', [
+            'projectName' => $project?->name ?? self::TARGET_PROJECT_NAME,
+        ]);
     }
 
     public function bulkPreview(Request $request): View
@@ -155,7 +159,7 @@ class BimoniTsunaguLinkController extends Controller
         // TSUNAGU側の問い合わせが1件しか無くても、その1件にまとめて複数明細を紐付ける
         $personGroups = $priceLines->groupBy(fn (array $line) => $line['name'].'|'.$line['name_kana']);
 
-        $project = Project::where('name', self::TARGET_PROJECT_NAME)->first();
+        $project = Project::findByAnyName(self::TARGET_PROJECT_NAME);
 
         $matched = [];
         $claimedIds = [];
