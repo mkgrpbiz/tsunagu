@@ -157,7 +157,7 @@ class ContractController extends Controller
         $monthlyPayoutTotal = $monthContracts->sum('agency_reward_amount');
         $monthlyReferralTotal = $monthReferralCommissions->sum('amount');
         $monthlyCollaborationRewardTotal = $monthCollaborationRewards->sum('reward_amount');
-        $monthlyTotal = $monthlyPayoutTotal + $monthlyReferralTotal + $monthlyCollaborationRewardTotal;
+        $monthlyTotal = $monthlyPayoutTotal + $monthlyReferralTotal + $monthlyCollaborationRewardTotal + $carryOverAmount;
 
         $payableItemsCount = $monthContracts->count()
             + $monthReferralCommissions->count()
