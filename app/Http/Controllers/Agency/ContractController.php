@@ -25,14 +25,7 @@ class ContractController extends Controller
 
         $data = $this->buildMonthData($agency, $request->query('month'));
 
-        // 累計未払い合計が¥1,000未満の場合、支払い対象にならず翌月以降へ繰り越される。
-        $cumulativeTotal = $agency->totalPendingPayout();
-        $carryOverAmount = $cumulativeTotal < 1000 ? $cumulativeTotal : 0;
-
-        return view('agency.contracts.index', [
-            ...$data,
-            'carryOverAmount' => $carryOverAmount,
-        ]);
+        return view('agency.contracts.index', $data);
     }
 
     public function downloadStatement(Request $request): Response
@@ -116,6 +109,21 @@ class ContractController extends Controller
             fn (CollaborationReward $reward) => $reward->month->format('Y-m') === $month
         ))->values();
 
+        // 繰り越し報酬: 選択中の月より前の月の未払い分（1,000円未満で支払われず繰り越されたまま残っている額）。
+        // 「今この瞬間の累計未払い額」で判定すると、当月分が積み上がって閾値を超えた途端に
+        // 過去の繰り越し分が画面上どの月を見ても¥0になり、繰り越されていないように見えるバグがあった。
+        $carryOverAmount = $month
+            ? $contracts->where('payment_status', PaymentStatus::Unpaid)
+                ->filter(fn (Contract $contract) => $contract->deposit_date->format('Y-m') < $month)
+                ->sum('agency_reward_amount')
+            + $referralCommissions->where('payment_status', PaymentStatus::Unpaid)
+                ->filter(fn (ReferralCommission $commission) => $commission->payment_due_date->format('Y-m') < $month)
+                ->sum('amount')
+            + $collaborationRewards->where('payment_status', PaymentStatus::Unpaid)
+                ->filter(fn (CollaborationReward $reward) => $reward->month->format('Y-m') < $month)
+                ->sum('reward_amount')
+            : 0;
+
         $referralCommissionGroups = $monthReferralCommissions
             ->groupBy(fn (ReferralCommission $commission) => $commission->source_agency_id.'|'.$commission->payment_due_date->format('Y-m-d'))
             ->map(function ($group) {
@@ -172,6 +180,7 @@ class ContractController extends Controller
             'payableItemsCount' => $payableItemsCount,
             'months' => $months,
             'month' => $month,
+            'carryOverAmount' => $carryOverAmount,
         ];
     }
 }
