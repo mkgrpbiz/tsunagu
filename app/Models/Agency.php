@@ -259,6 +259,38 @@ class Agency extends Authenticatable
             && filled($this->bank_account_holder);
     }
 
+    /**
+     * 全銀振込CSV（ZenginTransferCsvBuilder）が実際に出力に使う項目が揃っているか。
+     * bank_name/bank_branch_nameが入っていても、銀行コード・支店コードが未確定のまま
+     * （候補選択をせず手入力のみ等）だと振込データとして出力できず、無言でCSVから除外される。
+     *
+     * @return array<int, string>
+     */
+    public function missingZenginFields(): array
+    {
+        $missing = [];
+
+        if (preg_replace('/\D/', '', (string) $this->bank_code) === '') {
+            $missing[] = '銀行コード';
+        }
+        if (preg_replace('/\D/', '', (string) $this->bank_branch_code) === '') {
+            $missing[] = '支店コード';
+        }
+        if (preg_replace('/\D/', '', (string) $this->bank_account_number) === '') {
+            $missing[] = '口座番号';
+        }
+        if (blank($this->bank_account_holder)) {
+            $missing[] = '口座名義';
+        }
+
+        return $missing;
+    }
+
+    public function hasZenginTransferInfo(): bool
+    {
+        return $this->missingZenginFields() === [];
+    }
+
     public function hasSubmittedAllConsents(): bool
     {
         return collect(LegalDocumentType::cases())->every(fn (LegalDocumentType $type) => ! $this->needsConsentFor($type));

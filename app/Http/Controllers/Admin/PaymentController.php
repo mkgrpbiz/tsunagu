@@ -64,6 +64,18 @@ class PaymentController extends Controller
         $agencies = Agency::whereIn('id', $agencyIdsWithUnpaid)->get()->keyBy('id');
         $payableAgencyIds = $agencies->filter(fn (Agency $a) => $a->totalPendingPayout() >= self::CARRY_OVER_THRESHOLD)->keys();
 
+        // 支払い対象額はあるのに口座情報が不完全なパートナーは、一括CSV抽出時に
+        // ZenginTransferCsvBuilderが無言でスキップするため、ここで先に洗い出して警告表示する。
+        $incompleteBankInfoAgencies = $agencies->whereIn('id', $payableAgencyIds)
+            ->reject(fn (Agency $a) => $a->hasZenginTransferInfo())
+            ->map(fn (Agency $a) => [
+                'agency' => $a,
+                'total' => $a->totalPendingPayout(),
+                'missingFields' => $a->missingZenginFields(),
+            ])
+            ->sortByDesc('total')
+            ->values();
+
         ['rows' => $carryOverAgencies, 'total' => $carryOverTotal] = Agency::carryOverSummary(self::CARRY_OVER_THRESHOLD);
 
         // 支払月は「支払予定日（翌月5日）」ではなく、実際の対象月（入金日/契約の入金日/報酬対象月）で判定する
@@ -158,6 +170,7 @@ class PaymentController extends Controller
             'agencySummaries' => $agencySummaries,
             'carryOverAgencies' => $carryOverAgencies,
             'carryOverTotal' => $carryOverTotal,
+            'incompleteBankInfoAgencies' => $incompleteBankInfoAgencies,
             'months' => $months,
             'month' => $month,
             'monthlyTotal' => $monthlyTotal,

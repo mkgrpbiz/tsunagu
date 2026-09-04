@@ -38,6 +38,22 @@
     </div>
 </div>
 
+@if ($incompleteBankInfoAgencies->isNotEmpty())
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <p class="text-sm font-medium text-red-700 mb-2">
+            口座情報が不完全なため一括CSV抽出から除外されるパートナーが{{ $incompleteBankInfoAgencies->count() }}名います
+        </p>
+        <ul class="text-xs text-red-600 space-y-1">
+            @foreach ($incompleteBankInfoAgencies as $row)
+                <li>
+                    <a href="{{ route('admin.payments.show', $row['agency']) }}" class="underline">{{ $row['agency']->name }}</a>
+                    ¥{{ number_format($row['total']) }} — 不足: {{ implode('・', $row['missingFields']) }}
+                </li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex items-center justify-between flex-wrap gap-3">
     <p class="text-xs text-gray-500">
         月の絞り込みに関係なく、現在支払い可能な全パートナーの未払い全額が対象です。
