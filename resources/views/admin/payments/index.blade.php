@@ -67,7 +67,7 @@
         <form method="POST" action="{{ route('admin.payments.reserve-all-agencies') }}" onsubmit="return confirm('抽出済みのCSVで振込予約を行った未払い分を、まとめて振込予約済みにしますか？');">
             @csrf
             @method('PATCH')
-            <button type="submit" class="text-sm bg-amber-100 hover:bg-amber-200 text-amber-800 font-medium rounded-md px-4 py-2">振込予約完了</button>
+            <button type="submit" class="text-sm bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-md px-4 py-2">振込予約完了</button>
         </form>
         <form method="POST" action="{{ route('admin.payments.pay-all-agencies') }}" onsubmit="return confirm('支払い可能な全パートナーの未払い・振込予約済み分をまとめて支払済みにしますか？');">
             @csrf
