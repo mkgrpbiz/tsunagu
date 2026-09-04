@@ -138,21 +138,21 @@
             </div>
 
             <div>
-                <label for="bank_name" class="block text-sm font-medium text-gray-700 mb-1">銀行名</label>
+                <label for="bank_name" class="block text-sm font-medium text-gray-700 mb-1 whitespace-nowrap">銀行名</label>
                 <input type="text" name="bank_name" id="bank_name" value="{{ old('bank_name', $agency->bank_name) }}" autocomplete="off"
                        class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 <input type="hidden" name="bank_code" id="bank_code" value="{{ old('bank_code', $agency->bank_code) }}">
             </div>
 
             <div>
-                <label for="bank_branch_name" class="block text-sm font-medium text-gray-700 mb-1">支店名</label>
+                <label for="bank_branch_name" class="block text-sm font-medium text-gray-700 mb-1 whitespace-nowrap">支店名</label>
                 <input type="text" name="bank_branch_name" id="bank_branch_name" value="{{ old('bank_branch_name', $agency->bank_branch_name) }}" autocomplete="off"
                        class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 <input type="hidden" name="bank_branch_code" id="bank_branch_code" value="{{ old('bank_branch_code', $agency->bank_branch_code) }}">
             </div>
 
             <div>
-                <label for="bank_account_type" class="block text-sm font-medium text-gray-700 mb-1">口座種別</label>
+                <label for="bank_account_type" class="block text-sm font-medium text-gray-700 mb-1 whitespace-nowrap">口座種別</label>
                 <select name="bank_account_type" id="bank_account_type"
                         class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <option value="">選択してください</option>
@@ -163,13 +163,13 @@
             </div>
 
             <div>
-                <label for="bank_account_number" class="block text-sm font-medium text-gray-700 mb-1">口座番号</label>
+                <label for="bank_account_number" class="block text-sm font-medium text-gray-700 mb-1 whitespace-nowrap">口座番号</label>
                 <input type="text" name="bank_account_number" id="bank_account_number" value="{{ old('bank_account_number', $agency->bank_account_number) }}"
                        class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
 
             <div class="col-span-2">
-                <label for="bank_account_holder" class="block text-sm font-medium text-gray-700 mb-1">口座名義（カナ）</label>
+                <label for="bank_account_holder" class="block text-sm font-medium text-gray-700 mb-1 whitespace-nowrap">口座名義（カナ）</label>
                 <input type="text" name="bank_account_holder" id="bank_account_holder" value="{{ old('bank_account_holder', $agency->bank_account_holder) }}"
                        class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
