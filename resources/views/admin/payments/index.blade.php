@@ -56,7 +56,7 @@
 
 <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex items-center justify-between flex-wrap gap-3">
     <p class="text-xs text-gray-500">
-        月の絞り込みに関係なく、現在支払い可能な全パートナーの未払い全額が対象です。
+        月の絞り込みに関係なく、現在支払い可能な全パートナーが対象です。CSV抽出→振込予約→（振込実行後）支払済みの順に進めてください。
     </p>
     <div class="flex items-center gap-2">
         <form method="GET" action="{{ route('admin.payments.export-csv') }}" class="flex items-center gap-2">
@@ -64,7 +64,12 @@
             <input type="date" name="date" id="csv-date" value="{{ $defaultTransferDate->format('Y-m-d') }}" class="rounded-md border border-gray-300 text-sm">
             <button type="submit" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md px-4 py-2">一括CSV抽出</button>
         </form>
-        <form method="POST" action="{{ route('admin.payments.pay-all-agencies') }}" onsubmit="return confirm('支払い可能な全パートナーの未払い分をまとめて支払済みにしますか？');">
+        <form method="POST" action="{{ route('admin.payments.reserve-all-agencies') }}" onsubmit="return confirm('抽出済みのCSVで振込予約を行った未払い分を、まとめて振込予約済みにしますか？');">
+            @csrf
+            @method('PATCH')
+            <button type="submit" class="text-sm bg-amber-100 hover:bg-amber-200 text-amber-800 font-medium rounded-md px-4 py-2">振込予約完了</button>
+        </form>
+        <form method="POST" action="{{ route('admin.payments.pay-all-agencies') }}" onsubmit="return confirm('支払い可能な全パートナーの未払い・振込予約済み分をまとめて支払済みにしますか？');">
             @csrf
             @method('PATCH')
             <button type="submit" class="text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md px-4 py-2">一括で支払済みにする</button>
@@ -99,6 +104,8 @@
                     <td class="px-4 py-3">
                         @if ($row['status'] === 'paid')
                             <span class="text-xs font-medium border rounded-full px-2 py-1 bg-green-50 text-green-700 border-green-200">支払済み</span>
+                        @elseif ($row['status'] === 'reserved')
+                            <span class="text-xs font-medium border rounded-full px-2 py-1 bg-amber-50 text-amber-700 border-amber-200">振込予約済み</span>
                         @elseif ($row['status'] === 'partial')
                             <span class="text-xs font-medium border rounded-full px-2 py-1 bg-yellow-50 text-yellow-700 border-yellow-200">一部支払済み</span>
                         @else

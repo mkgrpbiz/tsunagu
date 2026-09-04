@@ -22,8 +22,11 @@
         </div>
     </dl>
 
-    <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
-        <span class="text-sm text-gray-700">未払い合計: <span class="font-semibold">¥{{ number_format($unpaidTotal) }}</span></span>
+    <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between flex-wrap gap-3">
+        <div class="text-sm text-gray-700 flex gap-4">
+            <span>未払い合計: <span class="font-semibold">¥{{ number_format($unpaidTotal) }}</span></span>
+            <span>振込予約済み合計: <span class="font-semibold">¥{{ number_format($reservedTotal) }}</span></span>
+        </div>
         <div class="flex gap-2">
             @if ($paidTotal > 0)
                 <form method="POST" action="{{ route('admin.payments.revert-all', $agency) }}" onsubmit="return confirm('支払済みの項目をまとめて未払いに戻しますか？');">
@@ -32,8 +35,8 @@
                     <button type="submit" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md px-4 py-2">まとめて未払いに戻す</button>
                 </form>
             @endif
-            @if ($unpaidTotal > 0)
-                <form method="POST" action="{{ route('admin.payments.pay-all', $agency) }}" onsubmit="return confirm('紹介報酬・パートナー10%・共創パートナー30%の未払い分をまとめて支払済みにしますか？');">
+            @if (($unpaidTotal + $reservedTotal) > 0)
+                <form method="POST" action="{{ route('admin.payments.pay-all', $agency) }}" onsubmit="return confirm('紹介報酬・パートナー10%・共創パートナー30%の未払い・振込予約済み分をまとめて支払済みにしますか？');">
                     @csrf
                     @method('PATCH')
                     <button type="submit" class="text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md px-4 py-2">まとめて支払済みにする</button>
@@ -65,14 +68,17 @@
                     <td class="px-4 py-3">¥{{ number_format($contract->agency_reward_amount) }}</td>
                     <td class="px-4 py-3">{{ $contract->payment_due_date->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">
-                        <span class="{{ match ($contract->payment_status) { \App\Enums\PaymentStatus::Paid => 'text-green-700', \App\Enums\PaymentStatus::InternalProcessing => 'text-gray-500', default => 'text-amber-700' } }}">
+                        <span class="{{ match ($contract->payment_status) { \App\Enums\PaymentStatus::Paid => 'text-green-700', \App\Enums\PaymentStatus::InternalProcessing => 'text-gray-500', \App\Enums\PaymentStatus::Reserved => 'text-amber-600', default => 'text-amber-700' } }}">
                             {{ $contract->payment_status->label() }}
                         </span>
                     </td>
                     <td class="px-4 py-3">{{ optional($contract->paid_at)->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">
-                        @if ($contract->payment_status === \App\Enums\PaymentStatus::Unpaid)
+                        @if (in_array($contract->payment_status, [\App\Enums\PaymentStatus::Unpaid, \App\Enums\PaymentStatus::Reserved], true))
                             <button type="button" onclick="tsnOpenPayModal('{{ route('admin.payments.update', $contract) }}')" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">支払済み</button>
+                        @endif
+                        @if ($contract->payment_status === \App\Enums\PaymentStatus::Reserved)
+                            <button type="button" onclick="tsnOpenRevertModal('{{ route('admin.payments.revert', $contract) }}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded">予約取消</button>
                         @elseif ($contract->payment_status === \App\Enums\PaymentStatus::Paid)
                             <button type="button" onclick="tsnOpenRevertModal('{{ route('admin.payments.revert', $contract) }}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded">取消し</button>
                         @endif
@@ -107,14 +113,17 @@
                     <td class="px-4 py-3">¥{{ number_format($commission->amount) }}</td>
                     <td class="px-4 py-3">{{ $commission->payment_due_date->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">
-                        <span class="{{ match ($commission->payment_status) { \App\Enums\PaymentStatus::Paid => 'text-green-700', \App\Enums\PaymentStatus::InternalProcessing => 'text-gray-500', default => 'text-amber-700' } }}">
+                        <span class="{{ match ($commission->payment_status) { \App\Enums\PaymentStatus::Paid => 'text-green-700', \App\Enums\PaymentStatus::InternalProcessing => 'text-gray-500', \App\Enums\PaymentStatus::Reserved => 'text-amber-600', default => 'text-amber-700' } }}">
                             {{ $commission->payment_status->label() }}
                         </span>
                     </td>
                     <td class="px-4 py-3">{{ optional($commission->paid_at)->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">
-                        @if ($commission->payment_status === \App\Enums\PaymentStatus::Unpaid)
+                        @if (in_array($commission->payment_status, [\App\Enums\PaymentStatus::Unpaid, \App\Enums\PaymentStatus::Reserved], true))
                             <button type="button" onclick="tsnOpenPayModal('{{ route('admin.payments.referral-commissions.update', $commission) }}')" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">支払済み</button>
+                        @endif
+                        @if ($commission->payment_status === \App\Enums\PaymentStatus::Reserved)
+                            <button type="button" onclick="tsnOpenRevertModal('{{ route('admin.payments.referral-commissions.revert', $commission) }}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded">予約取消</button>
                         @elseif ($commission->payment_status === \App\Enums\PaymentStatus::Paid)
                             <button type="button" onclick="tsnOpenRevertModal('{{ route('admin.payments.referral-commissions.revert', $commission) }}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded">取消し</button>
                         @endif
@@ -151,14 +160,17 @@
                     <td class="px-4 py-3">¥{{ number_format($reward->reward_amount) }}</td>
                     <td class="px-4 py-3">{{ $reward->payment_due_date->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">
-                        <span class="{{ match ($reward->payment_status) { \App\Enums\PaymentStatus::Paid => 'text-green-700', \App\Enums\PaymentStatus::InternalProcessing => 'text-gray-500', default => 'text-amber-700' } }}">
+                        <span class="{{ match ($reward->payment_status) { \App\Enums\PaymentStatus::Paid => 'text-green-700', \App\Enums\PaymentStatus::InternalProcessing => 'text-gray-500', \App\Enums\PaymentStatus::Reserved => 'text-amber-600', default => 'text-amber-700' } }}">
                             {{ $reward->payment_status->label() }}
                         </span>
                     </td>
                     <td class="px-4 py-3">{{ optional($reward->paid_at)->format('Y-m-d') }}</td>
                     <td class="px-4 py-3">
-                        @if ($reward->payment_status === \App\Enums\PaymentStatus::Unpaid)
+                        @if (in_array($reward->payment_status, [\App\Enums\PaymentStatus::Unpaid, \App\Enums\PaymentStatus::Reserved], true))
                             <button type="button" onclick="tsnOpenPayModal('{{ route('admin.payments.collaboration-rewards.update', $reward) }}')" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">支払済み</button>
+                        @endif
+                        @if ($reward->payment_status === \App\Enums\PaymentStatus::Reserved)
+                            <button type="button" onclick="tsnOpenRevertModal('{{ route('admin.payments.collaboration-rewards.revert', $reward) }}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded">予約取消</button>
                         @elseif ($reward->payment_status === \App\Enums\PaymentStatus::Paid)
                             <button type="button" onclick="tsnOpenRevertModal('{{ route('admin.payments.collaboration-rewards.revert', $reward) }}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded">取消し</button>
                         @endif

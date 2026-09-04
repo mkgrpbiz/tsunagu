@@ -133,45 +133,51 @@ class DashboardController extends Controller
                 'count' => Inquiry::where('status', InquiryStatus::GuidanceFailed)->count(),
                 'route' => route('admin.inquiries.index'),
             ],
-            [
-                'label' => '支払日から5日経過した未払い',
-                'count' => $this->overduePaymentCount(),
-                'route' => route('admin.payments.index'),
-            ],
+            $this->paymentWorkflowAlert(),
         ];
     }
 
     /**
-     * 累計未払いが¥1,000未満（繰り越し対象）のパートナーは、そもそも支払い対象になっておらず
-     * payment_due_dateが過ぎているのは正常な繰り越し状態のため、「支払日から5日経過した未払い」
-     * のアラートからは除外する。
+     * 支払いフローは「月末締め→1〜5日で振込予約→翌月5日に振込実行→振込確認して支払済みに更新」なので、
+     * 今日が何日かによってアラートの内容を出し分ける。以前は支払日（payment_due_date）から一律5日
+     * 経過したものだけをカウントしていたが、実際の運用日である「5日」を全く見ておらず紛らわしかった。
      */
-    private function overduePaymentCount(): int
+    private function paymentWorkflowAlert(): array
     {
-        $overdueThreshold = now()->subDays(5)->toDateString();
+        if (now()->day <= 5) {
+            return [
+                'label' => '1〜5日は先月の締め作業・振込予約を完了させてください',
+                'count' => $this->payablePendingCount(PaymentStatus::Unpaid),
+                'route' => route('admin.payments.index'),
+            ];
+        }
 
-        $overdueContracts = Contract::where('payment_status', PaymentStatus::Unpaid)
-            ->where('payment_due_date', '<=', $overdueThreshold)
-            ->with('inquiry')
-            ->get();
+        return [
+            'label' => '5日以降は振込確認・支払済みに更新してください',
+            'count' => $this->payablePendingCount(PaymentStatus::Reserved),
+            'route' => route('admin.payments.index'),
+        ];
+    }
 
-        $overdueCommissions = ReferralCommission::where('payment_status', PaymentStatus::Unpaid)
-            ->where('payment_due_date', '<=', $overdueThreshold)
-            ->get();
+    /**
+     * 累計未払い＋振込予約済みが¥1,000未満（繰り越し対象）のパートナーは、そもそも支払い対象に
+     * なっていないため、指定ステータスの件数からは除外する。
+     */
+    private function payablePendingCount(PaymentStatus $status): int
+    {
+        $contracts = Contract::where('payment_status', $status)->with('inquiry')->get();
+        $commissions = ReferralCommission::where('payment_status', $status)->get();
+        $rewards = CollaborationReward::where('payment_status', $status)->get();
 
-        $overdueRewards = CollaborationReward::where('payment_status', PaymentStatus::Unpaid)
-            ->where('payment_due_date', '<=', $overdueThreshold)
-            ->get();
-
-        $rewardAgencyIds = $overdueRewards->mapWithKeys(fn (CollaborationReward $reward) => [
+        $rewardAgencyIds = $rewards->mapWithKeys(fn (CollaborationReward $reward) => [
             $reward->id => Project::where('client_name', $reward->client_name)
                 ->whereNotNull('referrer_agency_id')
                 ->value('referrer_agency_id'),
         ]);
 
         $agencyIds = collect()
-            ->merge($overdueContracts->map(fn (Contract $c) => $c->inquiry->agency_id))
-            ->merge($overdueCommissions->pluck('referrer_agency_id'))
+            ->merge($contracts->map(fn (Contract $c) => $c->inquiry->agency_id))
+            ->merge($commissions->pluck('referrer_agency_id'))
             ->merge($rewardAgencyIds->values())
             ->unique()->filter();
 
@@ -179,9 +185,9 @@ class DashboardController extends Controller
             ->filter(fn (Agency $a) => $a->totalPendingPayout() >= 1000)
             ->pluck('id');
 
-        return $overdueContracts->filter(fn (Contract $c) => $payableAgencyIds->contains($c->inquiry->agency_id))->count()
-            + $overdueCommissions->filter(fn (ReferralCommission $c) => $payableAgencyIds->contains($c->referrer_agency_id))->count()
-            + $overdueRewards->filter(fn (CollaborationReward $r) => $payableAgencyIds->contains($rewardAgencyIds[$r->id] ?? null))->count();
+        return $contracts->filter(fn (Contract $c) => $payableAgencyIds->contains($c->inquiry->agency_id))->count()
+            + $commissions->filter(fn (ReferralCommission $c) => $payableAgencyIds->contains($c->referrer_agency_id))->count()
+            + $rewards->filter(fn (CollaborationReward $r) => $payableAgencyIds->contains($rewardAgencyIds[$r->id] ?? null))->count();
     }
 
     private function revenueAndPayout($contracts, $referralCommissions, ?string $ym): array

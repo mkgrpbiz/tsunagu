@@ -195,21 +195,35 @@ class Agency extends Authenticatable
         return $this->pendingPayoutBreakdown()['total'];
     }
 
+    /**
+     * 未払い（未予約）・振込予約済みのどちらも、まだ実際に振り込まれていない
+     * 「支払い待ち」の金額として合算する。
+     */
+    public const PENDING_STATUSES = [PaymentStatus::Unpaid, PaymentStatus::Reserved];
+
     public function pendingPayoutBreakdown(): array
     {
+        return $this->breakdownForStatuses(self::PENDING_STATUSES);
+    }
+
+    /**
+     * @param  array<int, PaymentStatus>  $statuses
+     */
+    public function breakdownForStatuses(array $statuses): array
+    {
         $contractTotal = (int) $this->contracts()
-            ->where('payment_status', PaymentStatus::Unpaid)
+            ->whereIn('payment_status', $statuses)
             ->sum('agency_reward_amount');
 
         $commissionTotal = (int) $this->referralCommissions()
-            ->where('payment_status', PaymentStatus::Unpaid)
+            ->whereIn('payment_status', $statuses)
             ->sum('amount');
 
         $clientNames = $this->projects()->whereNotNull('client_name')->distinct()->pluck('client_name');
 
         $rewardTotal = (int) CollaborationReward::whereIn('client_name', $clientNames)
             ->where('status', CollaborationRewardStatus::Approved)
-            ->where('payment_status', PaymentStatus::Unpaid)
+            ->whereIn('payment_status', $statuses)
             ->sum('reward_amount');
 
         return [
@@ -223,7 +237,7 @@ class Agency extends Authenticatable
     public static function carryOverSummary(int $threshold = 1000): array
     {
         $collaborationReferrerIds = CollaborationReward::where('status', CollaborationRewardStatus::Approved)
-            ->where('payment_status', PaymentStatus::Unpaid)
+            ->whereIn('payment_status', self::PENDING_STATUSES)
             ->get()
             ->map(fn (CollaborationReward $reward) => Project::where('client_name', $reward->client_name)
                 ->whereNotNull('referrer_agency_id')
@@ -231,10 +245,10 @@ class Agency extends Authenticatable
 
         $agencyIdsWithUnpaid = collect()
             ->merge(
-                Contract::where('payment_status', PaymentStatus::Unpaid)->with('inquiry')->get()->pluck('inquiry.agency_id')
+                Contract::whereIn('payment_status', self::PENDING_STATUSES)->with('inquiry')->get()->pluck('inquiry.agency_id')
             )
             ->merge(
-                ReferralCommission::where('payment_status', PaymentStatus::Unpaid)->pluck('referrer_agency_id')
+                ReferralCommission::whereIn('payment_status', self::PENDING_STATUSES)->pluck('referrer_agency_id')
             )
             ->merge($collaborationReferrerIds)
             ->unique()->filter()->values();

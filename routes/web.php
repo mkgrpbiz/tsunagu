@@ -215,6 +215,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::middleware('menu:payments')->group(function () {
                 Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
                 Route::get('payments-export-csv', [PaymentController::class, 'exportCsv'])->name('payments.export-csv');
+                Route::patch('payments-reserve-all', [PaymentController::class, 'reserveAllAgencies'])->name('payments.reserve-all-agencies');
                 Route::patch('payments-pay-all', [PaymentController::class, 'payAllAgencies'])->name('payments.pay-all-agencies');
                 Route::get('payments/{agency}', [PaymentController::class, 'show'])->name('payments.show');
                 Route::patch('payments/{agency}/pay-all', [PaymentController::class, 'payAll'])->name('payments.pay-all');

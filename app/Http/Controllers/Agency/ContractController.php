@@ -113,13 +113,13 @@ class ContractController extends Controller
         // 「今この瞬間の累計未払い額」で判定すると、当月分が積み上がって閾値を超えた途端に
         // 過去の繰り越し分が画面上どの月を見ても¥0になり、繰り越されていないように見えるバグがあった。
         $carryOverAmount = $month
-            ? $contracts->where('payment_status', PaymentStatus::Unpaid)
+            ? $contracts->whereIn('payment_status', [PaymentStatus::Unpaid, PaymentStatus::Reserved])
                 ->filter(fn (Contract $contract) => $contract->deposit_date->format('Y-m') < $month)
                 ->sum('agency_reward_amount')
-            + $referralCommissions->where('payment_status', PaymentStatus::Unpaid)
+            + $referralCommissions->whereIn('payment_status', [PaymentStatus::Unpaid, PaymentStatus::Reserved])
                 ->filter(fn (ReferralCommission $commission) => $commission->payment_due_date->format('Y-m') < $month)
                 ->sum('amount')
-            + $collaborationRewards->where('payment_status', PaymentStatus::Unpaid)
+            + $collaborationRewards->whereIn('payment_status', [PaymentStatus::Unpaid, PaymentStatus::Reserved])
                 ->filter(fn (CollaborationReward $reward) => $reward->month->format('Y-m') < $month)
                 ->sum('reward_amount')
             : 0;
@@ -164,9 +164,11 @@ class ContractController extends Controller
             + $monthCollaborationRewards->count();
 
         // パートナーから見ればどちらも自分の報酬が確定済みなので、社内処理も支払済みと同様にカウントする
-        $paidItemsCount = $monthContracts->where('payment_status', '!=', PaymentStatus::Unpaid)->count()
-            + $monthReferralCommissions->where('payment_status', '!=', PaymentStatus::Unpaid)->count()
-            + $monthCollaborationRewards->where('payment_status', '!=', PaymentStatus::Unpaid)->count();
+        // （振込予約済みはまだ実際には振り込まれていないため、支払済みには含めない）
+        $finalizedStatuses = [PaymentStatus::Paid, PaymentStatus::InternalProcessing];
+        $paidItemsCount = $monthContracts->whereIn('payment_status', $finalizedStatuses)->count()
+            + $monthReferralCommissions->whereIn('payment_status', $finalizedStatuses)->count()
+            + $monthCollaborationRewards->whereIn('payment_status', $finalizedStatuses)->count();
 
         return [
             'contracts' => $monthContracts,

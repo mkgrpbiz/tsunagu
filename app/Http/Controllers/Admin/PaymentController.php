@@ -27,6 +27,8 @@ class PaymentController extends Controller
 
     private const DEFAULT_PAYMENT_MESSAGE = 'お振込みが完了しました。金額: {amount}円';
 
+    private const PENDING_STATUSES = Agency::PENDING_STATUSES;
+
     public function index(Request $request): View
     {
         $allContracts = Contract::with(['inquiry.project', 'inquiry.agency'])
@@ -54,11 +56,11 @@ class PaymentController extends Controller
             ->filter(fn (CollaborationReward $reward) => $reward->referrerAgency !== null)
             ->values();
 
-        // 現在未払い残高を持つ全パートナー（月の絞り込みに関係なく「今の状態」で判定する）
+        // 現在未払い・振込予約済み残高を持つ全パートナー（月の絞り込みに関係なく「今の状態」で判定する）
         $agencyIdsWithUnpaid = collect()
-            ->merge($allContracts->where('payment_status', PaymentStatus::Unpaid)->map(fn (Contract $c) => $c->inquiry->agency_id))
-            ->merge($allCommissions->where('payment_status', PaymentStatus::Unpaid)->pluck('referrer_agency_id'))
-            ->merge($allCollaborationRewards->where('payment_status', PaymentStatus::Unpaid)->map(fn (CollaborationReward $r) => $r->referrerAgency->id))
+            ->merge($allContracts->whereIn('payment_status', self::PENDING_STATUSES)->map(fn (Contract $c) => $c->inquiry->agency_id))
+            ->merge($allCommissions->whereIn('payment_status', self::PENDING_STATUSES)->pluck('referrer_agency_id'))
+            ->merge($allCollaborationRewards->whereIn('payment_status', self::PENDING_STATUSES)->map(fn (CollaborationReward $r) => $r->referrerAgency->id))
             ->unique()->filter()->values();
 
         $agencies = Agency::whereIn('id', $agencyIdsWithUnpaid)->get()->keyBy('id');
@@ -105,7 +107,7 @@ class PaymentController extends Controller
             fn (CollaborationReward $reward) => $rewardMonth($reward) === $month
         ));
 
-        $isPayable = fn (?int $agencyId, PaymentStatus $status) => $status === PaymentStatus::Paid || $payableAgencyIds->contains($agencyId);
+        $isPayable = fn (?int $agencyId, PaymentStatus $status) => in_array($status, [PaymentStatus::Paid, PaymentStatus::Reserved], true) || $payableAgencyIds->contains($agencyId);
 
         $payableContracts = $monthContracts->filter(
             fn (Contract $contract) => $isPayable($contract->inquiry->agency_id, $contract->payment_status)
@@ -124,19 +126,25 @@ class PaymentController extends Controller
             + $payableCommissions->sum('amount')
             + $payableCollaborationRewards->sum('reward_amount');
 
-        $cumulativeTotal = $allContracts->where('payment_status', PaymentStatus::Unpaid)->sum('agency_reward_amount')
-            + $allCommissions->where('payment_status', PaymentStatus::Unpaid)->sum('amount')
-            + $allCollaborationRewards->where('payment_status', PaymentStatus::Unpaid)->sum('reward_amount');
+        $cumulativeTotal = $allContracts->whereIn('payment_status', self::PENDING_STATUSES)->sum('agency_reward_amount')
+            + $allCommissions->whereIn('payment_status', self::PENDING_STATUSES)->sum('amount')
+            + $allCollaborationRewards->whereIn('payment_status', self::PENDING_STATUSES)->sum('reward_amount');
 
         $summaries = [];
-        $emptyRow = ['contract_total' => 0, 'commission_total' => 0, 'reward_total' => 0, 'has_unpaid' => false, 'has_paid' => false];
+        $emptyRow = ['contract_total' => 0, 'commission_total' => 0, 'reward_total' => 0, 'has_unpaid' => false, 'has_reserved' => false, 'has_paid' => false];
+
+        $statusKey = fn (PaymentStatus $status) => match ($status) {
+            PaymentStatus::Unpaid => 'has_unpaid',
+            PaymentStatus::Reserved => 'has_reserved',
+            default => 'has_paid',
+        };
 
         foreach ($payableContracts as $contract) {
             $agencyId = $contract->inquiry->agency_id;
             $summaries[$agencyId] ??= ['agency' => $contract->inquiry->agency, ...$emptyRow];
 
             $summaries[$agencyId]['contract_total'] += $contract->agency_reward_amount;
-            $summaries[$agencyId][$contract->payment_status === PaymentStatus::Unpaid ? 'has_unpaid' : 'has_paid'] = true;
+            $summaries[$agencyId][$statusKey($contract->payment_status)] = true;
         }
 
         foreach ($payableCommissions as $commission) {
@@ -144,7 +152,7 @@ class PaymentController extends Controller
             $summaries[$agencyId] ??= ['agency' => $commission->referrerAgency, ...$emptyRow];
 
             $summaries[$agencyId]['commission_total'] += $commission->amount;
-            $summaries[$agencyId][$commission->payment_status === PaymentStatus::Unpaid ? 'has_unpaid' : 'has_paid'] = true;
+            $summaries[$agencyId][$statusKey($commission->payment_status)] = true;
         }
 
         foreach ($payableCollaborationRewards as $reward) {
@@ -152,14 +160,16 @@ class PaymentController extends Controller
             $summaries[$agencyId] ??= ['agency' => $reward->referrerAgency, ...$emptyRow];
 
             $summaries[$agencyId]['reward_total'] += $reward->reward_amount;
-            $summaries[$agencyId][$reward->payment_status === PaymentStatus::Unpaid ? 'has_unpaid' : 'has_paid'] = true;
+            $summaries[$agencyId][$statusKey($reward->payment_status)] = true;
         }
 
         $agencySummaries = collect($summaries)->map(function (array $row) {
             $row['total'] = $row['contract_total'] + $row['commission_total'] + $row['reward_total'];
+            $activeStates = collect(['has_unpaid', 'has_reserved', 'has_paid'])->filter(fn (string $key) => $row[$key]);
             $row['status'] = match (true) {
-                $row['has_unpaid'] && $row['has_paid'] => 'partial',
-                $row['has_unpaid'] => 'unpaid',
+                $activeStates->count() > 1 => 'partial',
+                $activeStates->first() === 'has_unpaid' => 'unpaid',
+                $activeStates->first() === 'has_reserved' => 'reserved',
                 default => 'paid',
             };
 
@@ -196,6 +206,10 @@ class PaymentController extends Controller
             + $commissions->where('payment_status', PaymentStatus::Unpaid)->sum('amount')
             + $collaborationRewards->where('payment_status', PaymentStatus::Unpaid)->sum('reward_amount');
 
+        $reservedTotal = $contracts->where('payment_status', PaymentStatus::Reserved)->sum('agency_reward_amount')
+            + $commissions->where('payment_status', PaymentStatus::Reserved)->sum('amount')
+            + $collaborationRewards->where('payment_status', PaymentStatus::Reserved)->sum('reward_amount');
+
         $paidTotal = $contracts->where('payment_status', PaymentStatus::Paid)->sum('agency_reward_amount')
             + $commissions->where('payment_status', PaymentStatus::Paid)->sum('amount')
             + $collaborationRewards->where('payment_status', PaymentStatus::Paid)->sum('reward_amount');
@@ -206,6 +220,7 @@ class PaymentController extends Controller
             'commissions' => $commissions,
             'collaborationRewards' => $collaborationRewards,
             'unpaidTotal' => $unpaidTotal,
+            'reservedTotal' => $reservedTotal,
             'paidTotal' => $paidTotal,
         ]);
     }
@@ -223,7 +238,8 @@ class PaymentController extends Controller
 
     public function payAllAgencies(LineMessagingService $lineMessaging): RedirectResponse
     {
-        $rows = $this->payableAgencySummaries();
+        // 支払済みにする対象は「未払い」「振込予約済み」のどちらも含む（予約を経ずに直接支払済みにする運用も許容する）
+        $rows = $this->payableAgencySummaries(self::PENDING_STATUSES);
         $paidCount = 0;
 
         foreach ($rows as $row) {
@@ -235,9 +251,25 @@ class PaymentController extends Controller
         return redirect()->route('admin.payments.index')->with('status', "{$paidCount}件のパートナーをまとめて支払済みにしました。");
     }
 
+    public function reserveAllAgencies(): RedirectResponse
+    {
+        // 振込予約はまだ未払いのまま（一度予約したものを再度予約対象にはしない）
+        $rows = $this->payableAgencySummaries([PaymentStatus::Unpaid]);
+        $reservedCount = 0;
+
+        foreach ($rows as $row) {
+            if ($this->markAgencyReserved($row['agency']) > 0) {
+                $reservedCount++;
+            }
+        }
+
+        return redirect()->route('admin.payments.index')->with('status', "{$reservedCount}件のパートナーを振込予約済みにしました。");
+    }
+
     public function exportCsv(Request $request)
     {
-        $rows = $this->payableAgencySummaries();
+        // CSV抽出は未予約（未払い）のみを対象にする。振込予約済みの分は既に一度抽出済みのため再抽出の対象にしない。
+        $rows = $this->payableAgencySummaries([PaymentStatus::Unpaid]);
         $transferDate = $request->filled('date')
             ? Carbon::parse($request->query('date'))
             : $this->nextTransferDate();
@@ -263,22 +295,25 @@ class PaymentController extends Controller
     }
 
     /**
-     * 現在支払い可能（累計未払い額が繰り越し閾値以上）なパートナーごとに、
-     * 紹介報酬・パートナー10%・共創パートナー30%を合算した内訳を返す。
-     * 一括支払い・CSV出力の両方で、月の絞り込みに関係なく「今の未払い全額」を対象にするために使う。
+     * 現在支払い可能（累計未払い＋振込予約済み額が繰り越し閾値以上）なパートナーごとに、
+     * $statuses（未払いのみ／未払い＋振込予約済み）に絞った内訳を返す。
+     * 「支払い可能か」自体の判定は常に累計（未払い＋振込予約済み）で行い、$statusesは
+     * 実際に今回の一括操作（CSV抽出・振込予約・支払済み化）で対象にする金額の絞り込みにのみ使う。
+     *
+     * @param  array<int, PaymentStatus>  $statuses
      */
-    private function payableAgencySummaries(): Collection
+    private function payableAgencySummaries(array $statuses): Collection
     {
-        $agencyIdsWithUnpaid = collect()
+        $agencyIdsWithStatus = collect()
             ->merge(
-                Contract::where('payment_status', PaymentStatus::Unpaid)->with('inquiry')->get()->pluck('inquiry.agency_id')
+                Contract::whereIn('payment_status', $statuses)->with('inquiry')->get()->pluck('inquiry.agency_id')
             )
             ->merge(
-                ReferralCommission::where('payment_status', PaymentStatus::Unpaid)->pluck('referrer_agency_id')
+                ReferralCommission::whereIn('payment_status', $statuses)->pluck('referrer_agency_id')
             )
             ->merge(
                 CollaborationReward::where('status', CollaborationRewardStatus::Approved)
-                    ->where('payment_status', PaymentStatus::Unpaid)
+                    ->whereIn('payment_status', $statuses)
                     ->get()
                     ->map(fn (CollaborationReward $reward) => Project::where('client_name', $reward->client_name)
                         ->whereNotNull('referrer_agency_id')
@@ -286,14 +321,58 @@ class PaymentController extends Controller
             )
             ->unique()->filter()->values();
 
-        return Agency::whereIn('id', $agencyIdsWithUnpaid)->get()
-            ->map(fn (Agency $agency) => ['agency' => $agency, ...$agency->pendingPayoutBreakdown()])
-            ->filter(fn (array $row) => $row['total'] >= self::CARRY_OVER_THRESHOLD)
+        return Agency::whereIn('id', $agencyIdsWithStatus)->get()
+            ->filter(fn (Agency $agency) => $agency->totalPendingPayout() >= self::CARRY_OVER_THRESHOLD)
+            ->map(fn (Agency $agency) => ['agency' => $agency, ...$agency->breakdownForStatuses($statuses)])
+            ->filter(fn (array $row) => $row['total'] > 0)
             ->sortByDesc('total')
             ->values();
     }
 
     private function markAgencyPaid(Agency $agency, LineMessagingService $lineMessaging): int
+    {
+        // 未払い・振込予約済みのどちらも、まだ支払済みになっていない分として一括で確定する
+        $pendingContracts = $agency->contracts()->whereIn('payment_status', self::PENDING_STATUSES)->get();
+        $pendingCommissions = $agency->referralCommissions()->whereIn('payment_status', self::PENDING_STATUSES)->get();
+
+        $clientNames = $agency->projects()->whereNotNull('client_name')->distinct()->pluck('client_name');
+
+        $pendingRewards = CollaborationReward::whereIn('client_name', $clientNames)
+            ->where('status', CollaborationRewardStatus::Approved)
+            ->whereIn('payment_status', self::PENDING_STATUSES)
+            ->get();
+
+        $total = $pendingContracts->sum('agency_reward_amount')
+            + $pendingCommissions->sum('amount')
+            + $pendingRewards->sum('reward_amount');
+
+        if ($total <= 0) {
+            return 0;
+        }
+
+        $now = now();
+
+        foreach ($pendingContracts as $contract) {
+            $contract->update(['payment_status' => PaymentStatus::Paid, 'paid_at' => $now]);
+        }
+
+        foreach ($pendingCommissions as $commission) {
+            $commission->update(['payment_status' => PaymentStatus::Paid, 'paid_at' => $now]);
+        }
+
+        foreach ($pendingRewards as $reward) {
+            $reward->update(['payment_status' => PaymentStatus::Paid, 'paid_at' => $now]);
+        }
+
+        $this->notifyPaymentCompleted($agency, (int) $total, $lineMessaging);
+
+        return (int) $total;
+    }
+
+    /**
+     * 未払い分を「振込予約済み」に変える（LINE通知はまだ実際の振込が完了していないため送らない）。
+     */
+    private function markAgencyReserved(Agency $agency): int
     {
         $unpaidContracts = $agency->contracts()->where('payment_status', PaymentStatus::Unpaid)->get();
         $unpaidCommissions = $agency->referralCommissions()->where('payment_status', PaymentStatus::Unpaid)->get();
@@ -313,21 +392,17 @@ class PaymentController extends Controller
             return 0;
         }
 
-        $now = now();
-
         foreach ($unpaidContracts as $contract) {
-            $contract->update(['payment_status' => PaymentStatus::Paid, 'paid_at' => $now]);
+            $contract->update(['payment_status' => PaymentStatus::Reserved]);
         }
 
         foreach ($unpaidCommissions as $commission) {
-            $commission->update(['payment_status' => PaymentStatus::Paid, 'paid_at' => $now]);
+            $commission->update(['payment_status' => PaymentStatus::Reserved]);
         }
 
         foreach ($unpaidRewards as $reward) {
-            $reward->update(['payment_status' => PaymentStatus::Paid, 'paid_at' => $now]);
+            $reward->update(['payment_status' => PaymentStatus::Reserved]);
         }
-
-        $this->notifyPaymentCompleted($agency, (int) $total, $lineMessaging);
 
         return (int) $total;
     }
