@@ -323,6 +323,9 @@ class PaymentController extends Controller
 
         return Agency::whereIn('id', $agencyIdsWithStatus)->get()
             ->filter(fn (Agency $agency) => $agency->totalPendingPayout() >= self::CARRY_OVER_THRESHOLD)
+            // 口座情報が不完全だと実際には振り込めないため、CSV抽出・振込予約・支払済み化のいずれからも除外する。
+            // 除外された分は未払いのまま残り続け、口座情報が揃うまで自動的に翌月以降も繰り越される。
+            ->filter(fn (Agency $agency) => $agency->hasZenginTransferInfo())
             ->map(fn (Agency $agency) => ['agency' => $agency, ...$agency->breakdownForStatuses($statuses)])
             ->filter(fn (array $row) => $row['total'] > 0)
             ->sortByDesc('total')
