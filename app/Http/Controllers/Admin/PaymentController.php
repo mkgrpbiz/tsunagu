@@ -121,11 +121,6 @@ class PaymentController extends Controller
             fn (CollaborationReward $reward) => $isPayable($reward->referrerAgency->id, $reward->payment_status)
         )->values();
 
-        // パートナー別一覧の合計欄と揃え、支払済みも含めたその月の実績合計にする（未払いのみの見込み額は下の累計未払い合計を参照）
-        $monthlyTotal = $payableContracts->sum('agency_reward_amount')
-            + $payableCommissions->sum('amount')
-            + $payableCollaborationRewards->sum('reward_amount');
-
         // 支払期日が未到来（翌月分）の分は、CSV抽出・振込予約・支払済み化のどれにも含まれないため、
         // 「累計未払い合計」もそれらと揃えて支払期日到来分のみを合計する（揃えないと数字が食い違って見える）。
         $isDue = fn ($item) => $item->payment_due_date <= now();
@@ -189,6 +184,9 @@ class PaymentController extends Controller
 
             return $row;
         })->sortByDesc('total')->values();
+
+        // パートナー別一覧の合計欄（繰り越し分込み）と揃える
+        $monthlyTotal = $agencySummaries->sum('total');
 
         return view('admin.payments.index', [
             'agencySummaries' => $agencySummaries,
