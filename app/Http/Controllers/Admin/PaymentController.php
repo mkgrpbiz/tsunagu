@@ -334,15 +334,19 @@ class PaymentController extends Controller
 
     private function markAgencyPaid(Agency $agency, LineMessagingService $lineMessaging): int
     {
-        // 未払い・振込予約済みのどちらも、まだ支払済みになっていない分として一括で確定する
-        $pendingContracts = $agency->contracts()->whereIn('payment_status', self::PENDING_STATUSES)->get();
-        $pendingCommissions = $agency->referralCommissions()->whereIn('payment_status', self::PENDING_STATUSES)->get();
+        // 未払い・振込予約済みのどちらも、まだ支払済みになっていない分として一括で確定する。
+        // 支払期日が未到来（翌月分）の分は対象外（月末締めの処理に翌月分を混ぜないため）。
+        $pendingContracts = $agency->contracts()->whereIn('payment_status', self::PENDING_STATUSES)
+            ->where('payment_due_date', '<=', now())->get();
+        $pendingCommissions = $agency->referralCommissions()->whereIn('payment_status', self::PENDING_STATUSES)
+            ->where('payment_due_date', '<=', now())->get();
 
         $clientNames = $agency->projects()->whereNotNull('client_name')->distinct()->pluck('client_name');
 
         $pendingRewards = CollaborationReward::whereIn('client_name', $clientNames)
             ->where('status', CollaborationRewardStatus::Approved)
             ->whereIn('payment_status', self::PENDING_STATUSES)
+            ->where('payment_due_date', '<=', now())
             ->get();
 
         $total = $pendingContracts->sum('agency_reward_amount')
@@ -377,14 +381,18 @@ class PaymentController extends Controller
      */
     private function markAgencyReserved(Agency $agency): int
     {
-        $unpaidContracts = $agency->contracts()->where('payment_status', PaymentStatus::Unpaid)->get();
-        $unpaidCommissions = $agency->referralCommissions()->where('payment_status', PaymentStatus::Unpaid)->get();
+        // 支払期日が未到来（翌月分）の分は対象外（月末締めの処理に翌月分を混ぜないため）。
+        $unpaidContracts = $agency->contracts()->where('payment_status', PaymentStatus::Unpaid)
+            ->where('payment_due_date', '<=', now())->get();
+        $unpaidCommissions = $agency->referralCommissions()->where('payment_status', PaymentStatus::Unpaid)
+            ->where('payment_due_date', '<=', now())->get();
 
         $clientNames = $agency->projects()->whereNotNull('client_name')->distinct()->pluck('client_name');
 
         $unpaidRewards = CollaborationReward::whereIn('client_name', $clientNames)
             ->where('status', CollaborationRewardStatus::Approved)
             ->where('payment_status', PaymentStatus::Unpaid)
+            ->where('payment_due_date', '<=', now())
             ->get();
 
         $total = $unpaidContracts->sum('agency_reward_amount')

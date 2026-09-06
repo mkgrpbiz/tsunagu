@@ -207,16 +207,22 @@ class Agency extends Authenticatable
     }
 
     /**
+     * $statusesに絞った金額を合算する。支払期日（payment_due_date）が未到来の分は、
+     * まだ今回の処理対象ではない（翌月以降の締めでの対象）ため常に除外する。
+     * これが無いと、月末締めの一括処理に翌月分の新規着金まで無条件に混ざってしまう。
+     *
      * @param  array<int, PaymentStatus>  $statuses
      */
     public function breakdownForStatuses(array $statuses): array
     {
         $contractTotal = (int) $this->contracts()
             ->whereIn('payment_status', $statuses)
+            ->where('payment_due_date', '<=', now())
             ->sum('agency_reward_amount');
 
         $commissionTotal = (int) $this->referralCommissions()
             ->whereIn('payment_status', $statuses)
+            ->where('payment_due_date', '<=', now())
             ->sum('amount');
 
         $clientNames = $this->projects()->whereNotNull('client_name')->distinct()->pluck('client_name');
@@ -224,6 +230,7 @@ class Agency extends Authenticatable
         $rewardTotal = (int) CollaborationReward::whereIn('client_name', $clientNames)
             ->where('status', CollaborationRewardStatus::Approved)
             ->whereIn('payment_status', $statuses)
+            ->where('payment_due_date', '<=', now())
             ->sum('reward_amount');
 
         return [

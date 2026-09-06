@@ -165,9 +165,10 @@ class DashboardController extends Controller
      */
     private function payablePendingCount(PaymentStatus $status): int
     {
-        $contracts = Contract::where('payment_status', $status)->with('inquiry')->get();
-        $commissions = ReferralCommission::where('payment_status', $status)->get();
-        $rewards = CollaborationReward::where('payment_status', $status)->get();
+        // 支払期日が未到来（翌月分）の分はまだ今回の対象ではないため含めない
+        $contracts = Contract::where('payment_status', $status)->where('payment_due_date', '<=', now())->with('inquiry')->get();
+        $commissions = ReferralCommission::where('payment_status', $status)->where('payment_due_date', '<=', now())->get();
+        $rewards = CollaborationReward::where('payment_status', $status)->where('payment_due_date', '<=', now())->get();
 
         $rewardAgencyIds = $rewards->mapWithKeys(fn (CollaborationReward $reward) => [
             $reward->id => Project::where('client_name', $reward->client_name)
