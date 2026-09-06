@@ -87,6 +87,7 @@
                 <th class="px-4 py-3 font-medium">紹介報酬</th>
                 <th class="px-4 py-3 font-medium">パートナー10%</th>
                 <th class="px-4 py-3 font-medium">共創パートナー30%</th>
+                <th class="px-4 py-3 font-medium">繰り越し分</th>
                 <th class="px-4 py-3 font-medium">合計</th>
                 <th class="px-4 py-3 font-medium">ステータス</th>
                 <th class="px-4 py-3 font-medium w-24"></th>
@@ -100,6 +101,7 @@
                     <td class="px-4 py-3">¥{{ number_format($row['contract_total']) }}</td>
                     <td class="px-4 py-3">¥{{ number_format($row['commission_total']) }}</td>
                     <td class="px-4 py-3">¥{{ number_format($row['reward_total']) }}</td>
+                    <td class="px-4 py-3 text-gray-500">¥{{ number_format($row['carry_over_total']) }}</td>
                     <td class="px-4 py-3 font-semibold">¥{{ number_format($row['total']) }}</td>
                     <td class="px-4 py-3">
                         @if ($row['status'] === 'paid')
@@ -118,7 +120,7 @@
                 </tr>
             @empty
                 <tr class="even:bg-gray-50 hover:bg-gray-100">
-                    <td colspan="8" class="px-4 py-6 text-center text-gray-400">対象パートナーがいません。</td>
+                    <td colspan="9" class="px-4 py-6 text-center text-gray-400">対象パートナーがいません。</td>
                 </tr>
             @endforelse
         </tbody>

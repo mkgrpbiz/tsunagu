@@ -166,8 +166,19 @@ class PaymentController extends Controller
             $summaries[$agencyId][$statusKey($reward->payment_status)] = true;
         }
 
-        $agencySummaries = collect($summaries)->map(function (array $row) {
+        $agencySummaries = collect($summaries)->map(function (array $row) use ($month) {
             $row['total'] = $row['contract_total'] + $row['commission_total'] + $row['reward_total'];
+
+            // 選択中の月タブの分だけでは、他の月の支払期日到来分（実際には今回まとめて振り込まれる繰り越し分）
+            // が見えないため、実際の振込対象合計との差分を「繰り越し分」として別出しし、合計に合算する。
+            // 累計（$month === null）表示では全期間が既に含まれているため繰り越し分は発生しない。
+            $row['carry_over_total'] = 0;
+            if ($month) {
+                $actualTotal = $row['agency']->breakdownForStatuses(Agency::PENDING_STATUSES)['total'];
+                $row['carry_over_total'] = max(0, $actualTotal - $row['total']);
+                $row['total'] += $row['carry_over_total'];
+            }
+
             $activeStates = collect(['has_unpaid', 'has_reserved', 'has_paid'])->filter(fn (string $key) => $row[$key]);
             $row['status'] = match (true) {
                 $activeStates->count() > 1 => 'partial',
