@@ -126,9 +126,12 @@ class PaymentController extends Controller
             + $payableCommissions->sum('amount')
             + $payableCollaborationRewards->sum('reward_amount');
 
-        $cumulativeTotal = $allContracts->whereIn('payment_status', self::PENDING_STATUSES)->sum('agency_reward_amount')
-            + $allCommissions->whereIn('payment_status', self::PENDING_STATUSES)->sum('amount')
-            + $allCollaborationRewards->whereIn('payment_status', self::PENDING_STATUSES)->sum('reward_amount');
+        // 支払期日が未到来（翌月分）の分は、CSV抽出・振込予約・支払済み化のどれにも含まれないため、
+        // 「累計未払い合計」もそれらと揃えて支払期日到来分のみを合計する（揃えないと数字が食い違って見える）。
+        $isDue = fn ($item) => $item->payment_due_date <= now();
+        $cumulativeTotal = $allContracts->whereIn('payment_status', self::PENDING_STATUSES)->filter($isDue)->sum('agency_reward_amount')
+            + $allCommissions->whereIn('payment_status', self::PENDING_STATUSES)->filter($isDue)->sum('amount')
+            + $allCollaborationRewards->whereIn('payment_status', self::PENDING_STATUSES)->filter($isDue)->sum('reward_amount');
 
         $summaries = [];
         $emptyRow = ['contract_total' => 0, 'commission_total' => 0, 'reward_total' => 0, 'has_unpaid' => false, 'has_reserved' => false, 'has_paid' => false];
