@@ -28,6 +28,7 @@ use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\Admin\ProductMonitorLinkController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\SalesMaterialController;
+use App\Http\Controllers\Admin\SharePoyDepositHistoryController;
 use App\Http\Controllers\Admin\SharePoyPointController;
 use App\Http\Controllers\Admin\SharePoyUserController;
 use App\Http\Controllers\Agency\AdditionalInfoController as AgencyAdditionalInfoController;
@@ -205,6 +206,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('sharepoy-points', [SharePoyPointController::class, 'index'])->name('sharepoy-points.index');
                 Route::post('sharepoy-points/store-product-monitor', [SharePoyPointController::class, 'storeProductMonitor'])->name('sharepoy-points.store-product-monitor');
                 Route::post('sharepoy-points/store-mystery-shopper', [SharePoyPointController::class, 'storeMysteryShopper'])->name('sharepoy-points.store-mystery-shopper');
+            });
+
+            Route::middleware('menu:sharepoy_deposit_history')->group(function () {
+                Route::get('sharepoy-deposit-history', [SharePoyDepositHistoryController::class, 'index'])->name('sharepoy-deposit-history.index');
+                Route::post('sharepoy-deposit-history/preview', [SharePoyDepositHistoryController::class, 'preview'])->name('sharepoy-deposit-history.preview');
+                Route::post('sharepoy-deposit-history/store', [SharePoyDepositHistoryController::class, 'store'])->name('sharepoy-deposit-history.store');
             });
 
             Route::middleware('menu:aggregate_results')->group(function () {

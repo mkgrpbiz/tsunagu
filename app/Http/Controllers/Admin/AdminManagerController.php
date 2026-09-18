@@ -46,6 +46,7 @@ class AdminManagerController extends Controller
             'product_monitor_links' => '商品受け取りモニター',
             'mystery_shopper_links' => '覆面調査モニター',
             'sharepoy_points' => 'SharePoyポイント用',
+            'sharepoy_deposit_history' => 'SharePoy着金履歴管理',
         ];
     }
 

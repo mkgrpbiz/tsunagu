@@ -23,6 +23,7 @@ class SharePoyDepositRecord extends Model
         'bimoni_sharepoy' => 'BIMONI(SharePoy)',
         'product_monitor' => '商品受け取りモニター',
         'mystery_shopper' => '覆面調査モニター',
+        'other' => 'その他',
     ];
 
     protected $table = 'sharepoy_deposit_records';
