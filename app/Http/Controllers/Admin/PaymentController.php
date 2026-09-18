@@ -107,19 +107,15 @@ class PaymentController extends Controller
             fn (CollaborationReward $reward) => $rewardMonth($reward) === $month
         ));
 
-        $isPayable = fn (?int $agencyId, PaymentStatus $status) => in_array($status, [PaymentStatus::Paid, PaymentStatus::Reserved], true) || $payableAgencyIds->contains($agencyId);
-
-        $payableContracts = $monthContracts->filter(
-            fn (Contract $contract) => $isPayable($contract->inquiry->agency_id, $contract->payment_status)
-        )->values();
-
-        $payableCommissions = $monthCommissions->filter(
-            fn (ReferralCommission $commission) => $isPayable($commission->referrer_agency_id, $commission->payment_status)
-        )->values();
-
-        $payableCollaborationRewards = $monthCollaborationRewards->filter(
-            fn (CollaborationReward $reward) => $isPayable($reward->referrerAgency->id, $reward->payment_status)
-        )->values();
+        // パートナー別支払い一覧は「その月に何が起きたか」を見るための表示なので、
+        // 支払期日到来・繰り越し閾値による絞り込みはかけず、選択中の月の実績をそのまま表示する
+        // （以前はここも支払対象かどうかでフィルタしていたため、支払期日未到来の当月分が
+        // 当月タブに一切出てこないという過剰な非表示になっていた）。
+        // 実際に今回振り込まれる金額は、下の「繰り越し分」列と合計・累計未払い合計・
+        // CSV抽出／振込予約／一括支払済み化のほうで支払期日ベースに正しく絞り込んでいる。
+        $payableContracts = $monthContracts->values();
+        $payableCommissions = $monthCommissions->values();
+        $payableCollaborationRewards = $monthCollaborationRewards->values();
 
         // 支払期日が未到来（翌月分）の分は、CSV抽出・振込予約・支払済み化のどれにも含まれないため、
         // 「累計未払い合計」もそれらと揃えて支払期日到来分のみを合計する（揃えないと数字が食い違って見える）。
