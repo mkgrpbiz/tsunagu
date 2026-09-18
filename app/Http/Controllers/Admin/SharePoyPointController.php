@@ -42,7 +42,7 @@ class SharePoyPointController extends Controller
     }
 
     /**
-     * @return array{groups: array<int, array{sharePoyUser: SharePoyUser, name: string, count: int, points: int, contracts: Collection<int, Contract>}>, unmatched: array<int, array{name: string, count: int, contracts: Collection<int, Contract>}>, copyText: string, label: string}
+     * @return array{groups: array<int, array{sharePoyUser: SharePoyUser, name: string, count: int, points: int, contracts: Collection<int, Contract>}>, noReferrerCode: array<int, array{sharePoyUser: SharePoyUser, name: string, count: int, points: int, contracts: Collection<int, Contract>}>, unmatched: array<int, array{name: string, count: int, contracts: Collection<int, Contract>}>, copyText: string, label: string}
      */
     private function summarize(int $projectId, string $label, bool $onlyThousandYenLines): array
     {
@@ -51,9 +51,11 @@ class SharePoyPointController extends Controller
         $byName = $contracts->groupBy(fn (Contract $c) => $c->inquiry->name);
 
         $groups = [];
+        $noReferrerCode = [];
         $unmatched = [];
 
         foreach ($byName as $name => $group) {
+            // 着金履歴は実施したユーザー本人（名前で特定）につける
             $sharePoyUser = SharePoyUser::where('name', $name)->first();
             $totalCount = $group->sum('count');
 
@@ -63,20 +65,27 @@ class SharePoyPointController extends Controller
                 continue;
             }
 
-            $groups[] = [
+            $row = [
                 'sharePoyUser' => $sharePoyUser,
                 'name' => $name,
                 'count' => $totalCount,
                 'points' => $totalCount * self::POINTS_PER_LINE,
                 'contracts' => $group,
             ];
+
+            // ポイント付与先は実施したユーザー自身ではなく、その人をSharePoy+に紹介した人（referrer_sharepoy_user_id）
+            if (blank($sharePoyUser->referrer_sharepoy_user_id)) {
+                $noReferrerCode[] = $row;
+            } else {
+                $groups[] = $row;
+            }
         }
 
         $copyText = collect($groups)
-            ->map(fn (array $g) => implode("\t", [$g['sharePoyUser']->sharepoy_user_id, $g['name'], $g['points'], $label]))
+            ->map(fn (array $g) => implode("\t", [$g['sharePoyUser']->referrer_sharepoy_user_id, $g['points'], $label]))
             ->implode("\n");
 
-        return ['groups' => $groups, 'unmatched' => $unmatched, 'copyText' => $copyText, 'label' => $label];
+        return ['groups' => $groups, 'noReferrerCode' => $noReferrerCode, 'unmatched' => $unmatched, 'copyText' => $copyText, 'label' => $label];
     }
 
     private function store(int $projectId, string $source, bool $onlyThousandYenLines): int
@@ -85,7 +94,8 @@ class SharePoyPointController extends Controller
 
         $savedCount = 0;
 
-        foreach ($result['groups'] as $group) {
+        // 着金履歴は「実施したユーザーが特定できたか」だけで記録する（紹介コードの有無は無関係）
+        foreach ([...$result['groups'], ...$result['noReferrerCode']] as $group) {
             foreach ($group['contracts'] as $contract) {
                 $this->recordContract($contract, $group['sharePoyUser']->id, $source, null);
                 $savedCount++;
