@@ -30,9 +30,8 @@
                     <th class="text-left px-4 py-2 font-medium">フリガナ</th>
                     <th class="text-right px-4 py-2 font-medium">金額</th>
                     <th class="text-right px-4 py-2 font-medium">件数</th>
-                    <th class="text-center px-4 py-2 font-medium w-12">
-                        選択<br>
-                        <input type="checkbox" id="select-all">
+                    <th class="text-center px-4 py-2 font-medium whitespace-nowrap">
+                        選択 <input type="checkbox" id="select-all">
                     </th>
                 </tr>
             </thead>
