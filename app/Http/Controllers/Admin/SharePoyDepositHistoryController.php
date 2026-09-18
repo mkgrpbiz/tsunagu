@@ -14,8 +14,6 @@ use Illuminate\View\View;
 
 class SharePoyDepositHistoryController extends Controller
 {
-    private const POINTS_PER_LINE = 300;
-
     /**
      * BIMONI・商品受け取りモニター・覆面調査モニターは専用画面（BimoniSharePoyLinkController /
      * SharePoyPointController）で着金履歴に記録するため、このcatch-all画面の対象からは除外する。
@@ -35,13 +33,15 @@ class SharePoyDepositHistoryController extends Controller
             'contract_ids' => ['required', 'array', 'min:1'],
             'contract_ids.*' => ['integer', 'exists:contracts,id'],
             'label' => ['required', 'string', 'max:255'],
+            'points_per_line' => ['required', 'integer', 'min:1'],
         ]);
 
-        $result = $this->summarize($data['contract_ids'], $data['label']);
+        $result = $this->summarize($data['contract_ids'], $data['label'], $data['points_per_line']);
 
         return view('admin.sharepoy_deposit_history.confirm', [
             'contractIds' => $data['contract_ids'],
             'label' => $data['label'],
+            'pointsPerLine' => $data['points_per_line'],
             'result' => $result,
         ]);
     }
@@ -52,9 +52,10 @@ class SharePoyDepositHistoryController extends Controller
             'contract_ids' => ['required', 'array', 'min:1'],
             'contract_ids.*' => ['integer', 'exists:contracts,id'],
             'label' => ['required', 'string', 'max:255'],
+            'points_per_line' => ['required', 'integer', 'min:1'],
         ]);
 
-        $result = $this->summarize($data['contract_ids'], $data['label']);
+        $result = $this->summarize($data['contract_ids'], $data['label'], $data['points_per_line']);
 
         $savedCount = 0;
 
@@ -83,7 +84,7 @@ class SharePoyDepositHistoryController extends Controller
      * @param  array<int, int>  $contractIds
      * @return array{groups: array<int, array{sharePoyUser: SharePoyUser, name: string, count: int, points: int, contracts: Collection<int, Contract>}>, noReferrerCode: array<int, array{sharePoyUser: SharePoyUser, name: string, count: int, points: int, contracts: Collection<int, Contract>}>, unmatched: array<int, array{name: string, count: int, contracts: Collection<int, Contract>}>, copyText: string, label: string}
      */
-    private function summarize(array $contractIds, string $label): array
+    private function summarize(array $contractIds, string $label, int $pointsPerLine): array
     {
         $contracts = Contract::with('inquiry')->whereIn('id', $contractIds)->get();
 
@@ -107,7 +108,7 @@ class SharePoyDepositHistoryController extends Controller
                 'sharePoyUser' => $sharePoyUser,
                 'name' => $name,
                 'count' => $totalCount,
-                'points' => $totalCount * self::POINTS_PER_LINE,
+                'points' => $totalCount * $pointsPerLine,
                 'contracts' => $group,
             ];
 

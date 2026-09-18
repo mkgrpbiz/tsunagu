@@ -62,6 +62,11 @@
                 <input type="text" name="label" id="label" required placeholder="例: ○○案件紹介"
                        class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
             </div>
+            <div class="w-32">
+                <label for="points_per_line" class="block text-xs font-medium text-gray-700 mb-1">1件あたりポイント</label>
+                <input type="number" name="points_per_line" id="points_per_line" required min="1" value="300"
+                       class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+            </div>
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md px-4 py-2">追加</button>
         </div>
     @endif

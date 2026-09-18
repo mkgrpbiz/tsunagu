@@ -7,6 +7,7 @@
 
 <div class="bg-white border border-gray-200 rounded-lg p-6 mb-4">
     <p class="text-sm text-gray-700 mb-1">ラベル: {{ $label }}</p>
+    <p class="text-sm text-gray-700 mb-1">1件あたりポイント: {{ number_format($pointsPerLine) }}pt</p>
     <p class="text-sm text-gray-700 mb-1">対象: {{ count($result['groups']) + count($result['noReferrerCode']) }}件</p>
     @if (count($result['noReferrerCode']) > 0)
         <p class="text-sm text-amber-600">紹介コード未登録(ポイント付与対象外): {{ count($result['noReferrerCode']) }}件</p>
@@ -81,6 +82,7 @@
 <form method="POST" action="{{ route('admin.sharepoy-deposit-history.store') }}" class="flex gap-3">
     @csrf
     <input type="hidden" name="label" value="{{ $label }}">
+    <input type="hidden" name="points_per_line" value="{{ $pointsPerLine }}">
     @foreach ($contractIds as $id)
         <input type="hidden" name="contract_ids[]" value="{{ $id }}">
     @endforeach
