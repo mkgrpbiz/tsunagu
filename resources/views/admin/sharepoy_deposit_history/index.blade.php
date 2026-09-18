@@ -30,7 +30,10 @@
                     <th class="text-left px-4 py-2 font-medium">フリガナ</th>
                     <th class="text-right px-4 py-2 font-medium">金額</th>
                     <th class="text-right px-4 py-2 font-medium">件数</th>
-                    <th class="text-center px-4 py-2 font-medium w-12">選択</th>
+                    <th class="text-center px-4 py-2 font-medium w-12">
+                        選択<br>
+                        <input type="checkbox" id="select-all">
+                    </th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -71,4 +74,12 @@
         </div>
     @endif
 </form>
+
+<script>
+document.getElementById('select-all')?.addEventListener('change', function () {
+    document.querySelectorAll('input[name="contract_ids[]"]').forEach(function (checkbox) {
+        checkbox.checked = this.checked;
+    }, this);
+});
+</script>
 @endsection
