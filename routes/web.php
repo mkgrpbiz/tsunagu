@@ -212,6 +212,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('sharepoy-deposit-history', [SharePoyDepositHistoryController::class, 'index'])->name('sharepoy-deposit-history.index');
                 Route::post('sharepoy-deposit-history/preview', [SharePoyDepositHistoryController::class, 'preview'])->name('sharepoy-deposit-history.preview');
                 Route::post('sharepoy-deposit-history/store', [SharePoyDepositHistoryController::class, 'store'])->name('sharepoy-deposit-history.store');
+                Route::post('sharepoy-deposit-history/store-history-only', [SharePoyDepositHistoryController::class, 'storeHistoryOnly'])->name('sharepoy-deposit-history.store-history-only');
             });
 
             Route::middleware('menu:aggregate_results')->group(function () {

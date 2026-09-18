@@ -59,17 +59,25 @@
 
     @if ($contracts->isNotEmpty())
         <div class="bg-white border border-gray-200 rounded-lg p-4 flex items-end gap-3">
-            <div class="flex-1">
+            <div class="w-56">
                 <label for="label" class="block text-xs font-medium text-gray-700 mb-1">ラベル(コピー用一覧の3列目に使用)</label>
-                <input type="text" name="label" id="label" required placeholder="例: ○○案件紹介"
+                <input type="text" name="label" id="label" placeholder="例: ○○案件紹介"
                        class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
             </div>
             <div class="w-32">
                 <label for="points_per_line" class="block text-xs font-medium text-gray-700 mb-1">1件あたりポイント</label>
-                <input type="number" name="points_per_line" id="points_per_line" required min="1"
+                <input type="number" name="points_per_line" id="points_per_line" min="1"
                        class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
             </div>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md px-4 py-2">追加</button>
+            <button type="submit"
+                    formaction="{{ route('admin.sharepoy-deposit-history.preview') }}"
+                    onclick="return tsnValidatePointsFields();"
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md px-4 py-2">付与も作成</button>
+            <button type="submit"
+                    formaction="{{ route('admin.sharepoy-deposit-history.store-history-only') }}"
+                    formnovalidate
+                    onclick="return confirm('選択した着金を紹介ポイントの付与なしで、着金履歴にのみ記録します。よろしいですか？');"
+                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-md px-4 py-2">着金履歴のみ</button>
         </div>
     @endif
 </form>
@@ -80,5 +88,24 @@ document.getElementById('select-all')?.addEventListener('change', function () {
         checkbox.checked = this.checked;
     }, this);
 });
+
+function tsnValidatePointsFields() {
+    var label = document.getElementById('label');
+    var points = document.getElementById('points_per_line');
+
+    if (! label.value.trim()) {
+        alert('ラベルを入力してください。');
+        label.focus();
+        return false;
+    }
+
+    if (! points.value || Number(points.value) < 1) {
+        alert('1件あたりポイントを入力してください。');
+        points.focus();
+        return false;
+    }
+
+    return true;
+}
 </script>
 @endsection

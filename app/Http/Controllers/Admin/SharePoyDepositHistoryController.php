@@ -81,6 +81,42 @@ class SharePoyDepositHistoryController extends Controller
     }
 
     /**
+     * 紹介ポイント付与のコピー用一覧は作らず、選択分を着金履歴にのみ記録する。
+     */
+    public function storeHistoryOnly(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'contract_ids' => ['required', 'array', 'min:1'],
+            'contract_ids.*' => ['integer', 'exists:contracts,id'],
+        ]);
+
+        // ラベル・ポイントはコピー用一覧の生成にしか使わないため、この経路ではダミー値でよい
+        $result = $this->summarize($data['contract_ids'], '', 1);
+
+        $savedCount = 0;
+
+        foreach ([...$result['groups'], ...$result['noReferrerCode']] as $group) {
+            foreach ($group['contracts'] as $contract) {
+                $this->recordContract($contract, $group['sharePoyUser']->id, null);
+                $savedCount++;
+            }
+        }
+
+        $unmatchedPlaceholderId = null;
+
+        foreach ($result['unmatched'] as $entry) {
+            $unmatchedPlaceholderId ??= SharePoyUser::unmatchedPlaceholder()->id;
+
+            foreach ($entry['contracts'] as $contract) {
+                $this->recordContract($contract, $unmatchedPlaceholderId, $entry['name']);
+                $savedCount++;
+            }
+        }
+
+        return redirect()->route('admin.sharepoy-deposit-history.index')->with('status', "{$savedCount}件を着金履歴のみ記録しました(紹介ポイントの付与はスキップしました)。");
+    }
+
+    /**
      * @param  array<int, int>  $contractIds
      * @return array{groups: array<int, array{sharePoyUser: SharePoyUser, name: string, count: int, points: int, contracts: Collection<int, Contract>}>, noReferrerCode: array<int, array{sharePoyUser: SharePoyUser, name: string, count: int, points: int, contracts: Collection<int, Contract>}>, unmatched: array<int, array{name: string, count: int, contracts: Collection<int, Contract>}>, copyText: string, label: string}
      */
