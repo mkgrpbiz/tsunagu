@@ -172,7 +172,7 @@ class SharePoyDepositHistoryController extends Controller
             'deposit_date' => $contract->deposit_date,
             'tsunagu_unit_price' => (int) ($contract->count > 0 ? $contract->deposit_amount / $contract->count : 0),
             'agency_unit_price' => 0,
-            'count' => $contract->count,
+            'count' => $contract->count ?? 0,
             'memo' => $memo,
         ]);
     }
