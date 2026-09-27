@@ -29,7 +29,6 @@
                 'collaboration_partner_applications' => ['label' => '共創パートナー申請', 'route' => 'admin.collaboration-partner-applications.index', 'active' => 'admin.collaboration-partner-applications.*'],
             ],
             '報酬・支払管理' => [
-                'deposit_links' => ['label' => '着金紐付け', 'route' => 'admin.deposit-links.index', 'active' => 'admin.deposit-links.*'],
                 'aggregate_results' => ['label' => '合計成果反映', 'route' => 'admin.aggregate-results.index', 'active' => 'admin.aggregate-results.*'],
                 'payments' => ['label' => '支払い管理', 'route' => 'admin.payments.index', 'active' => 'admin.payments.*'],
                 'collaboration_rewards' => ['label' => '共創報酬管理', 'route' => 'admin.collaboration-rewards.index', 'active' => 'admin.collaboration-rewards.*'],

@@ -5,7 +5,7 @@
 @section('content')
 <div class="flex items-center justify-between mb-6">
     <h1 class="text-xl font-semibold">一括紐付けプレビュー</h1>
-    <a href="{{ route('admin.deposit-links.index') }}" class="text-sm text-blue-600 hover:underline">戻る</a>
+    <a href="{{ route('admin.inquiries.index') }}" class="text-sm text-blue-600 hover:underline">戻る</a>
 </div>
 
 <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
@@ -85,7 +85,7 @@
 @endif
 
 @if (count($matched) > 0)
-    <form method="POST" action="{{ route('admin.deposit-links.bulk-store') }}" onsubmit="return confirm('{{ count($matched) }}件を紐付けます。よろしいですか？');">
+    <form method="POST" action="{{ route('admin.inquiries.link-bulk-store') }}" onsubmit="return confirm('{{ count($matched) }}件を紐付けます。よろしいですか？');">
         @csrf
         <input type="hidden" name="project_id" value="{{ $project->id }}">
         <input type="hidden" name="pasted_text" value="{{ $pastedText }}">

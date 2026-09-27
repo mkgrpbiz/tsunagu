@@ -14,7 +14,6 @@ use App\Http\Controllers\Admin\CollaborationPartnerController;
 use App\Http\Controllers\Admin\CollaborationRewardController;
 use App\Http\Controllers\Admin\CompanyProfileController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\DepositLinkController;
 use App\Http\Controllers\Admin\HomeBlockController;
 use App\Http\Controllers\Admin\HomePageContentController;
 use App\Http\Controllers\Admin\InquiryController;
@@ -159,14 +158,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::patch('inquiries/{inquiry}/resend-guidance', [InquiryController::class, 'resendGuidance'])->name('inquiries.resend-guidance');
                 Route::post('inquiries/bulk-preview', [InquiryController::class, 'bulkPreview'])->name('inquiries.bulk-preview');
                 Route::post('inquiries/bulk-store', [InquiryController::class, 'bulkStore'])->name('inquiries.bulk-store');
-            });
-
-            Route::middleware('menu:deposit_links')->group(function () {
-                Route::get('deposit-links', [DepositLinkController::class, 'index'])->name('deposit-links.index');
-                Route::post('deposit-links/bulk-preview', [DepositLinkController::class, 'bulkPreview'])->name('deposit-links.bulk-preview');
-                Route::post('deposit-links/bulk-store', [DepositLinkController::class, 'bulkStore'])->name('deposit-links.bulk-store');
-                Route::post('deposit-links/no-referral', [DepositLinkController::class, 'storeNoReferral'])->name('deposit-links.no-referral');
-                Route::post('deposit-links/{inquiry}', [DepositLinkController::class, 'store'])->name('deposit-links.store');
+                Route::post('inquiries/link-bulk-preview', [InquiryController::class, 'linkBulkPreview'])->name('inquiries.link-bulk-preview');
+                Route::post('inquiries/link-bulk-store', [InquiryController::class, 'linkBulkStore'])->name('inquiries.link-bulk-store');
+                Route::post('inquiries/no-referral', [InquiryController::class, 'storeNoReferral'])->name('inquiries.no-referral');
+                Route::post('inquiries/{inquiry}/link', [InquiryController::class, 'link'])->name('inquiries.link');
             });
 
             Route::middleware('menu:sharepoy_users')->group(function () {
