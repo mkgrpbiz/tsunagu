@@ -10,6 +10,11 @@
             @csrf
             <button type="submit" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md px-3 py-1.5">パートナーとしてログイン</button>
         </form>
+        <form method="POST" action="{{ route('admin.agencies.reset-password', $agency) }}">
+            @csrf
+            <button type="submit" onclick="return confirm('パスワードを pass1234 にリセットしますか？');"
+                    class="text-sm bg-yellow-500 hover:bg-yellow-600 text-white rounded-md px-3 py-1.5">パスワード初期化</button>
+        </form>
         <a href="{{ route('admin.agencies.index') }}" class="text-sm text-gray-500 hover:underline">一覧に戻る</a>
     </div>
 </div>

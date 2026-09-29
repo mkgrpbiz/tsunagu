@@ -187,6 +187,13 @@ class AgencyController extends Controller
         );
     }
 
+    public function resetPassword(Agency $agency): RedirectResponse
+    {
+        $agency->update(['password' => 'pass1234', 'must_change_password' => true]);
+
+        return back()->with('status', 'パスワードを pass1234 にリセットしました。');
+    }
+
     public function impersonate(Request $request, Agency $agency): RedirectResponse
     {
         Auth::guard('agency')->login($agency);
