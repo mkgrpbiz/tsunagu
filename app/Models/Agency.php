@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 #[Fillable([
@@ -207,7 +208,18 @@ class Agency extends Authenticatable
     }
 
     /**
-     * $statusesに絞った金額を合算する。支払期日（payment_due_date）が未到来の分は、
+     * 支払期日（payment_due_date、常に「翌月5日」）が到来した月かどうかの判定用カットオフ。
+     * 実際の振込は5日だが、その前に振込予約作業を済ませておく運用のため、
+     * 5日ちょうどではなく月が変わった時点（1日）で対象にする（厳密な日付一致ではなく月単位判定）。
+     * 戻り値は「対象とみなす上限（この日時未満なら対象）」＝当月の翌月1日。
+     */
+    public static function paymentDueCutoff(): Carbon
+    {
+        return now()->startOfMonth()->addMonthNoOverflow();
+    }
+
+    /**
+     * $statusesに絞った金額を合算する。支払期日（payment_due_date）の月が未到来の分は、
      * まだ今回の処理対象ではない（翌月以降の締めでの対象）ため常に除外する。
      * これが無いと、月末締めの一括処理に翌月分の新規着金まで無条件に混ざってしまう。
      *
@@ -215,14 +227,16 @@ class Agency extends Authenticatable
      */
     public function breakdownForStatuses(array $statuses): array
     {
+        $dueCutoff = self::paymentDueCutoff();
+
         $contractTotal = (int) $this->contracts()
             ->whereIn('payment_status', $statuses)
-            ->where('payment_due_date', '<=', now())
+            ->where('payment_due_date', '<', $dueCutoff)
             ->sum('agency_reward_amount');
 
         $commissionTotal = (int) $this->referralCommissions()
             ->whereIn('payment_status', $statuses)
-            ->where('payment_due_date', '<=', now())
+            ->where('payment_due_date', '<', $dueCutoff)
             ->sum('amount');
 
         $clientNames = $this->projects()->whereNotNull('client_name')->distinct()->pluck('client_name');
@@ -230,7 +244,7 @@ class Agency extends Authenticatable
         $rewardTotal = (int) CollaborationReward::whereIn('client_name', $clientNames)
             ->where('status', CollaborationRewardStatus::Approved)
             ->whereIn('payment_status', $statuses)
-            ->where('payment_due_date', '<=', now())
+            ->where('payment_due_date', '<', $dueCutoff)
             ->sum('reward_amount');
 
         return [
