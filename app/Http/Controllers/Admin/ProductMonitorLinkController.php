@@ -109,32 +109,19 @@ class ProductMonitorLinkController extends Controller
                 continue;
             }
 
-            $productsA = trim($row[2] ?? '');
-            $qtyA = (int) trim($row[3] ?? '');
-            $productsB = trim($row[4] ?? '');
-            $qtyB = (int) trim($row[5] ?? '');
+            $products = trim($row[2] ?? '');
+            $qty = (int) trim($row[3] ?? '');
 
-            $lines = [];
-            if ($qtyA > 0) {
-                $lines[] = [
-                    'tsunagu_unit_price' => 1000,
-                    'agency_unit_price' => 500,
-                    'count' => $qtyA,
-                    'memo' => $productsA !== '' ? str_replace("\n", '、', $productsA) : null,
-                ];
-            }
-            if ($qtyB > 0) {
-                $lines[] = [
-                    'tsunagu_unit_price' => 500,
-                    'agency_unit_price' => 0,
-                    'count' => $qtyB,
-                    'memo' => $productsB !== '' ? str_replace("\n", '、', $productsB) : null,
-                ];
-            }
-
-            if (empty($lines)) {
+            if ($qty <= 0) {
                 continue;
             }
+
+            $lines = [[
+                'tsunagu_unit_price' => 1200,
+                'agency_unit_price' => 800,
+                'count' => $qty,
+                'memo' => $products !== '' ? str_replace("\n", '、', $products) : null,
+            ]];
 
             $inquiry = Inquiry::with('agency')
                 ->where('project_id', self::TARGET_PROJECT_ID)
