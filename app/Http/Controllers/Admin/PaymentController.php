@@ -158,16 +158,82 @@ class PaymentController extends Controller
             $summaries[$agencyId][$statusKey($reward->payment_status)] = true;
         }
 
-        $agencySummaries = collect($summaries)->map(function (array $row) use ($month) {
+        // 選択中の月には活動が無く、繰り越し（他の期日到来済み未払い分）しか無いパートナーは、
+        // 上のループでは一切行が作られず表示自体から消えてしまう（繰り越し分の金額が
+        // どこにも見えなくなるバグだった）。そのため、現在何らかの未払い・振込予約済み残高を
+        // 持つ全パートナー（$agencies）を見て、まだ行が無く実際に期日到来済みの残高があるものは
+        // 空の行として追加しておく（下のmap内でcarry_over_totalとして正しく合算される）。
+        if ($month) {
+            foreach ($agencies as $agencyId => $agency) {
+                if (isset($summaries[$agencyId])) {
+                    continue;
+                }
+
+                $dueContracts = $allContracts->filter(fn (Contract $c) => $c->inquiry->agency_id === $agencyId)
+                    ->whereIn('payment_status', self::PENDING_STATUSES)->filter($isDue);
+                $dueCommissions = $allCommissions->where('referrer_agency_id', $agencyId)
+                    ->whereIn('payment_status', self::PENDING_STATUSES)->filter($isDue);
+                $dueRewards = $allCollaborationRewards->filter(fn (CollaborationReward $r) => $r->referrerAgency->id === $agencyId)
+                    ->whereIn('payment_status', self::PENDING_STATUSES)->filter($isDue);
+
+                $dueTotal = $dueContracts->sum('agency_reward_amount') + $dueCommissions->sum('amount') + $dueRewards->sum('reward_amount');
+
+                if ($dueTotal <= 0) {
+                    continue;
+                }
+
+                $row = ['agency' => $agency, ...$emptyRow];
+                $row['has_unpaid'] = $dueContracts->contains(fn ($c) => $c->payment_status === PaymentStatus::Unpaid)
+                    || $dueCommissions->contains(fn ($c) => $c->payment_status === PaymentStatus::Unpaid)
+                    || $dueRewards->contains(fn ($r) => $r->payment_status === PaymentStatus::Unpaid);
+                $row['has_reserved'] = $dueContracts->contains(fn ($c) => $c->payment_status === PaymentStatus::Reserved)
+                    || $dueCommissions->contains(fn ($c) => $c->payment_status === PaymentStatus::Reserved)
+                    || $dueRewards->contains(fn ($r) => $r->payment_status === PaymentStatus::Reserved);
+
+                $summaries[$agencyId] = $row;
+            }
+        }
+
+        $agencySummaries = collect($summaries)->map(function (array $row) use (
+            $month, $allContracts, $allCommissions, $allCollaborationRewards,
+            $contractMonth, $commissionMonth, $rewardMonth, $dueCutoff
+        ) {
             $row['total'] = $row['contract_total'] + $row['commission_total'] + $row['reward_total'];
 
-            // 選択中の月タブの分だけでは、他の月の支払期日到来分（実際には今回まとめて振り込まれる繰り越し分）
-            // が見えないため、実際の振込対象合計との差分を「繰り越し分」として別出しし、合計に合算する。
-            // 累計（$month === null）表示では全期間が既に含まれているため繰り越し分は発生しない。
+            // 選択中の月タブの分だけでは、他の月の分（実際には今回まとめて振り込まれる・振り込まれた
+            // 繰り越し分）が見えないため、「その他の月の分」を「繰り越し分」として別出しし、合計に合算する。
+            // 対象にするのは次の2種類: ①まだ未払い・振込予約中で支払期日が到来している分（これから
+            // まとめて処理される予定）②選択中の月の分と同じpaid_at（同じ一括操作で支払われた証拠）を
+            // 持つ支払済みの分（既にまとめて処理済み）。②が無いと、一括支払い操作を実行した瞬間に
+            // 繰り越し分がpending状態で無くなり「支払後に見ると繰り越しが消えて見える」バグになる
+            // （実際に宮下達也・内藤真也で、8月分が9月分と一緒に支払われた直後に繰り越し分が0円に
+            // 戻ってしまう事象として発覚した）。累計（$month === null）表示では全期間が既に
+            // 含まれているため繰り越し分は発生しない。
             $row['carry_over_total'] = 0;
             if ($month) {
-                $actualTotal = $row['agency']->breakdownForStatuses(Agency::PENDING_STATUSES)['total'];
-                $row['carry_over_total'] = max(0, $actualTotal - $row['total']);
+                $agencyId = $row['agency']->id;
+
+                $ownPaidAts = collect()
+                    ->merge($allContracts->filter(fn (Contract $c) => $c->inquiry->agency_id === $agencyId && $contractMonth($c) === $month && $c->payment_status === PaymentStatus::Paid)->pluck('paid_at'))
+                    ->merge($allCommissions->filter(fn (ReferralCommission $c) => $c->referrer_agency_id === $agencyId && $commissionMonth($c) === $month && $c->payment_status === PaymentStatus::Paid)->pluck('paid_at'))
+                    ->merge($allCollaborationRewards->filter(fn (CollaborationReward $r) => $r->referrerAgency->id === $agencyId && $rewardMonth($r) === $month && $r->payment_status === PaymentStatus::Paid)->pluck('paid_at'))
+                    ->filter()->unique();
+
+                $isCarryItem = function ($item) use ($dueCutoff, $ownPaidAts) {
+                    if (in_array($item->payment_status, Agency::PENDING_STATUSES, true)) {
+                        return $item->payment_due_date < $dueCutoff;
+                    }
+
+                    return $item->payment_status === PaymentStatus::Paid && $item->paid_at && $ownPaidAts->contains($item->paid_at);
+                };
+
+                $otherContracts = $allContracts->filter(fn (Contract $c) => $c->inquiry->agency_id === $agencyId && $contractMonth($c) !== $month)->filter($isCarryItem);
+                $otherCommissions = $allCommissions->filter(fn (ReferralCommission $c) => $c->referrer_agency_id === $agencyId && $commissionMonth($c) !== $month)->filter($isCarryItem);
+                $otherRewards = $allCollaborationRewards->filter(fn (CollaborationReward $r) => $r->referrerAgency->id === $agencyId && $rewardMonth($r) !== $month)->filter($isCarryItem);
+
+                $row['carry_over_total'] = $otherContracts->sum('agency_reward_amount')
+                    + $otherCommissions->sum('amount')
+                    + $otherRewards->sum('reward_amount');
                 $row['total'] += $row['carry_over_total'];
             }
 

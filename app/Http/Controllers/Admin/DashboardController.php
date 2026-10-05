@@ -162,6 +162,10 @@ class DashboardController extends Controller
     /**
      * 累計未払い＋振込予約済みが¥1,000未満（繰り越し対象）のパートナーは、そもそも支払い対象に
      * なっていないため、指定ステータスの件数からは除外する。
+     * 口座情報が不完全なパートナーも、CSV抽出・振込予約・支払済み化のどの操作でも処理できない
+     * （PaymentController::payableAgencySummaries()と同じ除外）ため合わせて除外する。これが無いと、
+     * 口座情報が揃うまで永久に処理不可能な件数がアラートに残り続け、他の対応を全て終えても
+     * アラートが消えないという状態になっていた。
      */
     private function payablePendingCount(PaymentStatus $status): int
     {
@@ -185,6 +189,7 @@ class DashboardController extends Controller
 
         $payableAgencyIds = Agency::whereIn('id', $agencyIds)->get()
             ->filter(fn (Agency $a) => $a->totalPendingPayout() >= 1000)
+            ->filter(fn (Agency $a) => $a->hasZenginTransferInfo())
             ->pluck('id');
 
         return $contracts->filter(fn (Contract $c) => $payableAgencyIds->contains($c->inquiry->agency_id))->count()
