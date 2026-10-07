@@ -42,11 +42,11 @@
 
             @if (count($jobSpecItems ?? []) > 0)
                 <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-                    <p class="font-semibold text-sm mb-3">{{ $project->name }}</p>
+                    <p class="font-bold text-lg mb-3">{{ $project->name }}</p>
                     <div class="space-y-2">
                         @foreach ($jobSpecItems as $label => $value)
-                            <div class="bg-gray-50 border border-gray-100 rounded-md px-3 py-2">
-                                <p class="text-xs font-bold text-gray-500 mb-1">{{ $label }}</p>
+                            <div class="bg-slate-50 border border-slate-100 rounded-md px-3 py-2.5">
+                                <span class="inline-block text-[11px] font-extrabold text-gray-900 bg-blue-50 rounded-full px-2.5 py-0.5 mb-1.5">{{ $label }}</span>
                                 <p class="text-sm leading-relaxed whitespace-pre-line">{{ $value }}</p>
                             </div>
                         @endforeach
