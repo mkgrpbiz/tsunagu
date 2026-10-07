@@ -54,7 +54,7 @@
                 </div>
             @endif
 
-            @if ($offerText)
+            @if ($offerText && count($jobSpecItems ?? []) === 0)
                 <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 text-sm leading-relaxed whitespace-pre-line">{{ $offerText }}</div>
             @endif
 
