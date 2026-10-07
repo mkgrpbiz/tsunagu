@@ -28,33 +28,39 @@ class ProjectController extends Controller
         ]);
     }
 
+    private const JOB_SEARCH_FIELDS = [
+        'name',
+        'job_description',
+        'work_location',
+        'annual_income',
+        'salary_benefits',
+        'holidays',
+        'qualifications',
+        'age_requirement',
+        'employment_type',
+        'working_hours',
+    ];
+
     public function category(Category $category, Request $request): View
     {
         $query = $category->projects()
             ->where('status', ProjectStatus::Published)
             ->orderBy('sort_order');
 
-        $filterOptions = [];
+        $keyword = $category->has_job_fields ? trim((string) $request->query('keyword')) : '';
 
-        if ($category->has_job_fields) {
-            $published = $category->projects()->where('status', ProjectStatus::Published);
-
-            $filterOptions = [
-                'region' => $published->clone()->whereNotNull('region')->distinct()->orderBy('region')->pluck('region'),
-                'job_type' => $published->clone()->whereNotNull('job_type')->distinct()->orderBy('job_type')->pluck('job_type'),
-                'employment_type' => $published->clone()->whereNotNull('employment_type')->distinct()->orderBy('employment_type')->pluck('employment_type'),
-            ];
-
-            foreach (['region', 'job_type', 'employment_type'] as $field) {
-                $query->when($request->filled($field), fn ($q) => $q->where($field, $request->query($field)));
-            }
+        if ($keyword !== '') {
+            $query->where(function ($q) use ($keyword) {
+                foreach (self::JOB_SEARCH_FIELDS as $field) {
+                    $q->orWhere($field, 'like', '%'.$keyword.'%');
+                }
+            });
         }
 
         return view('agency.projects.category', [
             'category' => $category,
             'projects' => $query->get(),
-            'filterOptions' => $filterOptions,
-            'filters' => $request->only(['region', 'job_type', 'employment_type']),
+            'keyword' => $keyword,
         ]);
     }
 

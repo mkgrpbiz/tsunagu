@@ -16,47 +16,27 @@
         @error('category_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
-    <div id="job_fields_section" class="col-span-2 grid grid-cols-3 gap-4 bg-emerald-50 border border-emerald-200 rounded-md p-4" style="display:none">
-        <div>
-            <label for="region" class="block text-sm font-medium text-gray-700 mb-1">地域</label>
-            <input type="text" name="region" id="region" value="{{ old('region', $project->region) }}"
-                   class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            @error('region')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-        </div>
-        <div>
-            <label for="job_type" class="block text-sm font-medium text-gray-700 mb-1">職種</label>
-            <input type="text" name="job_type" id="job_type" value="{{ old('job_type', $project->job_type) }}"
-                   class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            @error('job_type')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-        </div>
-        <div>
-            <label for="employment_type" class="block text-sm font-medium text-gray-700 mb-1">雇用形態</label>
-            <input type="text" name="employment_type" id="employment_type" value="{{ old('employment_type', $project->employment_type) }}"
-                   class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            @error('employment_type')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-        </div>
-
-        <div class="col-span-3 border-t border-emerald-200 pt-3 mt-1">
-            <p class="text-sm font-medium text-gray-700 mb-2">募集要項</p>
-            <div class="grid grid-cols-2 gap-4">
-                @foreach ([
-                    'job_description' => ['仕事内容', 3],
-                    'work_location' => ['勤務地', 2],
-                    'annual_income' => ['年収', 2],
-                    'salary_benefits' => ['給与・待遇', 3],
-                    'holidays' => ['休日・休暇', 2],
-                    'qualifications' => ['応募資格', 3],
-                    'age_requirement' => ['募集年齢', 2],
-                    'working_hours' => ['勤務時間', 2],
-                ] as $field => [$label, $rows])
-                    <div>
-                        <label for="{{ $field }}" class="block text-sm font-medium text-gray-700 mb-1">{{ $label }}</label>
-                        <textarea name="{{ $field }}" id="{{ $field }}" rows="{{ $rows }}"
-                                  class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old($field, $project->$field) }}</textarea>
-                        @error($field)<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-                    </div>
-                @endforeach
-            </div>
+    <div id="job_fields_section" class="col-span-2 bg-emerald-50 border border-emerald-200 rounded-md p-4" style="display:none">
+        <p class="text-sm font-medium text-gray-700 mb-2">募集要項（検索はこの内容のキーワード一致で行われます）</p>
+        <div class="grid grid-cols-2 gap-4">
+            @foreach ([
+                'job_description' => ['仕事内容', 3],
+                'work_location' => ['勤務地', 2],
+                'annual_income' => ['年収', 2],
+                'salary_benefits' => ['給与・待遇', 3],
+                'holidays' => ['休日・休暇', 2],
+                'qualifications' => ['応募資格', 3],
+                'age_requirement' => ['募集年齢', 2],
+                'employment_type' => ['雇用形態', 2],
+                'working_hours' => ['勤務時間', 2],
+            ] as $field => [$label, $rows])
+                <div>
+                    <label for="{{ $field }}" class="block text-sm font-medium text-gray-700 mb-1">{{ $label }}</label>
+                    <textarea name="{{ $field }}" id="{{ $field }}" rows="{{ $rows }}"
+                              class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old($field, $project->$field) }}</textarea>
+                    @error($field)<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                </div>
+            @endforeach
         </div>
     </div>
 

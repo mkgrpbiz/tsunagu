@@ -219,8 +219,6 @@ class ProjectController extends Controller
 
         $data = $request->validate([
             'category_id' => ['required', 'exists:categories,id'],
-            'region' => ['nullable', 'string', 'max:255'],
-            'job_type' => ['nullable', 'string', 'max:255'],
             'employment_type' => ['nullable', 'string', 'max:255'],
             'job_description' => ['nullable', 'string'],
             'work_location' => ['nullable', 'string'],
