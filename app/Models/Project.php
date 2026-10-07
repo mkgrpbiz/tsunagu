@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 #[Fillable([
     'category_id',
+    'region',
+    'job_type',
+    'employment_type',
     'sort_order',
     'name',
     'legacy_names',

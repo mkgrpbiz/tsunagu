@@ -72,8 +72,13 @@ class CategoryController extends Controller
 
     private function validated(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'has_job_fields' => ['nullable', 'boolean'],
         ]);
+
+        $data['has_job_fields'] = $request->boolean('has_job_fields');
+
+        return $data;
     }
 }

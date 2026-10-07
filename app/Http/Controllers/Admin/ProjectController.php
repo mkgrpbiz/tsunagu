@@ -75,6 +75,7 @@ class ProjectController extends Controller
             'statuses' => ProjectStatus::cases(),
             'agencies' => Agency::where('is_collaboration_partner', true)->with('referredBy')->orderBy('name')->get(),
             'clientNames' => Project::whereNotNull('client_name')->distinct()->orderBy('client_name')->pluck('client_name'),
+            'jobFieldCategoryIds' => Category::where('has_job_fields', true)->pluck('id'),
         ]);
     }
 
@@ -127,6 +128,7 @@ class ProjectController extends Controller
             'statuses' => ProjectStatus::cases(),
             'agencies' => Agency::where('is_collaboration_partner', true)->with('referredBy')->orderBy('name')->get(),
             'clientNames' => Project::whereNotNull('client_name')->distinct()->orderBy('client_name')->pluck('client_name'),
+            'jobFieldCategoryIds' => Category::where('has_job_fields', true)->pluck('id'),
         ]);
     }
 
@@ -217,6 +219,9 @@ class ProjectController extends Controller
 
         $data = $request->validate([
             'category_id' => ['required', 'exists:categories,id'],
+            'region' => ['nullable', 'string', 'max:255'],
+            'job_type' => ['nullable', 'string', 'max:255'],
+            'employment_type' => ['nullable', 'string', 'max:255'],
             'name' => ['required', 'string', 'max:255'],
             'legacy_names' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],

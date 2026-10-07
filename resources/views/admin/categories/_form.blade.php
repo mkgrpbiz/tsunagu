@@ -12,6 +12,17 @@
     @enderror
 </div>
 
+<div class="mb-4">
+    <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+        <input type="checkbox" name="has_job_fields" value="1" @checked(old('has_job_fields', $category->has_job_fields))>
+        求人カテゴリーにする（地域・職種・雇用形態での検索を有効にする）
+    </label>
+    <p class="text-xs text-gray-500 mt-1">ONにすると、このカテゴリーの案件作成・編集フォームに地域・職種・雇用形態の入力欄が追加され、パートナー向けの案件一覧も専用の検索フォーム付きページになります。</p>
+    @error('has_job_fields')
+        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+    @enderror
+</div>
+
 <div class="flex gap-3">
     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md px-4 py-2">保存</button>
     <a href="{{ route('admin.categories.index') }}" class="text-sm text-gray-500 px-4 py-2">キャンセル</a>

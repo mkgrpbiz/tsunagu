@@ -16,6 +16,27 @@
         @error('category_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
+    <div id="job_fields_section" class="col-span-2 grid grid-cols-3 gap-4 bg-emerald-50 border border-emerald-200 rounded-md p-4" style="display:none">
+        <div>
+            <label for="region" class="block text-sm font-medium text-gray-700 mb-1">地域</label>
+            <input type="text" name="region" id="region" value="{{ old('region', $project->region) }}"
+                   class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            @error('region')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+        </div>
+        <div>
+            <label for="job_type" class="block text-sm font-medium text-gray-700 mb-1">職種</label>
+            <input type="text" name="job_type" id="job_type" value="{{ old('job_type', $project->job_type) }}"
+                   class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            @error('job_type')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+        </div>
+        <div>
+            <label for="employment_type" class="block text-sm font-medium text-gray-700 mb-1">雇用形態</label>
+            <input type="text" name="employment_type" id="employment_type" value="{{ old('employment_type', $project->employment_type) }}"
+                   class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            @error('employment_type')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+        </div>
+    </div>
+
     <div>
         <label for="status" class="block text-sm font-medium text-gray-700 mb-1">ステータス</label>
         <select name="status" id="status" required
@@ -195,6 +216,17 @@
 </div>
 
 <script>
+var tsnJobFieldCategoryIds = {{ Illuminate\Support\Js::from($jobFieldCategoryIds->map(fn ($id) => (string) $id)) }};
+
+function tsnApplyJobFieldsVisibility() {
+    var select = document.getElementById('category_id');
+    var section = document.getElementById('job_fields_section');
+    section.style.display = tsnJobFieldCategoryIds.includes(select.value) ? '' : 'none';
+}
+
+document.getElementById('category_id').addEventListener('change', tsnApplyJobFieldsVisibility);
+tsnApplyJobFieldsVisibility();
+
 var tsnPartnerDirectory = {{ Illuminate\Support\Js::from($agencies->map(fn ($a) => [
     'id' => $a->id,
     'label' => $a->company_name ?: $a->name,

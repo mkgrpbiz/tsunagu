@@ -33,7 +33,12 @@
             @forelse ($categories as $category)
                 <tr class="even:bg-gray-50 hover:bg-gray-100 cat-row" draggable="true" data-id="{{ $category->id }}">
                     <td class="px-4 py-3"><span class="cat-handle">⠿</span></td>
-                    <td class="px-4 py-3">{{ $category->name }}</td>
+                    <td class="px-4 py-3">
+                        {{ $category->name }}
+                        @if ($category->has_job_fields)
+                            <span class="ml-1 text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">求人</span>
+                        @endif
+                    </td>
                     <td class="px-4 py-3">{{ $category->projects_count }}</td>
                     <td class="px-4 py-3">
                         <div class="flex gap-1 justify-center flex-wrap">
