@@ -57,27 +57,23 @@ class ProjectController extends Controller
             });
         }
 
-        return view('agency.projects.category', [
-            'category' => $category,
-            'projects' => $query->paginate(50)->withQueryString(),
-            'keyword' => $keyword,
-        ]);
-    }
-
-    public function show(Project $project): View
-    {
-        abort_unless($project->status === ProjectStatus::Published, 404);
+        $projects = $query->paginate(50)->withQueryString();
 
         $agency = Auth::guard('agency')->user();
+        $inviteUrls = $projects->getCollection()->mapWithKeys(function (Project $project) use ($agency) {
+            $inviteLink = InviteLink::firstOrCreate(
+                ['agency_id' => $agency->id, 'project_id' => $project->id],
+                ['token' => Str::random(10)],
+            );
 
-        $inviteLink = InviteLink::firstOrCreate(
-            ['agency_id' => $agency->id, 'project_id' => $project->id],
-            ['token' => Str::random(10)],
-        );
+            return [$project->id => url('/apply/'.$inviteLink->token)];
+        });
 
-        return view('agency.projects.show', [
-            'project' => $project,
-            'inviteUrl' => url('/apply/'.$inviteLink->token),
+        return view('agency.projects.category', [
+            'category' => $category,
+            'projects' => $projects,
+            'keyword' => $keyword,
+            'inviteUrls' => $inviteUrls,
         ]);
     }
 }
