@@ -147,9 +147,9 @@
                     <div class="box">
                         <details class="mini-acc">
                             <summary class="box-title">
-                                📝 案件概要
+                                📝 {{ $category->has_job_fields ? '募集テンプレ' : '案件概要' }}
                                 <button type="button" class="mini-copy-btn" title="コピー"
-                                        onclick="event.stopPropagation(); copyToClipboard({{ Illuminate\Support\Js::from($project->overviewText()) }})">📋 概要コピー</button>
+                                        onclick="event.stopPropagation(); copyToClipboard({{ Illuminate\Support\Js::from($project->overviewText()) }})">📋 {{ $category->has_job_fields ? 'テンプレコピー' : '概要コピー' }}</button>
                                 <span class="mini-chev"></span>
                             </summary>
                             <p>{{ $project->overviewText() }}</p>
