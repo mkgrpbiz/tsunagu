@@ -47,7 +47,7 @@
 .mk-cases .mini-acc p{margin-top:8px}
 .mk-cases .job-spec{margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
 .mk-cases .job-spec div{background:#f8fafc;border:1px solid #eef2f7;border-radius:10px;padding:10px 12px}
-.mk-cases .job-spec dt{display:inline-block;font-size:11px;font-weight:800;color:#2563eb;background:#eff6ff;border-radius:999px;padding:2px 10px;margin-bottom:6px}
+.mk-cases .job-spec dt{display:inline-block;font-size:11px;font-weight:800;color:#111827;background:#eff6ff;border-radius:999px;padding:2px 10px;margin-bottom:6px}
 .mk-cases .job-spec dd{font-size:13px;line-height:1.7;white-space:pre-line;margin:0;color:#1f2937}
 .mk-cases .pagination-wrap{margin-top:16px}
 @media (max-width:480px){.mk-cases .filter-form{flex-direction:column}}
