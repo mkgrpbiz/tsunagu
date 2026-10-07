@@ -14,6 +14,12 @@
 .mk-cases .filter-form .filter-actions{display:flex;gap:8px}
 .mk-cases .filter-form button{flex:1;background:#2563eb;color:#fff;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer}
 .mk-cases .filter-form a.reset{flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:9px 14px;border-radius:8px;border:1px solid #d1d5db;color:#6b7280;font-size:13px;text-decoration:none}
+.mk-cases details.page-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 10px 24px rgba(0,0,0,.06);overflow:hidden;margin:14px 0}
+.mk-cases details.page-card summary{list-style:none;cursor:pointer;padding:14px;display:flex;align-items:center;gap:8px;background:linear-gradient(180deg,#eff6ff,#fff);border-bottom:1px solid #e5e7eb;font-weight:800;font-size:14px;color:#0f172a}
+.mk-cases details.page-card summary::-webkit-details-marker{display:none}
+.mk-cases details.page-card .chev{width:10px;height:10px;border-right:2px solid #9ca3af;border-bottom:2px solid #9ca3af;transform:rotate(45deg);transition:transform .18s ease;margin-left:auto;flex-shrink:0}
+.mk-cases details.page-card[open] > summary .chev{transform:rotate(-135deg)}
+.mk-cases .page-body{padding:12px}
 .mk-cases a.proj-card{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;margin:10px 0;text-decoration:none;color:inherit}
 .mk-cases a.proj-card:hover{border-color:#bfdbfe;background:#f8fafc}
 .mk-cases .thumb{width:56px;height:56px;border-radius:12px;overflow:hidden;flex-shrink:0;background:#eff6ff}
@@ -44,21 +50,31 @@
             </form>
         @endif
 
-        @forelse ($projects as $project)
-            <a href="{{ route('agency.projects.show', $project) }}" class="proj-card">
-                <div class="thumb">
-                    @if ($project->image_path)
-                        <img src="{{ \Illuminate\Support\Facades\Storage::url($project->image_path) }}" alt="">
-                    @else
-                        <img src="{{ asset('tsunagu-logo.png') }}" alt="">
-                    @endif
+        @forelse ($projects->chunk(50) as $i => $page)
+            <details class="page-card" @if ($i === 0) open @endif>
+                <summary>
+                    {{ $i * 50 + 1 }}〜{{ $i * 50 + $page->count() }}件目
+                    <span class="chev"></span>
+                </summary>
+                <div class="page-body">
+                    @foreach ($page as $project)
+                        <a href="{{ route('agency.projects.show', $project) }}" class="proj-card">
+                            <div class="thumb">
+                                @if ($project->image_path)
+                                    <img src="{{ \Illuminate\Support\Facades\Storage::url($project->image_path) }}" alt="">
+                                @else
+                                    <img src="{{ asset('tsunagu-logo.png') }}" alt="">
+                                @endif
+                            </div>
+                            <div class="proj-body">
+                                <div class="proj-title">{{ $project->name }}</div>
+                                <div class="proj-price">{{ $project->description }}</div>
+                            </div>
+                            <span class="arrow"></span>
+                        </a>
+                    @endforeach
                 </div>
-                <div class="proj-body">
-                    <div class="proj-title">{{ $project->name }}</div>
-                    <div class="proj-price">{{ $project->description }}</div>
-                </div>
-                <span class="arrow"></span>
-            </a>
+            </details>
         @empty
             <p class="text-gray-400 text-center py-10">該当する案件がありません。</p>
         @endforelse
