@@ -211,7 +211,7 @@
     </div>
 
     <div class="col-span-2">
-        <label for="recruitment_template" class="block text-sm font-medium text-gray-700 mb-1">案件概要</label>
+        <label for="recruitment_template" id="recruitment_template_label" class="block text-sm font-medium text-gray-700 mb-1">案件概要</label>
         <textarea name="recruitment_template" id="recruitment_template" rows="4"
                   class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('recruitment_template', $project->recruitment_template) }}</textarea>
         @error('recruitment_template')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
@@ -235,8 +235,10 @@ var tsnJobFieldCategoryIds = {{ Illuminate\Support\Js::from($jobFieldCategoryIds
 
 function tsnApplyJobFieldsVisibility() {
     var select = document.getElementById('category_id');
+    var isJobCategory = tsnJobFieldCategoryIds.includes(select.value);
     var section = document.getElementById('job_fields_section');
-    section.style.display = tsnJobFieldCategoryIds.includes(select.value) ? '' : 'none';
+    section.style.display = isJobCategory ? '' : 'none';
+    document.getElementById('recruitment_template_label').textContent = isJobCategory ? '募集テンプレ' : '案件概要';
 }
 
 document.getElementById('category_id').addEventListener('change', tsnApplyJobFieldsVisibility);
