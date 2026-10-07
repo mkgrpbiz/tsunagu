@@ -36,12 +36,27 @@
             @error('employment_type')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
         </div>
 
-        <div class="col-span-3">
-            <label for="job_detail" class="block text-sm font-medium text-gray-700 mb-1">募集要項</label>
-            <p class="text-xs text-gray-500 mb-1">仕事内容・勤務地・年収・給与・待遇・休日・休暇・応募資格・募集年齢・雇用形態・勤務時間など、求人票の内容をまとめて入力してください。</p>
-            <textarea name="job_detail" id="job_detail" rows="8"
-                      class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('job_detail', $project->job_detail) }}</textarea>
-            @error('job_detail')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+        <div class="col-span-3 border-t border-emerald-200 pt-3 mt-1">
+            <p class="text-sm font-medium text-gray-700 mb-2">募集要項</p>
+            <div class="grid grid-cols-2 gap-4">
+                @foreach ([
+                    'job_description' => ['仕事内容', 3],
+                    'work_location' => ['勤務地', 2],
+                    'annual_income' => ['年収', 2],
+                    'salary_benefits' => ['給与・待遇', 3],
+                    'holidays' => ['休日・休暇', 2],
+                    'qualifications' => ['応募資格', 3],
+                    'age_requirement' => ['募集年齢', 2],
+                    'working_hours' => ['勤務時間', 2],
+                ] as $field => [$label, $rows])
+                    <div>
+                        <label for="{{ $field }}" class="block text-sm font-medium text-gray-700 mb-1">{{ $label }}</label>
+                        <textarea name="{{ $field }}" id="{{ $field }}" rows="{{ $rows }}"
+                                  class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old($field, $project->$field) }}</textarea>
+                        @error($field)<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                    </div>
+                @endforeach
+            </div>
         </div>
     </div>
 

@@ -33,6 +33,11 @@
 .mk-case .mini-acc p{margin-top:8px}
 .mk-case .job-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .mk-case .job-tags span{font-size:11.5px;font-weight:700;color:#2563eb;background:#eff6ff;border-radius:999px;padding:3px 10px}
+.mk-case .job-spec{margin:0;padding:0}
+.mk-case .job-spec div{padding:8px 0;border-bottom:1px solid #f1f5f9}
+.mk-case .job-spec div:last-child{border-bottom:none}
+.mk-case .job-spec dt{font-size:12px;font-weight:800;color:#6b7280;margin-bottom:2px}
+.mk-case .job-spec dd{font-size:14px;line-height:1.7;white-space:pre-line;margin:0}
 </style>
 @endpush
 
@@ -61,10 +66,31 @@
             </div>
         </div>
 
-        @if ($project->job_detail)
+        @php
+            $jobSpecItems = [
+                '仕事内容' => $project->job_description,
+                '勤務地' => $project->work_location,
+                '年収' => $project->annual_income,
+                '給与・待遇' => $project->salary_benefits,
+                '休日・休暇' => $project->holidays,
+                '応募資格' => $project->qualifications,
+                '募集年齢' => $project->age_requirement,
+                '雇用形態' => $project->employment_type,
+                '勤務時間' => $project->working_hours,
+            ];
+            $jobSpecItems = array_filter($jobSpecItems, fn ($value) => filled($value));
+        @endphp
+        @if (count($jobSpecItems) > 0)
             <div class="box">
                 <p class="box-title">📋 募集要項</p>
-                <p>{{ $project->job_detail }}</p>
+                <dl class="job-spec">
+                    @foreach ($jobSpecItems as $label => $value)
+                        <div>
+                            <dt>{{ $label }}</dt>
+                            <dd>{{ $value }}</dd>
+                        </div>
+                    @endforeach
+                </dl>
             </div>
         @endif
 
