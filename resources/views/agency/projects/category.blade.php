@@ -84,13 +84,15 @@
             @endphp
             <details class="proj-acc">
                 <summary>
-                    <div class="thumb">
-                        @if ($project->image_path)
-                            <img src="{{ \Illuminate\Support\Facades\Storage::url($project->image_path) }}" alt="">
-                        @else
-                            <img src="{{ asset('tsunagu-logo.png') }}" alt="">
-                        @endif
-                    </div>
+                    @unless ($category->has_job_fields)
+                        <div class="thumb">
+                            @if ($project->image_path)
+                                <img src="{{ \Illuminate\Support\Facades\Storage::url($project->image_path) }}" alt="">
+                            @else
+                                <img src="{{ asset('tsunagu-logo.png') }}" alt="">
+                            @endif
+                        </div>
+                    @endunless
                     <div class="proj-body">
                         <div class="proj-title">{{ $project->name }}</div>
                         <div class="proj-price">{{ $project->description }}</div>
