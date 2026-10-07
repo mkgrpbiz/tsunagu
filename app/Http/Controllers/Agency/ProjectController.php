@@ -59,7 +59,7 @@ class ProjectController extends Controller
 
         return view('agency.projects.category', [
             'category' => $category,
-            'projects' => $query->get(),
+            'projects' => $query->paginate(50)->withQueryString(),
             'keyword' => $keyword,
         ]);
     }
