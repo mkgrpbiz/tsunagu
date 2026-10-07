@@ -16,28 +16,40 @@
         @error('category_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
-    <div id="job_fields_section" class="col-span-2 bg-emerald-50 border border-emerald-200 rounded-md p-4" style="display:none">
-        <p class="text-sm font-medium text-gray-700 mb-2">募集要項（検索はこの内容のキーワード一致で行われます）</p>
-        <div class="grid grid-cols-2 gap-4">
-            @foreach ([
-                'job_description' => ['仕事内容', 3],
-                'work_location' => ['勤務地', 2],
+    <div id="job_fields_section" class="col-span-2 bg-emerald-50 border border-emerald-200 rounded-lg p-5" style="display:none">
+        <p class="text-sm font-semibold text-emerald-800 mb-4">募集要項（この内容のキーワード一致でパートナー向け検索ができます）</p>
+
+        @foreach ([
+            '仕事内容・勤務条件' => [
+                'job_description' => ['仕事内容', 4],
+                'work_location' => ['勤務地', 3],
+                'working_hours' => ['勤務時間', 3],
+                'holidays' => ['休日・休暇', 3],
+            ],
+            '給与・待遇' => [
                 'annual_income' => ['年収', 2],
-                'salary_benefits' => ['給与・待遇', 3],
-                'holidays' => ['休日・休暇', 2],
-                'qualifications' => ['応募資格', 3],
-                'age_requirement' => ['募集年齢', 2],
+                'salary_benefits' => ['給与・待遇', 4],
+            ],
+            '応募条件' => [
                 'employment_type' => ['雇用形態', 2],
-                'working_hours' => ['勤務時間', 2],
-            ] as $field => [$label, $rows])
-                <div>
-                    <label for="{{ $field }}" class="block text-sm font-medium text-gray-700 mb-1">{{ $label }}</label>
-                    <textarea name="{{ $field }}" id="{{ $field }}" rows="{{ $rows }}"
-                              class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old($field, $project->$field) }}</textarea>
-                    @error($field)<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                'age_requirement' => ['募集年齢', 2],
+                'qualifications' => ['応募資格', 4],
+            ],
+        ] as $groupLabel => $groupFields)
+            <div class="mb-5 last:mb-0">
+                <p class="text-xs font-bold text-emerald-700 mb-2 tracking-wide">{{ $groupLabel }}</p>
+                <div class="grid grid-cols-2 gap-4 bg-white rounded-md border border-emerald-100 p-4">
+                    @foreach ($groupFields as $field => [$label, $rows])
+                        <div>
+                            <label for="{{ $field }}" class="block text-sm font-medium text-gray-700 mb-1">{{ $label }}</label>
+                            <textarea name="{{ $field }}" id="{{ $field }}" rows="{{ $rows }}"
+                                      class="w-full rounded-md border border-gray-300 shadow-sm text-sm leading-relaxed focus:border-blue-500 focus:ring-blue-500">{{ old($field, $project->$field) }}</textarea>
+                            @error($field)<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                    @endforeach
                 </div>
-            @endforeach
-        </div>
+            </div>
+        @endforeach
     </div>
 
     <div>
