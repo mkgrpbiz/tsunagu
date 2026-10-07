@@ -75,11 +75,13 @@
                     <input type="hidden" name="is_friend" id="is_friend" value="0">
                 @endunless
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">案件名</label>
-                    <input type="text" value="{{ $project->name }}" disabled
-                           class="w-full rounded-md border border-gray-300 bg-gray-50 text-gray-500 shadow-sm">
-                </div>
+                @if (count($jobSpecItems ?? []) === 0)
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">案件名</label>
+                        <input type="text" value="{{ $project->name }}" disabled
+                               class="w-full rounded-md border border-gray-300 bg-gray-50 text-gray-500 shadow-sm">
+                    </div>
+                @endif
 
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700 mb-1">名前</label>
