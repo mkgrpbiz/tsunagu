@@ -212,7 +212,7 @@
 
     <div class="col-span-2">
         <label for="recruitment_template" id="recruitment_template_label" class="block text-sm font-medium text-gray-700 mb-1">案件概要</label>
-        <p class="text-xs text-gray-500 mb-1">本文中に <code class="bg-gray-100 px-1 rounded">{{ '{{リンク}}' }}</code> と書くと、表示時にパートナーごとの応募フォームURLに自動で置き換わります。</p>
+        <p class="text-xs text-gray-500 mb-1">本文中に <code class="bg-gray-100 px-1 rounded">@{{リンク}}</code> と書くと、表示時にパートナーごとの応募フォームURLに自動で置き換わります。</p>
         <textarea name="recruitment_template" id="recruitment_template" rows="4"
                   class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('recruitment_template', $project->recruitment_template) }}</textarea>
         @error('recruitment_template')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
