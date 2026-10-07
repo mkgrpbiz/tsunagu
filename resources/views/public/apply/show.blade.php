@@ -40,6 +40,20 @@
                 </div>
             @endif
 
+            @if (count($jobSpecItems ?? []) > 0)
+                <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+                    <p class="font-semibold text-sm mb-3">{{ $project->name }}</p>
+                    <div class="space-y-2">
+                        @foreach ($jobSpecItems as $label => $value)
+                            <div class="bg-gray-50 border border-gray-100 rounded-md px-3 py-2">
+                                <p class="text-xs font-bold text-gray-500 mb-1">{{ $label }}</p>
+                                <p class="text-sm leading-relaxed whitespace-pre-line">{{ $value }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             @if ($offerText)
                 <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 text-sm leading-relaxed whitespace-pre-line">{{ $offerText }}</div>
             @endif

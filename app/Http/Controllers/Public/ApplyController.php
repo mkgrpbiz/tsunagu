@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
 use App\Models\InviteLink;
 use App\Models\LineUser;
+use App\Models\Project;
 use App\Services\LineMessagingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,7 +21,7 @@ class ApplyController extends Controller
 {
     public function show(InviteLink $inviteLink): View
     {
-        $inviteLink->load('project', 'agency');
+        $inviteLink->load('project.category', 'agency');
 
         return view('public.apply.show', [
             'inviteLink' => $inviteLink,
@@ -29,6 +30,7 @@ class ApplyController extends Controller
             'officialAccountId' => config('services.line_customer.official_account_id'),
             'result' => $inviteLink->project->status === ProjectStatus::Published ? null : 'unavailable',
             'offerText' => $inviteLink->project->overviewText(),
+            'jobSpecItems' => $this->jobSpecItems($inviteLink->project),
             'referralCode' => $inviteLink->agency->referral_code,
         ]);
     }
@@ -144,7 +146,7 @@ class ApplyController extends Controller
      */
     public function store(Request $request, InviteLink $inviteLink, LineMessagingService $lineMessaging): View
     {
-        $inviteLink->load('project', 'agency');
+        $inviteLink->load('project.category', 'agency');
 
         if ($inviteLink->project->status !== ProjectStatus::Published) {
             abort(404);
@@ -238,7 +240,30 @@ class ApplyController extends Controller
             'officialAccountId' => config('services.line_customer.official_account_id'),
             'result' => $result,
             'offerText' => $inviteLink->project->overviewText(),
+            'jobSpecItems' => $this->jobSpecItems($inviteLink->project),
             'referralCode' => $inviteLink->agency->referral_code,
         ]);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function jobSpecItems(Project $project): array
+    {
+        if (! $project->category?->has_job_fields) {
+            return [];
+        }
+
+        return array_filter([
+            '仕事内容' => $project->job_description,
+            '勤務地' => $project->work_location,
+            '年収' => $project->annual_income,
+            '給与・待遇' => $project->salary_benefits,
+            '休日・休暇' => $project->holidays,
+            '応募資格' => $project->qualifications,
+            '募集年齢' => $project->age_requirement,
+            '雇用形態' => $project->employment_type,
+            '勤務時間' => $project->working_hours,
+        ], fn ($value) => filled($value));
     }
 }
