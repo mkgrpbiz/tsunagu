@@ -255,15 +255,15 @@ class ApplyController extends Controller
         }
 
         return array_filter([
-            '仕事内容' => $project->job_description,
-            '勤務地' => $project->work_location,
-            '年収' => $project->annual_income,
-            '給与・待遇' => $project->salary_benefits,
-            '休日・休暇' => $project->holidays,
-            '応募資格' => $project->qualifications,
-            '募集年齢' => $project->age_requirement,
-            '雇用形態' => $project->employment_type,
-            '勤務時間' => $project->working_hours,
+            '💼 仕事内容' => $project->job_description,
+            '📍 勤務地' => $project->work_location,
+            '💴 年収' => $project->annual_income,
+            '🧾 給与・待遇' => $project->salary_benefits,
+            '🏖️ 休日・休暇' => $project->holidays,
+            '✅ 応募資格' => $project->qualifications,
+            '👤 募集年齢' => $project->age_requirement,
+            '📋 雇用形態' => $project->employment_type,
+            '⏰ 勤務時間' => $project->working_hours,
         ], fn ($value) => filled($value));
     }
 }
