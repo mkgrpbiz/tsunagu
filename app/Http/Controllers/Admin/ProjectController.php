@@ -222,6 +222,7 @@ class ProjectController extends Controller
             'region' => ['nullable', 'string', 'max:255'],
             'job_type' => ['nullable', 'string', 'max:255'],
             'employment_type' => ['nullable', 'string', 'max:255'],
+            'job_detail' => ['nullable', 'string'],
             'name' => ['required', 'string', 'max:255'],
             'legacy_names' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],

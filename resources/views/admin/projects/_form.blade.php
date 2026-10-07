@@ -35,6 +35,14 @@
                    class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             @error('employment_type')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
         </div>
+
+        <div class="col-span-3">
+            <label for="job_detail" class="block text-sm font-medium text-gray-700 mb-1">募集要項</label>
+            <p class="text-xs text-gray-500 mb-1">仕事内容・勤務地・年収・給与・待遇・休日・休暇・応募資格・募集年齢・雇用形態・勤務時間など、求人票の内容をまとめて入力してください。</p>
+            <textarea name="job_detail" id="job_detail" rows="8"
+                      class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('job_detail', $project->job_detail) }}</textarea>
+            @error('job_detail')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+        </div>
     </div>
 
     <div>

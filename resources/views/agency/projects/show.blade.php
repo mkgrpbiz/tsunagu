@@ -31,6 +31,8 @@
 .mk-case .mini-acc .mini-chev{width:8px;height:8px;border-right:2px solid #9ca3af;border-bottom:2px solid #9ca3af;transform:rotate(45deg);transition:transform .18s ease;margin-left:auto;flex-shrink:0}
 .mk-case .mini-acc[open] .mini-chev{transform:rotate(-135deg)}
 .mk-case .mini-acc p{margin-top:8px}
+.mk-case .job-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.mk-case .job-tags span{font-size:11.5px;font-weight:700;color:#2563eb;background:#eff6ff;border-radius:999px;padding:3px 10px}
 </style>
 @endpush
 
@@ -49,8 +51,22 @@
             </div>
             <div>
                 <div class="hero-title">{{ $project->name }}</div>
+                @if ($project->region || $project->job_type || $project->employment_type)
+                    <div class="job-tags">
+                        @if ($project->region)<span>{{ $project->region }}</span>@endif
+                        @if ($project->job_type)<span>{{ $project->job_type }}</span>@endif
+                        @if ($project->employment_type)<span>{{ $project->employment_type }}</span>@endif
+                    </div>
+                @endif
             </div>
         </div>
+
+        @if ($project->job_detail)
+            <div class="box">
+                <p class="box-title">📋 募集要項</p>
+                <p>{{ $project->job_detail }}</p>
+            </div>
+        @endif
 
         <div class="box">
             <p class="box-title">💰 成果単価</p>

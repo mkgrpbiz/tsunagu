@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
     'region',
     'job_type',
     'employment_type',
+    'job_detail',
     'sort_order',
     'name',
     'legacy_names',
