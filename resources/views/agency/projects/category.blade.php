@@ -45,11 +45,10 @@
 .mk-cases .mini-acc .mini-chev{width:8px;height:8px;border-right:2px solid #9ca3af;border-bottom:2px solid #9ca3af;transform:rotate(45deg);transition:transform .18s ease;margin-left:auto;flex-shrink:0}
 .mk-cases .mini-acc[open] .mini-chev{transform:rotate(-135deg)}
 .mk-cases .mini-acc p{margin-top:8px}
-.mk-cases .job-spec{margin:10px 0 0;padding:0}
-.mk-cases .job-spec div{padding:8px 0;border-bottom:1px solid #f1f5f9}
-.mk-cases .job-spec div:last-child{border-bottom:none}
-.mk-cases .job-spec dt{font-size:11.5px;font-weight:800;color:#6b7280;margin-bottom:2px}
-.mk-cases .job-spec dd{font-size:13px;line-height:1.7;white-space:pre-line;margin:0;color:#374151}
+.mk-cases .job-spec{margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.mk-cases .job-spec div{background:#f8fafc;border:1px solid #eef2f7;border-radius:10px;padding:10px 12px}
+.mk-cases .job-spec dt{display:inline-block;font-size:11px;font-weight:800;color:#2563eb;background:#eff6ff;border-radius:999px;padding:2px 10px;margin-bottom:6px}
+.mk-cases .job-spec dd{font-size:13px;line-height:1.7;white-space:pre-line;margin:0;color:#1f2937}
 .mk-cases .pagination-wrap{margin-top:16px}
 @media (max-width:480px){.mk-cases .filter-form{flex-direction:column}}
 </style>
