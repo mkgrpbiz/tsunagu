@@ -45,6 +45,11 @@
 .mk-cases .mini-acc .mini-chev{width:8px;height:8px;border-right:2px solid #9ca3af;border-bottom:2px solid #9ca3af;transform:rotate(45deg);transition:transform .18s ease;margin-left:auto;flex-shrink:0}
 .mk-cases .mini-acc[open] .mini-chev{transform:rotate(-135deg)}
 .mk-cases .mini-acc p{margin-top:8px}
+.mk-cases .job-spec{margin:10px 0 0;padding:0}
+.mk-cases .job-spec div{padding:8px 0;border-bottom:1px solid #f1f5f9}
+.mk-cases .job-spec div:last-child{border-bottom:none}
+.mk-cases .job-spec dt{font-size:11.5px;font-weight:800;color:#6b7280;margin-bottom:2px}
+.mk-cases .job-spec dd{font-size:13px;line-height:1.7;white-space:pre-line;margin:0;color:#374151}
 .mk-cases .pagination-wrap{margin-top:16px}
 @media (max-width:480px){.mk-cases .filter-form{flex-direction:column}}
 </style>
@@ -100,12 +105,24 @@
                     <span class="chev"></span>
                 </summary>
                 <div class="proj-acc-body">
-                    @foreach ($jobSpecItems as $label => $value)
+                    @if (count($jobSpecItems) > 0)
                         <div class="box">
-                            <p class="box-title">{{ $label }}</p>
-                            <p>{{ $value }}</p>
+                            <details class="mini-acc">
+                                <summary class="box-title">
+                                    📋 募集要項
+                                    <span class="mini-chev"></span>
+                                </summary>
+                                <div class="job-spec">
+                                    @foreach ($jobSpecItems as $label => $value)
+                                        <div>
+                                            <dt>{{ $label }}</dt>
+                                            <dd>{{ $value }}</dd>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </details>
                         </div>
-                    @endforeach
+                    @endif
 
                     <div class="box">
                         <p class="box-title">💰 成果単価</p>
