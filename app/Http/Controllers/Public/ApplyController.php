@@ -29,7 +29,7 @@ class ApplyController extends Controller
             'liffId' => config('services.line_customer.liff_id'),
             'officialAccountId' => config('services.line_customer.official_account_id'),
             'result' => $inviteLink->project->status === ProjectStatus::Published ? null : 'unavailable',
-            'offerText' => $inviteLink->project->overviewText(),
+            'offerText' => $inviteLink->project->overviewText(url('/apply/'.$inviteLink->token)),
             'jobSpecItems' => $this->jobSpecItems($inviteLink->project),
             'referralCode' => $inviteLink->agency->referral_code,
         ]);
@@ -239,7 +239,7 @@ class ApplyController extends Controller
             'liffId' => config('services.line_customer.liff_id'),
             'officialAccountId' => config('services.line_customer.official_account_id'),
             'result' => $result,
-            'offerText' => $inviteLink->project->overviewText(),
+            'offerText' => $inviteLink->project->overviewText(url('/apply/'.$inviteLink->token)),
             'jobSpecItems' => $this->jobSpecItems($inviteLink->project),
             'referralCode' => $inviteLink->agency->referral_code,
         ]);

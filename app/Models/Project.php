@@ -111,13 +111,17 @@ class Project extends Model
         return collect($prices)->map(fn (int $price) => '¥'.number_format($price))->implode(' / ');
     }
 
-    public function overviewText(): string
+    public function overviewText(?string $inviteUrl = null): string
     {
-        return trim(str_replace(
+        $text = str_replace(
             ['✅【お申し込みはこちら】', '{invite_url}'],
             '',
             (string) $this->recruitment_template
-        ));
+        );
+
+        $text = str_replace('{{リンク}}', $inviteUrl ?? '', $text);
+
+        return trim($text);
     }
 
     public function legacyNamesList(): array
