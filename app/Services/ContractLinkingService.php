@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
 class ContractLinkingService
 {
     /**
-     * @param  array<int, array{tsunagu_unit_price: int, agency_unit_price: int, count: int, apply_referral_commission?: bool}>  $lines
+     * @param  array<int, array{tsunagu_unit_price: int, agency_unit_price: int, count: int, acquisition_cost_rate?: float, apply_referral_commission?: bool}>  $lines
      */
     public function linkInquiry(Inquiry $inquiry, array $lines, ?int $projectId = null): bool
     {
@@ -25,13 +25,19 @@ class ContractLinkingService
         $paymentDueDate = $depositDate->copy()->addMonthNoOverflow()->day(5);
 
         foreach ($lines as $line) {
+            $depositAmount = $line['tsunagu_unit_price'] * $line['count'];
+            $acquisitionCostRate = $line['acquisition_cost_rate'] ?? 0;
+            $acquisitionCost = (int) round($depositAmount * $acquisitionCostRate / 100);
+
             $contract = Contract::create([
                 'inquiry_id' => $inquiry->id,
                 'project_id' => $projectId,
                 'deposit_date' => $depositDate,
-                'deposit_amount' => $line['tsunagu_unit_price'] * $line['count'],
+                'deposit_amount' => $depositAmount,
                 'agency_reward_amount' => $line['agency_unit_price'] * $line['count'],
                 'agency_unit_price' => $line['agency_unit_price'],
+                'acquisition_cost_rate' => $acquisitionCostRate > 0 ? $acquisitionCostRate : null,
+                'acquisition_cost' => $acquisitionCost > 0 ? $acquisitionCost : null,
                 'count' => $line['count'],
                 'payment_due_date' => $paymentDueDate,
                 'payment_status' => $inquiry->agency->is_internal_use ? PaymentStatus::InternalProcessing : PaymentStatus::Unpaid,

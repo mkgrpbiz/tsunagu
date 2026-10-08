@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'deposit_amount',
     'agency_reward_amount',
     'agency_unit_price',
+    'acquisition_cost_rate',
+    'acquisition_cost',
     'count',
     'payment_due_date',
     'payment_status',

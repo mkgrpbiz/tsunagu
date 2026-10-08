@@ -203,7 +203,7 @@ class DashboardController extends Controller
         $monthCommissions = $ym ? $referralCommissions->filter(fn (ReferralCommission $c) => $c->contract->deposit_date->format('Y-m') === $ym) : $referralCommissions;
 
         $revenue = $monthContracts->sum('deposit_amount');
-        $payout = $monthContracts->sum('agency_reward_amount') + $monthCommissions->sum('amount');
+        $payout = $monthContracts->sum('agency_reward_amount') + $monthContracts->sum('acquisition_cost') + $monthCommissions->sum('amount');
 
         return [$revenue, $payout];
     }

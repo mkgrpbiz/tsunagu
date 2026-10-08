@@ -66,7 +66,8 @@ class CollaborationRewardController extends Controller
             ->map(function ($group, $ym) use ($clientName, $referrer) {
                 $revenue = $group->sum('deposit_amount');
                 $agencyRewardTotal = $group->sum('agency_reward_amount');
-                $profit = $revenue - $agencyRewardTotal;
+                $acquisitionCostTotal = $group->sum('acquisition_cost');
+                $profit = $revenue - $agencyRewardTotal - $acquisitionCostTotal;
                 $month = Carbon::parse($ym.'-01');
 
                 $reward = null;

@@ -225,7 +225,7 @@
                                     </div>
                                 @endif
                                 <div class="tsn-lines space-y-2 mb-2">
-                                    <div class="grid grid-cols-7 gap-3 items-end text-sm tsn-line">
+                                    <div class="grid grid-cols-8 gap-3 items-end text-sm tsn-line">
                                         <div>
                                             <span class="text-gray-400 text-xs block">TSUNAGU単価</span>
                                             <input type="number" name="lines[0][tsunagu_unit_price]" min="0" required
@@ -239,6 +239,13 @@
                                                    form="tsn-link-form-{{ $inquiry->id }}"
                                                    class="tsn-agency-price w-24 rounded-md border border-gray-300 text-sm"
                                                    value="{{ $agencyPrice }}" placeholder="{{ $agencyPrice === null ? '金額' : '' }}">
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-400 text-xs block">獲得経費(%)</span>
+                                            <input type="number" name="lines[0][acquisition_cost_rate]" min="0" max="100" step="0.01" value="0"
+                                                   form="tsn-link-form-{{ $inquiry->id }}"
+                                                   class="tsn-acquisition-rate w-20 rounded-md border border-gray-300 text-sm"
+                                                   placeholder="求人は30">
                                         </div>
                                         <div>
                                             <span class="text-gray-400 text-xs block">件数</span>
@@ -290,6 +297,7 @@
 function tsnBindLine(line) {
     var tsunaguPriceInput = line.querySelector('.tsn-tsunagu-price');
     var agencyPriceInput = line.querySelector('.tsn-agency-price');
+    var acquisitionRateInput = line.querySelector('.tsn-acquisition-rate');
     var countInput = line.querySelector('.tsn-count-input');
     var tsunaguTotalInput = line.querySelector('.tsn-tsunagu-total');
     var agencyTotalInput = line.querySelector('.tsn-agency-total');
@@ -298,6 +306,7 @@ function tsnBindLine(line) {
     function recalculate() {
         var tsunaguPrice = parseInt(tsunaguPriceInput.value, 10);
         var agencyPrice = parseInt(agencyPriceInput.value, 10);
+        var acquisitionRate = parseFloat(acquisitionRateInput.value);
         var count = parseInt(countInput.value, 10);
 
         if (isNaN(tsunaguPrice) || isNaN(agencyPrice) || isNaN(count)) {
@@ -307,14 +316,19 @@ function tsnBindLine(line) {
             return;
         }
 
+        if (isNaN(acquisitionRate)) {
+            acquisitionRate = 0;
+        }
+
         var tsunaguTotal = tsunaguPrice * count;
         var agencyTotal = agencyPrice * count;
+        var acquisitionCost = Math.round(tsunaguTotal * acquisitionRate / 100);
         tsunaguTotalInput.value = tsunaguTotal;
         agencyTotalInput.value = agencyTotal;
-        profitDisplay.textContent = '¥' + (tsunaguTotal - agencyTotal).toLocaleString();
+        profitDisplay.textContent = '¥' + (tsunaguTotal - agencyTotal - acquisitionCost).toLocaleString();
     }
 
-    [tsunaguPriceInput, agencyPriceInput, countInput].forEach(function (input) {
+    [tsunaguPriceInput, agencyPriceInput, acquisitionRateInput, countInput].forEach(function (input) {
         input.addEventListener('input', recalculate);
     });
 
@@ -335,7 +349,13 @@ document.querySelectorAll('.tsn-deposit-row').forEach(function (row) {
         template.querySelectorAll('input').forEach(function (input) {
             input.name = input.name.replace(/lines\[\d+\]/, 'lines[' + newIndex + ']');
             if (!input.readOnly) {
-                input.value = input.classList.contains('tsn-count-input') ? '1' : '';
+                if (input.classList.contains('tsn-count-input')) {
+                    input.value = '1';
+                } else if (input.classList.contains('tsn-acquisition-rate')) {
+                    input.value = '0';
+                } else {
+                    input.value = '';
+                }
             }
         });
         template.querySelector('.tsn-profit-display').textContent = '—';
