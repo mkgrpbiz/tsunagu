@@ -114,6 +114,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::middleware('menu:projects')->group(function () {
                 Route::post('projects/reorder', [ProjectController::class, 'reorder'])->name('projects.reorder');
                 Route::post('projects/{project}/duplicate', [ProjectController::class, 'duplicate'])->name('projects.duplicate');
+                Route::patch('projects/{project}/status', [ProjectController::class, 'updateStatus'])->name('projects.update-status');
                 Route::resource('projects', ProjectController::class)->except('show');
             });
 

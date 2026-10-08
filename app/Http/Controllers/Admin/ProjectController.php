@@ -169,6 +169,27 @@ class ProjectController extends Controller
         return redirect()->route('admin.projects.index')->with('status', '案件を更新しました。');
     }
 
+    public function updateStatus(Request $request, Project $project): RedirectResponse
+    {
+        $data = $request->validate([
+            'status' => ['required', Rule::enum(ProjectStatus::class)],
+        ]);
+
+        $wasPublished = $project->status === ProjectStatus::Published;
+
+        $project->update($data);
+
+        if (! $wasPublished && $project->status === ProjectStatus::Published) {
+            Announcement::create([
+                'body' => "{$project->name}を{$project->category->name}に追加しました。",
+                'category' => AnnouncementCategory::ProjectInfo,
+                'is_draft' => true,
+            ]);
+        }
+
+        return back()->with('status', 'ステータスを更新しました。');
+    }
+
     public function duplicate(Project $project): RedirectResponse
     {
         $new = $project->replicate();

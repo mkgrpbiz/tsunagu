@@ -67,8 +67,8 @@
                 @if ($canReorder)
                     <th class="px-4 py-3 font-medium w-10"></th>
                 @endif
-                <th class="px-4 py-3 font-medium">案件名</th>
-                <th class="px-4 py-3 font-medium">ステータス</th>
+                <th class="px-4 py-3 font-medium max-w-xs">案件名</th>
+                <th class="px-4 py-3 font-medium whitespace-nowrap">ステータス</th>
                 <th class="px-4 py-3 font-medium">カテゴリー</th>
                 <th class="px-4 py-3 font-medium">取引先</th>
                 <th class="px-4 py-3 font-medium text-right">TSUNAGU単価</th>
@@ -84,10 +84,10 @@
                     @if ($canReorder)
                         <td class="px-4 py-3"><span class="proj-handle">⠿</span></td>
                     @endif
-                    <td class="px-4 py-3 font-medium">
-                        <a href="{{ route('admin.projects.edit', $project) }}" class="text-blue-600 hover:text-blue-800 hover:underline">{{ $project->name }}</a>
+                    <td class="px-4 py-3 font-medium max-w-xs">
+                        <a href="{{ route('admin.projects.edit', $project) }}" class="text-blue-600 hover:text-blue-800 hover:underline block truncate" title="{{ $project->name }}">{{ $project->name }}</a>
                     </td>
-                    <td class="px-4 py-3">
+                    <td class="px-4 py-3 whitespace-nowrap">
                         @php
                             $statusColor = match ($project->status) {
                                 \App\Enums\ProjectStatus::Published => 'bg-green-50 text-green-700 border-green-200',
@@ -95,7 +95,16 @@
                                 \App\Enums\ProjectStatus::Closed => 'bg-gray-50 text-gray-600 border-gray-200',
                             };
                         @endphp
-                        <span class="text-xs font-medium border rounded-full px-2 py-1 {{ $statusColor }}">{{ $project->status->label() }}</span>
+                        <form method="POST" action="{{ route('admin.projects.update-status', $project) }}">
+                            @csrf
+                            @method('PATCH')
+                            <select name="status" onchange="this.form.submit()"
+                                    class="text-xs font-medium border rounded-full px-2 py-1 cursor-pointer {{ $statusColor }}">
+                                @foreach (\App\Enums\ProjectStatus::cases() as $statusOption)
+                                    <option value="{{ $statusOption->value }}" @selected($project->status === $statusOption)>{{ $statusOption->label() }}</option>
+                                @endforeach
+                            </select>
+                        </form>
                     </td>
                     <td class="px-4 py-3 text-gray-600">{{ $project->category->name }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $project->client_name ?: '—' }}</td>
