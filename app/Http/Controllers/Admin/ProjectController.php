@@ -40,8 +40,10 @@ class ProjectController extends Controller
             ->when($status !== 'all', fn ($query) => $query->where('projects.status', $status))
             ->when($categoryId !== 'all', fn ($query) => $query->where('projects.category_id', $categoryId))
             ->orderByRaw("CASE projects.status WHEN 'published' THEN 1 WHEN 'paused' THEN 2 WHEN 'closed' THEN 3 ELSE 4 END")
-            ->orderBy('categories.sort_order')
-            ->orderBy('projects.sort_order')
+            ->when($categoryId === 'all',
+                fn ($query) => $query->orderBy('projects.id'),
+                fn ($query) => $query->orderBy('categories.sort_order')->orderBy('projects.sort_order')
+            )
             ->get();
 
         // 着金紐付け画面で個別に案件を上書きした着金(Contract.project_id)がある場合、
