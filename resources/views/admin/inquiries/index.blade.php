@@ -225,49 +225,53 @@
                                     </div>
                                 @endif
                                 <div class="tsn-lines space-y-2 mb-2">
-                                    <div class="grid grid-cols-9 gap-3 items-end text-sm tsn-line">
-                                        <div>
-                                            <span class="text-gray-400 text-xs block">TSUNAGU単価</span>
-                                            <input type="number" name="lines[0][tsunagu_unit_price]" min="0" required
-                                                   form="tsn-link-form-{{ $inquiry->id }}"
-                                                   class="tsn-tsunagu-price w-24 rounded-md border border-gray-300 text-sm"
-                                                   value="{{ $tsunaguPrice }}" placeholder="{{ $tsunaguPrice === null ? '金額' : '' }}">
+                                    <div class="border border-gray-100 rounded-md p-3 tsn-line">
+                                        <div class="grid grid-cols-4 gap-3 items-end text-sm mb-2">
+                                            <div>
+                                                <span class="text-gray-400 text-xs block">TSUNAGU単価</span>
+                                                <input type="number" name="lines[0][tsunagu_unit_price]" min="0" required
+                                                       form="tsn-link-form-{{ $inquiry->id }}"
+                                                       class="tsn-tsunagu-price w-24 rounded-md border border-gray-300 text-sm"
+                                                       value="{{ $tsunaguPrice }}" placeholder="{{ $tsunaguPrice === null ? '金額' : '' }}">
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-400 text-xs block">パートナー単価</span>
+                                                <input type="number" name="lines[0][agency_unit_price]" min="0" required
+                                                       form="tsn-link-form-{{ $inquiry->id }}"
+                                                       class="tsn-agency-price w-24 rounded-md border border-gray-300 text-sm"
+                                                       value="{{ $agencyPrice }}" placeholder="{{ $agencyPrice === null ? '金額' : '' }}">
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-400 text-xs block">件数</span>
+                                                <input type="number" name="lines[0][count]" min="1" step="1" value="1" required
+                                                       form="tsn-link-form-{{ $inquiry->id }}"
+                                                       class="tsn-count-input w-20 rounded-md border border-gray-300 text-sm">
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-400 text-xs block whitespace-nowrap">獲得経費（求人は売り上げの30％を入力）</span>
+                                                <input type="number" name="lines[0][acquisition_cost_rate]" min="0" max="100" step="0.01"
+                                                       form="tsn-link-form-{{ $inquiry->id }}"
+                                                       class="tsn-acquisition-rate w-20 rounded-md border border-gray-300 text-sm">
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span class="text-gray-400 text-xs block">パートナー単価</span>
-                                            <input type="number" name="lines[0][agency_unit_price]" min="0" required
-                                                   form="tsn-link-form-{{ $inquiry->id }}"
-                                                   class="tsn-agency-price w-24 rounded-md border border-gray-300 text-sm"
-                                                   value="{{ $agencyPrice }}" placeholder="{{ $agencyPrice === null ? '金額' : '' }}">
-                                        </div>
-                                        <div class="col-span-2">
-                                            <span class="text-gray-400 text-xs block whitespace-nowrap">獲得経費（求人は売り上げの30％を入力）</span>
-                                            <input type="number" name="lines[0][acquisition_cost_rate]" min="0" max="100" step="0.01"
-                                                   form="tsn-link-form-{{ $inquiry->id }}"
-                                                   class="tsn-acquisition-rate w-20 rounded-md border border-gray-300 text-sm">
-                                        </div>
-                                        <div>
-                                            <span class="text-gray-400 text-xs block">件数</span>
-                                            <input type="number" name="lines[0][count]" min="1" step="1" value="1" required
-                                                   form="tsn-link-form-{{ $inquiry->id }}"
-                                                   class="tsn-count-input w-20 rounded-md border border-gray-300 text-sm">
-                                        </div>
-                                        <div>
-                                            <span class="text-gray-400 text-xs block">TSUNAGU合計</span>
-                                            <input type="number" readonly tabindex="-1"
-                                                   class="tsn-tsunagu-total w-28 rounded-md border border-gray-300 text-sm bg-gray-100">
-                                        </div>
-                                        <div>
-                                            <span class="text-gray-400 text-xs block">パートナー合計</span>
-                                            <input type="number" readonly tabindex="-1"
-                                                   class="tsn-agency-total w-28 rounded-md border border-gray-300 text-sm bg-gray-100">
-                                        </div>
-                                        <div>
-                                            <span class="text-gray-400 text-xs block">TSUNAGU利益</span>
-                                            <span class="tsn-profit-display font-medium">—</span>
-                                        </div>
-                                        <div>
-                                            <button type="button" class="tsn-remove-line text-gray-400 hover:text-red-600 text-sm px-1" title="削除">×</button>
+                                        <div class="grid grid-cols-4 gap-3 items-end text-sm">
+                                            <div>
+                                                <span class="text-gray-400 text-xs block">TSUNAGU合計</span>
+                                                <input type="number" readonly tabindex="-1"
+                                                       class="tsn-tsunagu-total w-28 rounded-md border border-gray-300 text-sm bg-gray-100">
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-400 text-xs block">パートナー合計</span>
+                                                <input type="number" readonly tabindex="-1"
+                                                       class="tsn-agency-total w-28 rounded-md border border-gray-300 text-sm bg-gray-100">
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-400 text-xs block">TSUNAGU利益</span>
+                                                <span class="tsn-profit-display font-medium">—</span>
+                                            </div>
+                                            <div>
+                                                <button type="button" class="tsn-remove-line text-gray-400 hover:text-red-600 text-sm px-1" title="削除">× この行を削除</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
