@@ -158,7 +158,7 @@ class ProjectController extends Controller
 
         $project->update($data);
 
-        if (! $wasPublished && $project->status === ProjectStatus::Published) {
+        if (! $wasPublished && $project->status === ProjectStatus::Published && $request->boolean('create_announcement', true)) {
             Announcement::create([
                 'body' => "{$project->name}を{$project->category->name}に追加しました。",
                 'category' => AnnouncementCategory::ProjectInfo,
@@ -179,7 +179,7 @@ class ProjectController extends Controller
 
         $project->update($data);
 
-        if (! $wasPublished && $project->status === ProjectStatus::Published) {
+        if (! $wasPublished && $project->status === ProjectStatus::Published && $request->boolean('create_announcement', true)) {
             Announcement::create([
                 'body' => "{$project->name}を{$project->category->name}に追加しました。",
                 'category' => AnnouncementCategory::ProjectInfo,

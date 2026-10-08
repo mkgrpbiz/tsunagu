@@ -54,7 +54,8 @@
 
     <div>
         <label for="status" class="block text-sm font-medium text-gray-700 mb-1">ステータス</label>
-        <select name="status" id="status" required
+        <input type="hidden" name="create_announcement" id="create_announcement" value="1">
+        <select name="status" id="status" data-original="{{ $project->status?->value }}" required
                 class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             @foreach ($statuses as $status)
                 <option value="{{ $status->value }}" @selected(old('status', $project->status?->value) == $status->value)>{{ $status->label() }}</option>
@@ -244,6 +245,21 @@ function tsnApplyJobFieldsVisibility() {
 
 document.getElementById('category_id').addEventListener('change', tsnApplyJobFieldsVisibility);
 tsnApplyJobFieldsVisibility();
+
+(function () {
+    var statusSelect = document.getElementById('status');
+    var createAnnouncementInput = document.getElementById('create_announcement');
+    var form = statusSelect.closest('form');
+
+    form.addEventListener('submit', function () {
+        if (statusSelect.value === 'published' && statusSelect.dataset.original !== 'published') {
+            var wantsAnnouncement = confirm('この案件を公開します。お知らせに下書きを作成しますか？\nOKで作成、キャンセルで作成しません（公開自体は続行します）。');
+            createAnnouncementInput.value = wantsAnnouncement ? '1' : '0';
+        } else {
+            createAnnouncementInput.value = '1';
+        }
+    });
+})();
 
 var tsnPartnerDirectory = {{ Illuminate\Support\Js::from($agencies->map(fn ($a) => [
     'id' => $a->id,

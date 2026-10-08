@@ -95,11 +95,12 @@
                                 \App\Enums\ProjectStatus::Closed => 'bg-gray-50 text-gray-600 border-gray-200',
                             };
                         @endphp
-                        <form method="POST" action="{{ route('admin.projects.update-status', $project) }}">
+                        <form method="POST" action="{{ route('admin.projects.update-status', $project) }}" class="proj-status-form">
                             @csrf
                             @method('PATCH')
-                            <select name="status" onchange="this.form.submit()"
-                                    class="text-xs font-medium border rounded-full px-2 py-1 cursor-pointer {{ $statusColor }}">
+                            <input type="hidden" name="create_announcement" value="1">
+                            <select name="status" data-original="{{ $project->status->value }}"
+                                    class="proj-status-select text-xs font-medium border rounded-full px-2 py-1 cursor-pointer {{ $statusColor }}">
                                 @foreach (\App\Enums\ProjectStatus::cases() as $statusOption)
                                     <option value="{{ $statusOption->value }}" @selected($project->status === $statusOption)>{{ $statusOption->label() }}</option>
                                 @endforeach
@@ -183,4 +184,22 @@
     })();
     </script>
 @endif
+
+<script>
+document.querySelectorAll('.proj-status-select').forEach(function (select) {
+    select.addEventListener('change', function () {
+        var form = select.closest('.proj-status-form');
+        var input = form.querySelector('input[name="create_announcement"]');
+
+        if (select.value === 'published' && select.dataset.original !== 'published') {
+            var wantsAnnouncement = confirm('この案件を公開します。お知らせに下書きを作成しますか？\nOKで作成、キャンセルで作成しません（公開自体は続行します）。');
+            input.value = wantsAnnouncement ? '1' : '0';
+        } else {
+            input.value = '1';
+        }
+
+        form.submit();
+    });
+});
+</script>
 @endsection
