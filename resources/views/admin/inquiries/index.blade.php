@@ -225,7 +225,7 @@
                                     </div>
                                 @endif
                                 <div class="tsn-lines space-y-2 mb-2">
-                                    <div class="grid grid-cols-8 gap-3 items-end text-sm tsn-line">
+                                    <div class="grid grid-cols-9 gap-3 items-end text-sm tsn-line">
                                         <div>
                                             <span class="text-gray-400 text-xs block">TSUNAGU単価</span>
                                             <input type="number" name="lines[0][tsunagu_unit_price]" min="0" required
@@ -240,8 +240,8 @@
                                                    class="tsn-agency-price w-24 rounded-md border border-gray-300 text-sm"
                                                    value="{{ $agencyPrice }}" placeholder="{{ $agencyPrice === null ? '金額' : '' }}">
                                         </div>
-                                        <div>
-                                            <span class="text-gray-400 text-xs block">獲得経費（求人は30％を入力）</span>
+                                        <div class="col-span-2">
+                                            <span class="text-gray-400 text-xs block whitespace-nowrap">獲得経費（求人は売り上げの30％を入力）</span>
                                             <input type="number" name="lines[0][acquisition_cost_rate]" min="0" max="100" step="0.01"
                                                    form="tsn-link-form-{{ $inquiry->id }}"
                                                    class="tsn-acquisition-rate w-20 rounded-md border border-gray-300 text-sm">
