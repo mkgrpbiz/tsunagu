@@ -142,7 +142,7 @@ class InquiryController extends Controller
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.tsunagu_unit_price' => ['required', 'integer', 'min:0'],
             'lines.*.agency_unit_price' => ['required', 'integer', 'min:0'],
-            'lines.*.acquisition_cost_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'lines.*.acquisition_cost' => ['nullable', 'integer', 'min:0'],
             'lines.*.count' => ['required', 'integer', 'min:1'],
             'override_project_id' => ['nullable', 'integer', 'exists:projects,id'],
         ]);

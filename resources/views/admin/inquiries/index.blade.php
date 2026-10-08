@@ -248,10 +248,11 @@
                                                        class="tsn-count-input w-20 rounded-md border border-gray-300 text-sm">
                                             </div>
                                             <div>
-                                                <span class="text-gray-400 text-xs block whitespace-nowrap">獲得経費（求人は売り上げの30％を入力）</span>
-                                                <input type="number" name="lines[0][acquisition_cost_rate]" min="0" max="100" step="0.01"
+                                                <span class="text-gray-400 text-xs block whitespace-nowrap">獲得経費（円）※求人は売上の30%目安</span>
+                                                <input type="number" name="lines[0][acquisition_cost]" min="0"
                                                        form="tsn-link-form-{{ $inquiry->id }}"
-                                                       class="tsn-acquisition-rate w-20 rounded-md border border-gray-300 text-sm">
+                                                       class="tsn-acquisition-cost w-24 rounded-md border border-gray-300 text-sm"
+                                                       placeholder="金額">
                                             </div>
                                         </div>
                                         <div class="grid grid-cols-4 gap-3 items-end text-sm">
@@ -300,7 +301,7 @@
 function tsnBindLine(line) {
     var tsunaguPriceInput = line.querySelector('.tsn-tsunagu-price');
     var agencyPriceInput = line.querySelector('.tsn-agency-price');
-    var acquisitionRateInput = line.querySelector('.tsn-acquisition-rate');
+    var acquisitionCostInput = line.querySelector('.tsn-acquisition-cost');
     var countInput = line.querySelector('.tsn-count-input');
     var tsunaguTotalInput = line.querySelector('.tsn-tsunagu-total');
     var agencyTotalInput = line.querySelector('.tsn-agency-total');
@@ -309,7 +310,7 @@ function tsnBindLine(line) {
     function recalculate() {
         var tsunaguPrice = parseInt(tsunaguPriceInput.value, 10);
         var agencyPrice = parseInt(agencyPriceInput.value, 10);
-        var acquisitionRate = parseFloat(acquisitionRateInput.value);
+        var acquisitionCost = parseInt(acquisitionCostInput.value, 10);
         var count = parseInt(countInput.value, 10);
 
         if (isNaN(tsunaguPrice) || isNaN(agencyPrice) || isNaN(count)) {
@@ -319,19 +320,18 @@ function tsnBindLine(line) {
             return;
         }
 
-        if (isNaN(acquisitionRate)) {
-            acquisitionRate = 0;
+        if (isNaN(acquisitionCost)) {
+            acquisitionCost = 0;
         }
 
         var tsunaguTotal = tsunaguPrice * count;
         var agencyTotal = agencyPrice * count;
-        var acquisitionCost = Math.round(tsunaguTotal * acquisitionRate / 100);
         tsunaguTotalInput.value = tsunaguTotal;
         agencyTotalInput.value = agencyTotal;
         profitDisplay.textContent = '¥' + (tsunaguTotal - agencyTotal - acquisitionCost).toLocaleString();
     }
 
-    [tsunaguPriceInput, agencyPriceInput, acquisitionRateInput, countInput].forEach(function (input) {
+    [tsunaguPriceInput, agencyPriceInput, acquisitionCostInput, countInput].forEach(function (input) {
         input.addEventListener('input', recalculate);
     });
 
