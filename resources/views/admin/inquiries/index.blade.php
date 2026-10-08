@@ -241,11 +241,10 @@
                                                    value="{{ $agencyPrice }}" placeholder="{{ $agencyPrice === null ? '金額' : '' }}">
                                         </div>
                                         <div>
-                                            <span class="text-gray-400 text-xs block">獲得経費(%)</span>
+                                            <span class="text-gray-400 text-xs block">獲得経費（求人は30％を入力）</span>
                                             <input type="number" name="lines[0][acquisition_cost_rate]" min="0" max="100" step="0.01"
                                                    form="tsn-link-form-{{ $inquiry->id }}"
-                                                   class="tsn-acquisition-rate w-20 rounded-md border border-gray-300 text-sm"
-                                                   placeholder="求人は30">
+                                                   class="tsn-acquisition-rate w-20 rounded-md border border-gray-300 text-sm">
                                         </div>
                                         <div>
                                             <span class="text-gray-400 text-xs block">件数</span>
