@@ -242,7 +242,7 @@
                                         </div>
                                         <div>
                                             <span class="text-gray-400 text-xs block">獲得経費(%)</span>
-                                            <input type="number" name="lines[0][acquisition_cost_rate]" min="0" max="100" step="0.01" value="0"
+                                            <input type="number" name="lines[0][acquisition_cost_rate]" min="0" max="100" step="0.01"
                                                    form="tsn-link-form-{{ $inquiry->id }}"
                                                    class="tsn-acquisition-rate w-20 rounded-md border border-gray-300 text-sm"
                                                    placeholder="求人は30">
@@ -351,8 +351,6 @@ document.querySelectorAll('.tsn-deposit-row').forEach(function (row) {
             if (!input.readOnly) {
                 if (input.classList.contains('tsn-count-input')) {
                     input.value = '1';
-                } else if (input.classList.contains('tsn-acquisition-rate')) {
-                    input.value = '0';
                 } else {
                     input.value = '';
                 }
