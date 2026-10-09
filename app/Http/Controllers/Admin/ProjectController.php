@@ -32,7 +32,9 @@ class ProjectController extends Controller
             ->groupBy('category_id')
             ->pluck('count', 'category_id');
 
-        $projects = Project::query()
+        $canReorder = $status === 'all' && $categoryId !== 'all';
+
+        $query = Project::query()
             ->select('projects.*')
             ->join('categories', 'categories.id', '=', 'projects.category_id')
             ->with(['category', 'referrerAgency'])
@@ -43,8 +45,12 @@ class ProjectController extends Controller
             ->when($categoryId === 'all',
                 fn ($query) => $query->orderByDesc('projects.id'),
                 fn ($query) => $query->orderBy('categories.sort_order')->orderBy('projects.sort_order')
-            )
-            ->get();
+            );
+
+        // 並び替え中はドラッグ&ドロップの並び替え(reorder)が表示中の全件を前提に
+        // sort_orderを振り直すため、ページ分割すると表示外の項目の順序が壊れる。
+        // そのため並び替え可能な時だけ全件取得し、それ以外は50件ずつページネーションする。
+        $projects = $canReorder ? $query->get() : $query->paginate(50)->withQueryString();
 
         // 着金紐付け画面で個別に案件を上書きした着金(Contract.project_id)がある場合、
         // そちらの案件でカウントする（未上書きなら問い合わせの案件でカウント）
@@ -65,7 +71,7 @@ class ProjectController extends Controller
             'categories' => Category::orderBy('sort_order')->get(),
             'categoryId' => $categoryId,
             'categoryCounts' => $categoryCounts,
-            'canReorder' => $status === 'all' && $categoryId !== 'all',
+            'canReorder' => $canReorder,
         ]);
     }
 

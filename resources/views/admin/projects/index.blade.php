@@ -136,6 +136,12 @@
     </table>
 </div>
 
+@unless ($canReorder)
+    <div class="mt-4">
+        {{ $projects->links() }}
+    </div>
+@endunless
+
 @if ($canReorder)
     <script>
     (function () {
