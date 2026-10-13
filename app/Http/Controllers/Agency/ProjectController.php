@@ -44,7 +44,7 @@ class ProjectController extends Controller
 
     public function category(Category $category, Request $request): View
     {
-        if ($category->has_job_fields) {
+        if ($category->has_job_fields && trim((string) $request->query('keyword')) === '') {
             $industries = Industry::query()
                 ->withCount(['projects' => fn ($query) => $query->where('category_id', $category->id)->where('status', ProjectStatus::Published)])
                 ->orderByDesc('projects_count')
