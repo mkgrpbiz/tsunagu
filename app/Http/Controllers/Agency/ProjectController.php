@@ -47,6 +47,7 @@ class ProjectController extends Controller
         if ($category->has_job_fields && trim((string) $request->query('keyword')) === '') {
             $industries = Industry::query()
                 ->withCount(['projects' => fn ($query) => $query->where('category_id', $category->id)->where('status', ProjectStatus::Published)])
+                ->orderByRaw("CASE WHEN name = 'その他' THEN 1 ELSE 0 END")
                 ->orderByDesc('projects_count')
                 ->get()
                 ->filter(fn (Industry $industry) => $industry->projects_count > 0)
