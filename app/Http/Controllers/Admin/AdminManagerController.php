@@ -25,6 +25,7 @@ class AdminManagerController extends Controller
             'dashboard' => 'ダッシュボード',
             'projects' => '案件',
             'categories' => 'カテゴリー',
+            'industries' => '業種カテゴリー',
             'agencies' => 'パートナー',
             'collaboration_partners' => '共創パートナー',
             'internal_agencies' => '社内運用アカウント',

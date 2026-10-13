@@ -18,6 +18,7 @@
             '案件管理' => [
                 'projects' => ['label' => '案件一覧', 'route' => 'admin.projects.index', 'active' => 'admin.projects.*'],
                 'categories' => ['label' => 'カテゴリー', 'route' => 'admin.categories.index', 'active' => 'admin.categories.*'],
+                'industries' => ['label' => '業種カテゴリー', 'route' => 'admin.industries.index', 'active' => 'admin.industries.*'],
             ],
             'パートナー管理' => [
                 'agencies' => ['label' => 'パートナー一覧', 'route' => 'admin.agencies.index', 'active' => 'admin.agencies.*'],

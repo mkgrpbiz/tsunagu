@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\CompanyProfileController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\HomeBlockController;
 use App\Http\Controllers\Admin\HomePageContentController;
+use App\Http\Controllers\Admin\IndustryController;
 use App\Http\Controllers\Admin\InquiryController;
 use App\Http\Controllers\Admin\InternalAgencyController;
 use App\Http\Controllers\Admin\LandingPageContentController;
@@ -109,6 +110,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::middleware('menu:categories')->group(function () {
                 Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
                 Route::resource('categories', CategoryController::class)->except('show');
+            });
+
+            Route::middleware('menu:industries')->group(function () {
+                Route::post('industries/reorder', [IndustryController::class, 'reorder'])->name('industries.reorder');
+                Route::resource('industries', IndustryController::class)->except('show');
             });
 
             Route::middleware('menu:projects')->group(function () {
@@ -330,6 +336,7 @@ Route::prefix('agency')->name('agency.')->group(function () {
             Route::middleware(['agency.approved', 'agency.consents_submitted', 'agency.line_connected'])->group(function () {
                 Route::get('projects', [AgencyProjectController::class, 'index'])->name('projects.index');
                 Route::get('projects/categories/{category}', [AgencyProjectController::class, 'category'])->name('projects.category');
+                Route::get('projects/categories/{category}/industries/{industry}', [AgencyProjectController::class, 'industry'])->name('projects.industry');
                 Route::get('inquiries', [AgencyInquiryController::class, 'index'])->name('inquiries.index');
                 Route::get('contracts', [AgencyContractController::class, 'index'])->name('contracts.index');
                 Route::get('contracts/statement', [AgencyContractController::class, 'downloadStatement'])->name('contracts.statement');

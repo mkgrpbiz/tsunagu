@@ -9,6 +9,7 @@ use App\Models\Agency;
 use App\Models\Announcement;
 use App\Models\Category;
 use App\Models\Contract;
+use App\Models\Industry;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -80,6 +81,7 @@ class ProjectController extends Controller
         return view('admin.projects.create', [
             'project' => new Project,
             'categories' => Category::orderBy('sort_order')->get(),
+            'industries' => Industry::orderBy('sort_order')->get(),
             'statuses' => ProjectStatus::cases(),
             'agencies' => Agency::where('is_collaboration_partner', true)->with('referredBy')->orderBy('name')->get(),
             'clientNames' => Project::whereNotNull('client_name')->distinct()->orderBy('client_name')->pluck('client_name'),
@@ -133,6 +135,7 @@ class ProjectController extends Controller
         return view('admin.projects.edit', [
             'project' => $project,
             'categories' => Category::orderBy('sort_order')->get(),
+            'industries' => Industry::orderBy('sort_order')->get(),
             'statuses' => ProjectStatus::cases(),
             'agencies' => Agency::where('is_collaboration_partner', true)->with('referredBy')->orderBy('name')->get(),
             'clientNames' => Project::whereNotNull('client_name')->distinct()->orderBy('client_name')->pluck('client_name'),
@@ -248,6 +251,11 @@ class ProjectController extends Controller
 
         $data = $request->validate([
             'category_id' => ['required', 'exists:categories,id'],
+            'industry_id' => [
+                Rule::requiredIf(fn () => Category::find($request->input('category_id'))?->has_job_fields),
+                'nullable',
+                'exists:industries,id',
+            ],
             'employment_type' => ['nullable', 'string', 'max:255'],
             'job_description' => ['nullable', 'string'],
             'work_location' => ['nullable', 'string'],

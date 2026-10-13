@@ -16,6 +16,18 @@
         @error('category_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
+    <div id="industry_id_section" style="display:none">
+        <label for="industry_id" class="block text-sm font-medium text-gray-700 mb-1">業種カテゴリー</label>
+        <select name="industry_id" id="industry_id"
+                class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <option value="">選択してください</option>
+            @foreach ($industries as $industry)
+                <option value="{{ $industry->id }}" @selected(old('industry_id', $project->industry_id) == $industry->id)>{{ $industry->name }}</option>
+            @endforeach
+        </select>
+        @error('industry_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+    </div>
+
     <div id="job_fields_section" class="col-span-2 bg-emerald-50 border border-emerald-200 rounded-lg p-5" style="display:none">
         <p class="text-sm font-semibold text-emerald-800 mb-4">募集要項（この内容のキーワード一致でパートナー向け検索ができます）</p>
 
@@ -241,6 +253,11 @@ function tsnApplyJobFieldsVisibility() {
     var section = document.getElementById('job_fields_section');
     section.style.display = isJobCategory ? '' : 'none';
     document.getElementById('recruitment_template_label').textContent = isJobCategory ? '募集テンプレ' : '案件概要';
+
+    var industrySection = document.getElementById('industry_id_section');
+    var industrySelect = document.getElementById('industry_id');
+    industrySection.style.display = isJobCategory ? '' : 'none';
+    industrySelect.required = isJobCategory;
 }
 
 document.getElementById('category_id').addEventListener('change', tsnApplyJobFieldsVisibility);
