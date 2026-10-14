@@ -162,7 +162,7 @@
                 <tr class="even:bg-gray-50 hover:bg-gray-100 align-top">
                     <td class="px-4 py-3 whitespace-nowrap">{{ $inquiry->inquired_at->format('Y-m-d H:i') }}</td>
                     <td class="px-4 py-3">{{ $inquiry->project->category->name }}</td>
-                    <td class="px-4 py-3">{{ $inquiry->project->name }}</td>
+                    <td class="px-4 py-3 max-w-xs truncate" title="{{ $inquiry->project->name }}">{{ $inquiry->project->name }}</td>
                     <td class="px-4 py-3">{{ $inquiry->agency->name }}</td>
                     <td class="px-4 py-3">{{ $inquiry->lineUser->display_name ?? $inquiry->legacy_line_display_name }}</td>
                     <td class="px-4 py-3">{{ $inquiry->name }}</td>
