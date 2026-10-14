@@ -233,11 +233,9 @@ class ProjectController extends Controller
 
     private function validated(Request $request): array
     {
-        $requireAtLeastOnePrice = function (string $label) use ($request) {
-            return function ($attribute, $value, $fail) use ($request, $label) {
-                $mode = $request->input(str_replace('_unit_price', '_price_mode', $attribute));
-
-                if ($mode !== 'fixed') {
+        $requireAtLeastOneValue = function (string $label, string $modeField, string $requiredMode) use ($request) {
+            return function ($attribute, $value, $fail) use ($request, $label, $modeField, $requiredMode) {
+                if ($request->input($modeField) !== $requiredMode) {
                     return;
                 }
 
@@ -276,12 +274,16 @@ class ProjectController extends Controller
             'client_name' => ['nullable', 'string', 'max:255'],
             'referrer_agency_id' => ['nullable', 'exists:agencies,id'],
             'partner_agency_id' => ['nullable', 'exists:agencies,id'],
-            'tsunagu_price_mode' => ['required', 'in:fixed,variable'],
-            'agency_price_mode' => ['required', 'in:fixed,variable'],
-            'tsunagu_unit_price' => ['nullable', 'array', $requireAtLeastOnePrice('TSUNAGU単価')],
+            'tsunagu_price_mode' => ['required', 'in:fixed,percentage,variable'],
+            'agency_price_mode' => ['required', 'in:fixed,percentage,variable'],
+            'tsunagu_unit_price' => ['nullable', 'array', $requireAtLeastOneValue('TSUNAGU単価', 'tsunagu_price_mode', 'fixed')],
             'tsunagu_unit_price.*' => ['nullable', 'integer', 'min:0'],
-            'agency_unit_price' => ['nullable', 'array', $requireAtLeastOnePrice('パートナー単価')],
+            'tsunagu_unit_percentage' => ['nullable', 'array', $requireAtLeastOneValue('TSUNAGU単価（％）', 'tsunagu_price_mode', 'percentage')],
+            'tsunagu_unit_percentage.*' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'agency_unit_price' => ['nullable', 'array', $requireAtLeastOneValue('パートナー単価', 'agency_price_mode', 'fixed')],
             'agency_unit_price.*' => ['nullable', 'integer', 'min:0'],
+            'agency_unit_percentage' => ['nullable', 'array', $requireAtLeastOneValue('パートナー単価（％）', 'agency_price_mode', 'percentage')],
+            'agency_unit_percentage.*' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'payment_timing' => ['nullable', 'string', 'max:255'],
             'recruitment_template' => ['nullable', 'string'],
             'line_auto_message' => ['nullable', 'string'],
@@ -292,10 +294,18 @@ class ProjectController extends Controller
 
         $tsunaguPrices = collect($data['tsunagu_unit_price'] ?? [])->filter(fn ($v) => $v !== null && $v !== '')->map(fn ($v) => (int) $v)->values()->all();
         $agencyPrices = collect($data['agency_unit_price'] ?? [])->filter(fn ($v) => $v !== null && $v !== '')->map(fn ($v) => (int) $v)->values()->all();
+        $tsunaguPercentages = collect($data['tsunagu_unit_percentage'] ?? [])->filter(fn ($v) => $v !== null && $v !== '')->map(fn ($v) => (float) $v)->values()->all();
+        $agencyPercentages = collect($data['agency_unit_percentage'] ?? [])->filter(fn ($v) => $v !== null && $v !== '')->map(fn ($v) => (float) $v)->values()->all();
 
         $data['tsunagu_unit_prices'] = $data['tsunagu_price_mode'] === 'fixed' ? $tsunaguPrices : null;
         $data['agency_unit_prices'] = $data['agency_price_mode'] === 'fixed' ? $agencyPrices : null;
-        unset($data['tsunagu_price_mode'], $data['agency_price_mode'], $data['tsunagu_unit_price'], $data['agency_unit_price']);
+        $data['tsunagu_unit_percentages'] = $data['tsunagu_price_mode'] === 'percentage' ? $tsunaguPercentages : null;
+        $data['agency_unit_percentages'] = $data['agency_price_mode'] === 'percentage' ? $agencyPercentages : null;
+        unset(
+            $data['tsunagu_price_mode'], $data['agency_price_mode'],
+            $data['tsunagu_unit_price'], $data['agency_unit_price'],
+            $data['tsunagu_unit_percentage'], $data['agency_unit_percentage'],
+        );
 
         return $data;
     }

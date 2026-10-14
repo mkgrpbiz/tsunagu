@@ -138,21 +138,35 @@
     </div>
 
     @php
-        $tsunaguMode = old('tsunagu_price_mode', empty($project->tsunagu_unit_prices) ? 'variable' : 'fixed');
-        $agencyMode = old('agency_price_mode', empty($project->agency_unit_prices) ? 'variable' : 'fixed');
+        $tsunaguMode = old('tsunagu_price_mode', match (true) {
+            !empty($project->tsunagu_unit_prices) => 'fixed',
+            !empty($project->tsunagu_unit_percentages) => 'percentage',
+            default => 'variable',
+        });
+        $agencyMode = old('agency_price_mode', match (true) {
+            !empty($project->agency_unit_prices) => 'fixed',
+            !empty($project->agency_unit_percentages) => 'percentage',
+            default => 'variable',
+        });
         $tsunaguPrices = old('tsunagu_unit_price', $project->tsunagu_unit_prices ?: ['']);
         $agencyPrices = old('agency_unit_price', $project->agency_unit_prices ?: ['']);
+        $tsunaguPercentages = old('tsunagu_unit_percentage', $project->tsunagu_unit_percentages ?: ['']);
+        $agencyPercentages = old('agency_unit_percentage', $project->agency_unit_percentages ?: ['']);
     @endphp
 
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">TSUNAGU単価</label>
         <div class="flex items-center gap-4 mb-2 text-sm">
             <label class="flex items-center gap-1.5">
-                <input type="radio" name="tsunagu_price_mode" value="fixed" class="price-mode-radio" data-target="tsunagu_unit_price_rows" @checked($tsunaguMode === 'fixed')>
+                <input type="radio" name="tsunagu_price_mode" value="fixed" class="price-mode-radio" data-prefix="tsunagu_unit" @checked($tsunaguMode === 'fixed')>
                 金額
             </label>
             <label class="flex items-center gap-1.5">
-                <input type="radio" name="tsunagu_price_mode" value="variable" class="price-mode-radio" data-target="tsunagu_unit_price_rows" @checked($tsunaguMode === 'variable')>
+                <input type="radio" name="tsunagu_price_mode" value="percentage" class="price-mode-radio" data-prefix="tsunagu_unit" @checked($tsunaguMode === 'percentage')>
+                ％
+            </label>
+            <label class="flex items-center gap-1.5">
+                <input type="radio" name="tsunagu_price_mode" value="variable" class="price-mode-radio" data-prefix="tsunagu_unit" @checked($tsunaguMode === 'variable')>
                 変動
             </label>
         </div>
@@ -165,20 +179,37 @@
                 </div>
             @endforeach
         </div>
-        <button type="button" class="tsn-add-price-row text-xs text-blue-600 hover:underline mt-1" data-rows="tsunagu_unit_price_rows" data-name="tsunagu_unit_price[]">+ パターンを追加</button>
+        <button type="button" class="tsn-add-price-row text-xs text-blue-600 hover:underline mt-1" data-rows="tsunagu_unit_price_rows" data-name="tsunagu_unit_price[]" data-placeholder="円">+ パターンを追加</button>
         @error('tsunagu_unit_price')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
         @error('tsunagu_unit_price.*')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+
+        <div id="tsunagu_unit_percentage_rows" class="space-y-2">
+            @foreach ($tsunaguPercentages as $percentage)
+                <div class="flex items-center gap-2 price-row">
+                    <input type="number" name="tsunagu_unit_percentage[]" value="{{ $percentage }}" min="0" max="100" step="0.1" placeholder="％"
+                           class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <button type="button" class="tsn-remove-price-row text-gray-400 hover:text-red-600 text-sm px-1" title="削除">×</button>
+                </div>
+            @endforeach
+        </div>
+        <button type="button" class="tsn-add-price-row text-xs text-blue-600 hover:underline mt-1" data-rows="tsunagu_unit_percentage_rows" data-name="tsunagu_unit_percentage[]" data-placeholder="％" data-max="100" data-step="0.1">+ パターンを追加</button>
+        @error('tsunagu_unit_percentage')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+        @error('tsunagu_unit_percentage.*')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">パートナー単価</label>
         <div class="flex items-center gap-4 mb-2 text-sm">
             <label class="flex items-center gap-1.5">
-                <input type="radio" name="agency_price_mode" value="fixed" class="price-mode-radio" data-target="agency_unit_price_rows" @checked($agencyMode === 'fixed')>
+                <input type="radio" name="agency_price_mode" value="fixed" class="price-mode-radio" data-prefix="agency_unit" @checked($agencyMode === 'fixed')>
                 金額
             </label>
             <label class="flex items-center gap-1.5">
-                <input type="radio" name="agency_price_mode" value="variable" class="price-mode-radio" data-target="agency_unit_price_rows" @checked($agencyMode === 'variable')>
+                <input type="radio" name="agency_price_mode" value="percentage" class="price-mode-radio" data-prefix="agency_unit" @checked($agencyMode === 'percentage')>
+                ％
+            </label>
+            <label class="flex items-center gap-1.5">
+                <input type="radio" name="agency_price_mode" value="variable" class="price-mode-radio" data-prefix="agency_unit" @checked($agencyMode === 'variable')>
                 変動
             </label>
         </div>
@@ -191,9 +222,22 @@
                 </div>
             @endforeach
         </div>
-        <button type="button" class="tsn-add-price-row text-xs text-blue-600 hover:underline mt-1" data-rows="agency_unit_price_rows" data-name="agency_unit_price[]">+ パターンを追加</button>
+        <button type="button" class="tsn-add-price-row text-xs text-blue-600 hover:underline mt-1" data-rows="agency_unit_price_rows" data-name="agency_unit_price[]" data-placeholder="円">+ パターンを追加</button>
         @error('agency_unit_price')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
         @error('agency_unit_price.*')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+
+        <div id="agency_unit_percentage_rows" class="space-y-2">
+            @foreach ($agencyPercentages as $percentage)
+                <div class="flex items-center gap-2 price-row">
+                    <input type="number" name="agency_unit_percentage[]" value="{{ $percentage }}" min="0" max="100" step="0.1" placeholder="％"
+                           class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <button type="button" class="tsn-remove-price-row text-gray-400 hover:text-red-600 text-sm px-1" title="削除">×</button>
+                </div>
+            @endforeach
+        </div>
+        <button type="button" class="tsn-add-price-row text-xs text-blue-600 hover:underline mt-1" data-rows="agency_unit_percentage_rows" data-name="agency_unit_percentage[]" data-placeholder="％" data-max="100" data-step="0.1">+ パターンを追加</button>
+        @error('agency_unit_percentage')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+        @error('agency_unit_percentage.*')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
     </div>
 
     <div class="col-span-2">
@@ -345,14 +389,19 @@ document.addEventListener('click', function (e) {
 });
 
 function tsnApplyPriceMode(radio) {
-    var container = document.getElementById(radio.dataset.target);
-    var isVariable = radio.value === 'variable';
-    container.querySelectorAll('input').forEach(function (input) {
-        input.disabled = isVariable;
-        input.classList.toggle('bg-gray-100', isVariable);
-        if (isVariable) {
-            input.value = '';
-        }
+    var priceRows = document.getElementById(radio.dataset.prefix + '_price_rows');
+    var percentageRows = document.getElementById(radio.dataset.prefix + '_percentage_rows');
+
+    [[priceRows, radio.value === 'fixed'], [percentageRows, radio.value === 'percentage']].forEach(function (pair) {
+        var container = pair[0];
+        var isActive = pair[1];
+        container.style.display = isActive ? '' : 'none';
+        container.querySelectorAll('input').forEach(function (input) {
+            input.disabled = !isActive;
+            if (!isActive) {
+                input.value = '';
+            }
+        });
     });
 }
 
@@ -370,7 +419,14 @@ document.querySelectorAll('.tsn-add-price-row').forEach(function (button) {
         var container = document.getElementById(button.dataset.rows);
         var row = document.createElement('div');
         row.className = 'flex items-center gap-2 price-row';
-        row.innerHTML = '<input type="number" name="' + button.dataset.name + '" min="0" placeholder="円" class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">'
+        var extraAttrs = '';
+        if (button.dataset.max) {
+            extraAttrs += ' max="' + button.dataset.max + '"';
+        }
+        if (button.dataset.step) {
+            extraAttrs += ' step="' + button.dataset.step + '"';
+        }
+        row.innerHTML = '<input type="number" name="' + button.dataset.name + '" min="0"' + extraAttrs + ' placeholder="' + button.dataset.placeholder + '" class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">'
             + '<button type="button" class="tsn-remove-price-row text-gray-400 hover:text-red-600 text-sm px-1" title="削除">×</button>';
         container.appendChild(row);
     });

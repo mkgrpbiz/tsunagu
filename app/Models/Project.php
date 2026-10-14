@@ -36,6 +36,8 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
     'partner_agency_id',
     'tsunagu_unit_prices',
     'agency_unit_prices',
+    'tsunagu_unit_percentages',
+    'agency_unit_percentages',
     'payment_timing',
     'recruitment_template',
     'line_auto_message',
@@ -50,6 +52,8 @@ class Project extends Model
             'bulk_link_enabled' => 'boolean',
             'tsunagu_unit_prices' => 'array',
             'agency_unit_prices' => 'array',
+            'tsunagu_unit_percentages' => 'array',
+            'agency_unit_percentages' => 'array',
         ];
     }
 
@@ -100,21 +104,25 @@ class Project extends Model
 
     public function formattedTsunaguUnitPrices(): string
     {
-        return self::formatUnitPrices($this->tsunagu_unit_prices);
+        return self::formatUnitPrices($this->tsunagu_unit_prices, $this->tsunagu_unit_percentages);
     }
 
     public function formattedAgencyUnitPrices(): string
     {
-        return self::formatUnitPrices($this->agency_unit_prices);
+        return self::formatUnitPrices($this->agency_unit_prices, $this->agency_unit_percentages);
     }
 
-    private static function formatUnitPrices(?array $prices): string
+    private static function formatUnitPrices(?array $prices, ?array $percentages): string
     {
-        if (empty($prices)) {
-            return '変動';
+        if (!empty($prices)) {
+            return collect($prices)->map(fn (int $price) => '¥'.number_format($price))->implode(' / ');
         }
 
-        return collect($prices)->map(fn (int $price) => '¥'.number_format($price))->implode(' / ');
+        if (!empty($percentages)) {
+            return collect($percentages)->map(fn (float $percentage) => rtrim(rtrim(number_format($percentage, 1), '0'), '.').'%')->implode(' / ');
+        }
+
+        return '変動';
     }
 
     public function overviewText(?string $inviteUrl = null): string
