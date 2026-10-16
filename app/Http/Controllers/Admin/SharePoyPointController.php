@@ -19,24 +19,32 @@ class SharePoyPointController extends Controller
 
     private const MYSTERY_SHOPPER_PROJECT_ID = 8;
 
+    /**
+     * 商品受け取りモニターの一括紐付け(ProductMonitorLinkController)が生成する
+     * TSUNAGU単価。この単価の行だけをSharePoyポイント対象にする（単価が変わったら
+     * ここも必ず合わせて更新すること。2026-10-03に1,000円から1,200円に変更された際、
+     * ここが追従しておらず新規の紐付けが一切SharePoyポイント用に出てこなくなるバグがあった）。
+     */
+    private const PRODUCT_MONITOR_UNIT_PRICE = 1200;
+
     public function index(): View
     {
         return view('admin.sharepoy_points.index', [
-            'productMonitor' => $this->summarize(self::PRODUCT_MONITOR_PROJECT_ID, '商品受け取りモニター紹介', true),
-            'mysteryShopper' => $this->summarize(self::MYSTERY_SHOPPER_PROJECT_ID, '覆面調査モニター紹介', false),
+            'productMonitor' => $this->summarize(self::PRODUCT_MONITOR_PROJECT_ID, '商品受け取りモニター紹介', self::PRODUCT_MONITOR_UNIT_PRICE),
+            'mysteryShopper' => $this->summarize(self::MYSTERY_SHOPPER_PROJECT_ID, '覆面調査モニター紹介', null),
         ]);
     }
 
     public function storeProductMonitor(): RedirectResponse
     {
-        $count = $this->store(self::PRODUCT_MONITOR_PROJECT_ID, 'product_monitor', true);
+        $count = $this->store(self::PRODUCT_MONITOR_PROJECT_ID, 'product_monitor', self::PRODUCT_MONITOR_UNIT_PRICE);
 
         return redirect()->route('admin.sharepoy-points.index')->with('status', "商品受け取りモニター: {$count}件をSharePoy+ユーザーの着金履歴に記録しました。");
     }
 
     public function storeMysteryShopper(): RedirectResponse
     {
-        $count = $this->store(self::MYSTERY_SHOPPER_PROJECT_ID, 'mystery_shopper', false);
+        $count = $this->store(self::MYSTERY_SHOPPER_PROJECT_ID, 'mystery_shopper', null);
 
         return redirect()->route('admin.sharepoy-points.index')->with('status', "覆面調査モニター: {$count}件をSharePoy+ユーザーの着金履歴に記録しました。");
     }
@@ -44,9 +52,9 @@ class SharePoyPointController extends Controller
     /**
      * @return array{groups: array<int, array{sharePoyUser: SharePoyUser, name: string, count: int, points: int, contracts: Collection<int, Contract>}>, noReferrerCode: array<int, array{sharePoyUser: SharePoyUser, name: string, count: int, points: int, contracts: Collection<int, Contract>}>, unmatched: array<int, array{name: string, count: int, contracts: Collection<int, Contract>}>, copyText: string, label: string}
      */
-    private function summarize(int $projectId, string $label, bool $onlyThousandYenLines): array
+    private function summarize(int $projectId, string $label, ?int $requireUnitPrice): array
     {
-        $contracts = $this->unprocessedContracts($projectId, $onlyThousandYenLines);
+        $contracts = $this->unprocessedContracts($projectId, $requireUnitPrice);
 
         $byName = $contracts->groupBy(fn (Contract $c) => $c->inquiry->name);
 
@@ -88,9 +96,9 @@ class SharePoyPointController extends Controller
         return ['groups' => $groups, 'noReferrerCode' => $noReferrerCode, 'unmatched' => $unmatched, 'copyText' => $copyText, 'label' => $label];
     }
 
-    private function store(int $projectId, string $source, bool $onlyThousandYenLines): int
+    private function store(int $projectId, string $source, ?int $requireUnitPrice): int
     {
-        $result = $this->summarize($projectId, '', $onlyThousandYenLines);
+        $result = $this->summarize($projectId, '', $requireUnitPrice);
 
         $savedCount = 0;
 
@@ -135,7 +143,7 @@ class SharePoyPointController extends Controller
     /**
      * @return Collection<int, Contract>
      */
-    private function unprocessedContracts(int $projectId, bool $onlyThousandYenLines): Collection
+    private function unprocessedContracts(int $projectId, ?int $requireUnitPrice): Collection
     {
         $a01AgencyId = Agency::where('legacy_code', 'A01')->value('id');
 
@@ -143,7 +151,7 @@ class SharePoyPointController extends Controller
             ->whereHas('inquiry', fn ($q) => $q->where('project_id', $projectId)->where('agency_id', $a01AgencyId))
             ->whereDoesntHave('sharePoyDepositRecord')
             ->get()
-            ->filter(fn (Contract $c) => ! $onlyThousandYenLines || ($c->count > 0 && $c->deposit_amount === $c->count * 1000))
+            ->filter(fn (Contract $c) => $requireUnitPrice === null || ($c->count > 0 && $c->deposit_amount === $c->count * $requireUnitPrice))
             ->values();
     }
 }
