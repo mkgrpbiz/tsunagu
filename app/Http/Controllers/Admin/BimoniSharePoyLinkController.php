@@ -6,6 +6,7 @@ use App\Enums\InquiryStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
 use App\Models\Inquiry;
+use App\Models\BimoniSharePoyLinkLog;
 use App\Models\SharePoyDepositRecord;
 use App\Models\SharePoyUser;
 use App\Services\ContractLinkingService;
@@ -32,6 +33,18 @@ class BimoniSharePoyLinkController extends Controller
     public function index(): View
     {
         return view('admin.bimoni_sharepoy_links.index');
+    }
+
+    public function logs(): View
+    {
+        $logs = BimoniSharePoyLinkLog::query()
+            ->orderByDesc('id')
+            ->paginate(30)
+            ->withQueryString();
+
+        return view('admin.bimoni_sharepoy_links.logs', [
+            'logs' => $logs,
+        ]);
     }
 
     /**
@@ -118,10 +131,26 @@ class BimoniSharePoyLinkController extends Controller
             }
         }
 
-        $unmatchedCount = $result['historyNoMatchCount']
-            + collect($result['historyCandidates'])
-                ->filter(fn (array $c) => ! $acceptedKeys->contains($c['key']))
-                ->sum(fn (array $c) => count($c['rows']));
+        $rejectedCandidates = collect($result['historyCandidates'])
+            ->filter(fn (array $c) => ! $acceptedKeys->contains($c['key']));
+
+        $unmatchedCount = $result['historyNoMatchCount'] + $rejectedCandidates->sum(fn (array $c) => count($c['rows']));
+
+        $this->logBatch('history', $data['pasted_text'], [
+            'matched' => collect($result['historyMatched'])->map(fn (array $g) => [
+                'name' => $g['sharePoyUser']->name,
+                'nameKana' => $g['sharePoyUser']->name_kana,
+                'count' => count($g['rows']),
+            ])->values()->all(),
+            'acceptedCandidates' => collect($result['historyCandidates'])
+                ->filter(fn (array $c) => $acceptedKeys->contains($c['key']))
+                ->map(fn (array $c) => ['pasted' => "{$c['name']}/{$c['nameKana']}", 'matchedTo' => "{$c['candidate']->name}/{$c['candidate']->name_kana}", 'count' => count($c['rows'])])
+                ->values()->all(),
+            'rejectedCandidates' => $rejectedCandidates
+                ->map(fn (array $c) => ['pasted' => "{$c['name']}/{$c['nameKana']}", 'candidate' => "{$c['candidate']->name}/{$c['candidate']->name_kana}", 'count' => count($c['rows'])])
+                ->values()->all(),
+            'noMatchRows' => $result['historyNoMatchRows'],
+        ], $savedCount, $unmatchedCount);
 
         $status = "{$savedCount}件をSharePoy+ユーザーの着金履歴に記録しました。";
         if ($unmatchedCount > 0) {
@@ -197,7 +226,32 @@ class BimoniSharePoyLinkController extends Controller
 
         $depositLinkedCount = collect($result['amountGroups'])->sum('count');
 
+        $this->logBatch('link', $data['pasted_text'], [
+            'pointGroups' => collect($result['groups'])->map(fn (array $g) => ['code' => $g['code'], 'count' => $g['count'], 'points' => $g['points']])->values()->all(),
+            'unresolvedForCopyText' => $result['unmatched'],
+            'amountGroups' => $result['amountGroups'],
+            'noAmountRows' => $result['noAmount'],
+        ], $depositLinkedCount, count($result['noAmount']));
+
         return redirect()->route('admin.bimoni-sharepoy-links.index')->with('status', "{$depositLinkedCount}件をA01（シェアポイ）に一括着金紐付けしました。");
+    }
+
+    /**
+     * 実行した一括処理の内容を記録する。当時のDB状態に基づく一致/不一致の内訳を保存することで、
+     * 後から「この日なぜ不一致になったか」を再貼り付けなしに確認できるようにする
+     * （SharePoyUserは後から追加され続けるため、現在のDBで再判定すると当時と結果が変わりうる）。
+     *
+     * @param  array<string, mixed>  $summary
+     */
+    private function logBatch(string $kind, string $pastedText, array $summary, int $savedCount, int $unmatchedCount): void
+    {
+        BimoniSharePoyLinkLog::create([
+            'kind' => $kind,
+            'pasted_text' => $pastedText,
+            'summary' => $summary,
+            'saved_count' => $savedCount,
+            'unmatched_count' => $unmatchedCount,
+        ]);
     }
 
     /**
@@ -277,6 +331,7 @@ class BimoniSharePoyLinkController extends Controller
      *     historyMatched: array<int, array{sharePoyUser: SharePoyUser, rows: array<int, array{raw: string, memo: string, amount: int}>}>,
      *     historyCandidates: array<int, array{key: string, name: string, nameKana: string, candidate: SharePoyUser, rows: array<int, array{raw: string, memo: string, amount: int}>}>,
      *     historyNoMatchCount: int,
+     *     historyNoMatchRows: array<int, array{name: string, nameKana: string}>,
      *     amountGroups: array<int, array{amount: int, count: int}>,
      *     noAmount: array<int, array{raw: string}>,
      * }
@@ -400,8 +455,13 @@ class BimoniSharePoyLinkController extends Controller
         // 名前・フリガナ検索で候補すら見つからなかった行のみを数える。SHAREPOYでコピー用の実IDが
         // 確定しなかった行（$copyUnresolved）はコピー用テキスト側だけの事情なので含めない
         // （候補がある場合は別途historyCandidatesで扱われるため、ここに混ぜると二重カウントになる）。
-        $historyNoMatchCount = count($unmatched)
-            + collect($historyRows)->filter(fn (array $r) => ! $r['sharePoyUser'] && ! $r['candidate'])->count();
+        $historyNoMatchRows = collect($historyRows)
+            ->filter(fn (array $r) => ! $r['sharePoyUser'] && ! $r['candidate'])
+            ->map(fn (array $r) => ['name' => $r['name'], 'nameKana' => $r['nameKana']])
+            ->values()
+            ->all();
+
+        $historyNoMatchCount = count($unmatched) + count($historyNoMatchRows);
 
         $amountResult = $this->groupByAmount($text);
 
@@ -411,6 +471,7 @@ class BimoniSharePoyLinkController extends Controller
             'historyMatched' => $historyMatched,
             'historyCandidates' => $historyCandidates,
             'historyNoMatchCount' => $historyNoMatchCount,
+            'historyNoMatchRows' => $historyNoMatchRows,
             'amountGroups' => $amountResult['amountGroups'],
             'noAmount' => $amountResult['noAmount'],
         ];

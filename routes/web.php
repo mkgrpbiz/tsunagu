@@ -187,6 +187,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::middleware('menu:bimoni_sharepoy_links')->group(function () {
                 Route::get('bimoni-sharepoy-links', [BimoniSharePoyLinkController::class, 'index'])->name('bimoni-sharepoy-links.index');
+                Route::get('bimoni-sharepoy-links/logs', [BimoniSharePoyLinkController::class, 'logs'])->name('bimoni-sharepoy-links.logs');
                 Route::post('bimoni-sharepoy-links/history-confirm', [BimoniSharePoyLinkController::class, 'historyConfirm'])->name('bimoni-sharepoy-links.history-confirm');
                 Route::post('bimoni-sharepoy-links/history-execute', [BimoniSharePoyLinkController::class, 'historyExecute'])->name('bimoni-sharepoy-links.history-execute');
                 Route::post('bimoni-sharepoy-links/link-confirm', [BimoniSharePoyLinkController::class, 'linkConfirm'])->name('bimoni-sharepoy-links.link-confirm');

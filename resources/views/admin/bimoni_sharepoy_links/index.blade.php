@@ -3,7 +3,10 @@
 @section('title', 'BIMONI(SharePoy)')
 
 @section('content')
-<h1 class="text-xl font-semibold mb-6">BIMONI(SharePoy) 一括紐付け</h1>
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-semibold">BIMONI(SharePoy) 一括紐付け</h1>
+    <a href="{{ route('admin.bimoni-sharepoy-links.logs') }}" class="text-sm text-gray-500">実行履歴を見る</a>
+</div>
 
 <div class="bg-amber-50 border border-amber-100 rounded-lg p-4 mb-6 text-sm text-gray-700 space-y-1">
     <p class="font-bold text-amber-600">サイクルが異なる2つの処理があるので、別々に実行します。</p>
