@@ -43,6 +43,7 @@ class BimoniTsunaguLinkController extends Controller
         return view('admin.bimoni_tsunagu_links.bulk_preview', [
             'pastedText' => $data['pasted_text'],
             'matched' => $result['matched'],
+            'candidates' => $result['candidates'],
             'unmatched' => $result['unmatched'],
         ]);
     }
@@ -51,9 +52,12 @@ class BimoniTsunaguLinkController extends Controller
     {
         $data = $request->validate([
             'pasted_text' => ['required', 'string'],
+            'accept_candidates' => ['array'],
+            'accept_candidates.*' => ['string'],
         ]);
 
         $result = $this->parseBulkText($data['pasted_text']);
+        $acceptedKeys = collect($data['accept_candidates'] ?? []);
 
         $linkedCount = 0;
         $blockedCount = 0;
@@ -74,7 +78,28 @@ class BimoniTsunaguLinkController extends Controller
             }
         }
 
-        $unmatchedCount = count($result['unmatched']);
+        foreach ($result['candidates'] as $candidateEntry) {
+            if (! $acceptedKeys->contains($candidateEntry['key'])) {
+                continue;
+            }
+
+            $lines = collect($candidateEntry['rows'])->map(fn (array $row) => [
+                'tsunagu_unit_price' => $row['tsunagu_price'],
+                'agency_unit_price' => $row['agency_price'],
+                'count' => $row['count'],
+            ])->all();
+
+            $success = $this->contractLinkingService->linkInquiry($candidateEntry['inquiry'], $lines);
+
+            if ($success) {
+                $linkedCount++;
+            } else {
+                $blockedCount++;
+            }
+        }
+
+        $unmatchedCount = count($result['unmatched'])
+            + collect($result['candidates'])->filter(fn (array $c) => ! $acceptedKeys->contains($c['key']))->count();
 
         $status = "{$linkedCount}件を一括紐付けしました。";
         if ($blockedCount > 0) {
@@ -88,7 +113,35 @@ class BimoniTsunaguLinkController extends Controller
     }
 
     /**
-     * @return array{matched: array<int, array{inquiry: Inquiry, rows: array<int, array{raw: string, memo: string, tsunagu_price: int, agency_price: int, count: int}>}>, unmatched: array<int, array{raw: string, reason: string}>}
+     * 名前・フリガナ完全一致しない場合に、片方だけ一致する問い合わせ候補を探す
+     * （表記ゆれ・入力ミスの救済用。自動では紐付けず、プレビュー画面でのチェック選択が必要）。
+     * 同じバッチ内で既に確定/候補提示済みの問い合わせは除外する（$claimedIdsで判定）。
+     */
+    private function findCandidate(string $name, string $nameKana, int $projectId, array $claimedIds): ?Inquiry
+    {
+        $base = Inquiry::with(['project', 'agency'])
+            ->where('project_id', $projectId)
+            ->whereNotIn('id', $claimedIds)
+            ->where(function ($q) {
+                $q->whereDoesntHave('contracts')
+                    ->orWhereHas('project', fn ($q2) => $q2->where('is_recurring', true));
+            })
+            ->orderBy('inquired_at');
+
+        $byName = (clone $base)->where('name', $name)->first();
+        if ($byName) {
+            return $byName;
+        }
+
+        if ($nameKana === '') {
+            return null;
+        }
+
+        return (clone $base)->where('name_kana', $nameKana)->first();
+    }
+
+    /**
+     * @return array{matched: array<int, array{inquiry: Inquiry, rows: array<int, array{raw: string, memo: string, tsunagu_price: int, agency_price: int, count: int}>}>, candidates: array<int, array{key: string, name: string, nameKana: string, inquiry: Inquiry, rows: array<int, array{raw: string, memo: string, tsunagu_price: int, agency_price: int, count: int}>}>, unmatched: array<int, array{raw: string, reason: string}>}
      */
     private function parseBulkText(string $text): array
     {
@@ -162,6 +215,7 @@ class BimoniTsunaguLinkController extends Controller
         $project = Project::findByAnyName(self::TARGET_PROJECT_NAME);
 
         $matched = [];
+        $candidates = [];
         $claimedIds = [];
 
         foreach ($personGroups as $rows) {
@@ -173,6 +227,14 @@ class BimoniTsunaguLinkController extends Controller
 
                 continue;
             }
+
+            $rowsPayload = $rows->map(fn (array $line) => [
+                'raw' => $line['raw'],
+                'memo' => $line['memo'],
+                'tsunagu_price' => $line['tsunagu_price'],
+                'agency_price' => $line['agency_price'],
+                'count' => $line['count'],
+            ])->values()->all();
 
             $candidateInquiries = Inquiry::with(['project', 'agency'])
                 ->where('project_id', $project->id)
@@ -187,26 +249,36 @@ class BimoniTsunaguLinkController extends Controller
 
             $inquiry = $candidateInquiries->first(fn (Inquiry $c) => ! in_array($c->id, $claimedIds, true));
 
-            if (! $inquiry) {
-                $unmatched[] = ['raw' => $allRaw, 'reason' => '一致する問い合わせ候補が見つかりません(名前・フリガナをご確認ください)'];
+            if ($inquiry) {
+                $claimedIds[] = $inquiry->id;
+
+                $matched[] = [
+                    'inquiry' => $inquiry,
+                    'rows' => $rowsPayload,
+                ];
 
                 continue;
             }
 
-            $claimedIds[] = $inquiry->id;
+            $candidate = $this->findCandidate($first['name'], $first['name_kana'], $project->id, $claimedIds);
 
-            $matched[] = [
-                'inquiry' => $inquiry,
-                'rows' => $rows->map(fn (array $line) => [
-                    'raw' => $line['raw'],
-                    'memo' => $line['memo'],
-                    'tsunagu_price' => $line['tsunagu_price'],
-                    'agency_price' => $line['agency_price'],
-                    'count' => $line['count'],
-                ])->values()->all(),
-            ];
+            if ($candidate) {
+                $claimedIds[] = $candidate->id;
+
+                $candidates[] = [
+                    'key' => $first['name'].'|'.$first['name_kana'],
+                    'name' => $first['name'],
+                    'nameKana' => $first['name_kana'],
+                    'inquiry' => $candidate,
+                    'rows' => $rowsPayload,
+                ];
+
+                continue;
+            }
+
+            $unmatched[] = ['raw' => $allRaw, 'reason' => '一致する問い合わせ候補が見つかりません(名前・フリガナをご確認ください)'];
         }
 
-        return ['matched' => $matched, 'unmatched' => $unmatched];
+        return ['matched' => $matched, 'candidates' => $candidates, 'unmatched' => $unmatched];
     }
 }
