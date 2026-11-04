@@ -31,11 +31,21 @@ class PaymentController extends Controller
 
     public function index(Request $request): View
     {
+        // 「該当なし成果」（紹介パートナーが特定できない成果を記録する際に使う`is_system`のダミーAgency）は
+        // 本来パートナー報酬が発生しない想定のため、この支払い一覧には一切出さない
+        // （以前は除外しておらず、月別一覧に¥0のパートナー行として紛れ込み紛らわしかった）。
+        // ただし商品受け取りモニター等の一括紐付けは名前だけで既存Inquiryを検索するため、
+        // このダミーで作成済みのInquiryに後から実在パートナー単価の着金が誤って追加される
+        // 事故が過去に実際あった（agency_reward_amountが0でないContractがこの代理店に
+        // 紐づいてしまう）。そうなった場合は支払い一覧から見えなくなるだけで金額自体は残るので、
+        // 定期的にAgency::noReferralAgency()配下のContractにagency_reward_amount>0が無いか確認すること
         $allContracts = Contract::with(['inquiry.project', 'inquiry.agency'])
+            ->whereHas('inquiry.agency', fn ($q) => $q->where('is_system', false))
             ->orderBy('deposit_date')
             ->get();
 
         $allCommissions = ReferralCommission::with(['referrerAgency', 'sourceAgency', 'contract'])
+            ->whereHas('referrerAgency', fn ($q) => $q->where('is_system', false))
             ->orderBy('payment_due_date')
             ->get();
 
