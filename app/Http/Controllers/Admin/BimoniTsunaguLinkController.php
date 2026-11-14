@@ -113,6 +113,16 @@ class BimoniTsunaguLinkController extends Controller
     }
 
     /**
+     * 姓名間のスペース（半角・全角とも）の有無だけの表記ゆれを吸収するため、比較前に取り除く。
+     * お問い合わせフォームは姓名間にスペースが入るが、貼り付け元のデータはスペース無しのことがあり、
+     * 完全一致判定だとこれだけで「該当なし」になってしまうため。
+     */
+    private function normalizeForMatch(string $value): string
+    {
+        return str_replace([' ', '　'], '', $value);
+    }
+
+    /**
      * 名前・フリガナ完全一致しない場合に、片方だけ一致する問い合わせ候補を探す
      * （表記ゆれ・入力ミスの救済用。自動では紐付けず、プレビュー画面でのチェック選択が必要）。
      * 同じバッチ内で既に確定/候補提示済みの問い合わせは除外する（$claimedIdsで判定）。
@@ -128,7 +138,8 @@ class BimoniTsunaguLinkController extends Controller
             })
             ->orderBy('inquired_at');
 
-        $byName = (clone $base)->where('name', $name)->first();
+        $normalizedName = $this->normalizeForMatch($name);
+        $byName = (clone $base)->whereRaw("REPLACE(REPLACE(name, ' ', ''), '　', '') = ?", [$normalizedName])->first();
         if ($byName) {
             return $byName;
         }
@@ -137,7 +148,9 @@ class BimoniTsunaguLinkController extends Controller
             return null;
         }
 
-        return (clone $base)->where('name_kana', $nameKana)->first();
+        $normalizedKana = $this->normalizeForMatch($nameKana);
+
+        return (clone $base)->whereRaw("REPLACE(REPLACE(name_kana, ' ', ''), '　', '') = ?", [$normalizedKana])->first();
     }
 
     /**
@@ -238,8 +251,11 @@ class BimoniTsunaguLinkController extends Controller
 
             $candidateInquiries = Inquiry::with(['project', 'agency'])
                 ->where('project_id', $project->id)
-                ->where('name', $first['name'])
-                ->when($first['name_kana'] !== '', fn ($q) => $q->where('name_kana', $first['name_kana']))
+                ->whereRaw("REPLACE(REPLACE(name, ' ', ''), '　', '') = ?", [$this->normalizeForMatch($first['name'])])
+                ->when(
+                    $first['name_kana'] !== '',
+                    fn ($q) => $q->whereRaw("REPLACE(REPLACE(name_kana, ' ', ''), '　', '') = ?", [$this->normalizeForMatch($first['name_kana'])])
+                )
                 ->where(function ($q) {
                     $q->whereDoesntHave('contracts')
                         ->orWhereHas('project', fn ($q2) => $q2->where('is_recurring', true));
