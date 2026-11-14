@@ -50,6 +50,16 @@ class SharePoyPointController extends Controller
     }
 
     /**
+     * 姓名間のスペース（半角・全角とも）の有無だけの表記ゆれを吸収するため、比較前に取り除く。
+     * お問い合わせフォームは姓名間にスペースが入るが、SharePoy+ユーザーの登録名はスペース無しのことがあり、
+     * 完全一致判定だとこれだけで「該当なし」になってしまうため。
+     */
+    private function normalizeForMatch(string $value): string
+    {
+        return str_replace([' ', '　'], '', $value);
+    }
+
+    /**
      * @return array{groups: array<int, array{sharePoyUser: SharePoyUser, name: string, count: int, points: int, contracts: Collection<int, Contract>}>, noReferrerCode: array<int, array{sharePoyUser: SharePoyUser, name: string, count: int, points: int, contracts: Collection<int, Contract>}>, unmatched: array<int, array{name: string, count: int, contracts: Collection<int, Contract>}>, copyText: string, label: string}
      */
     private function summarize(int $projectId, string $label, ?int $requireUnitPrice): array
@@ -64,7 +74,7 @@ class SharePoyPointController extends Controller
 
         foreach ($byName as $name => $group) {
             // 着金履歴は実施したユーザー本人（名前で特定）につける
-            $sharePoyUser = SharePoyUser::where('name', $name)->first();
+            $sharePoyUser = SharePoyUser::whereRaw("REPLACE(REPLACE(name, ' ', ''), '　', '') = ?", [$this->normalizeForMatch($name)])->first();
             $totalCount = $group->sum('count');
 
             if (! $sharePoyUser) {

@@ -395,6 +395,16 @@ class InquiryController extends Controller
     }
 
     /**
+     * 姓名間のスペース（半角・全角とも）の有無だけの表記ゆれを吸収するため、比較前に取り除く。
+     * お問い合わせフォームは姓名間にスペースが入るが、貼り付け元のデータはスペース無しのことがあり、
+     * 完全一致判定だとこれだけで「該当なし」になってしまうため。
+     */
+    private function normalizeForMatch(string $value): string
+    {
+        return str_replace([' ', '　'], '', $value);
+    }
+
+    /**
      * @return array{matched: array<int, array{raw: string, inquiry: Inquiry, tsunagu_price: int, agency_price: int, count: int}>, unmatched: array<int, array{raw: string, reason: string}>}
      */
     private function parseLinkBulkText(int $projectId, string $text): array
@@ -462,8 +472,11 @@ class InquiryController extends Controller
         foreach ($combinedLines as $line) {
             $candidateInquiries = Inquiry::with(['project', 'agency'])
                 ->where('project_id', $projectId)
-                ->where('name', $line['name'])
-                ->when($line['name_kana'] !== '', fn ($q) => $q->where('name_kana', $line['name_kana']))
+                ->whereRaw("REPLACE(REPLACE(name, ' ', ''), '　', '') = ?", [$this->normalizeForMatch($line['name'])])
+                ->when(
+                    $line['name_kana'] !== '',
+                    fn ($q) => $q->whereRaw("REPLACE(REPLACE(name_kana, ' ', ''), '　', '') = ?", [$this->normalizeForMatch($line['name_kana'])])
+                )
                 ->where(function ($q) {
                     $q->whereDoesntHave('contracts')
                         ->orWhereHas('project', fn ($q2) => $q2->where('is_recurring', true));

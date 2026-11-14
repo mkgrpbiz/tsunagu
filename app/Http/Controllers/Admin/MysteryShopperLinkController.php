@@ -90,6 +90,16 @@ class MysteryShopperLinkController extends Controller
     }
 
     /**
+     * 姓名間のスペース（半角・全角とも）の有無だけの表記ゆれを吸収するため、比較前に取り除く。
+     * お問い合わせフォームは姓名間にスペースが入るが、貼り付け元のデータはスペース無しのことがあり、
+     * 完全一致判定だとこれだけで「該当なし」になってしまうため。
+     */
+    private function normalizeForMatch(string $value): string
+    {
+        return str_replace([' ', '　'], '', $value);
+    }
+
+    /**
      * @return array{matched: array<int, array{name: string, inquiry: Inquiry, lines: array<int, array{tsunagu_unit_price: int, agency_unit_price: int, count: int, memo: ?string}>, isA01: bool}>, a01: array<int, array{name: string, lines: array<int, array{tsunagu_unit_price: int, agency_unit_price: int, count: int, memo: ?string}>}>}
      */
     private function parseBulkRows(string $text): array
@@ -119,7 +129,7 @@ class MysteryShopperLinkController extends Controller
 
             $inquiry = Inquiry::with('agency')
                 ->where('project_id', self::TARGET_PROJECT_ID)
-                ->where('name', $name)
+                ->whereRaw("REPLACE(REPLACE(name, ' ', ''), '　', '') = ?", [$this->normalizeForMatch($name)])
                 ->where(function ($q) {
                     $q->whereDoesntHave('contracts')
                         ->orWhereHas('project', fn ($q2) => $q2->where('is_recurring', true));
