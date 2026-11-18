@@ -18,6 +18,8 @@
 .mk-cases .filter-form{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:14px;margin-bottom:16px;display:flex;gap:10px}
 .mk-cases .filter-form input[type=text]{flex:1;border:1px solid #d1d5db;border-radius:8px;padding:8px 10px;font-size:13px;background:#fff}
 .mk-cases .filter-form button{flex-shrink:0;background:#2563eb;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer}
+.mk-cases .group-label{font-weight:800;font-size:13px;color:#6b7280;margin:22px 0 6px;padding-left:2px}
+.mk-cases .group-label:first-of-type{margin-top:4px}
 @media (max-width:480px){.mk-cases .filter-form{flex-direction:column}}
 </style>
 @endpush
@@ -33,14 +35,17 @@
             <button type="submit">検索</button>
         </form>
 
-        @forelse ($industries as $industry)
-            <a href="{{ route('agency.projects.industry', [$category, $industry]) }}" class="cat-card">
-                <div class="cat-body">
-                    <div class="cat-title">{{ $industry->name }}</div>
-                    <div class="cat-count">{{ $industry->projects_count }}件</div>
-                </div>
-                <span class="arrow"></span>
-            </a>
+        @forelse ($industryGroups as $group)
+            <div class="group-label">{{ $group['label'] }}</div>
+            @foreach ($group['industries'] as $industry)
+                <a href="{{ route('agency.projects.industry', [$category, $industry]) }}" class="cat-card">
+                    <div class="cat-body">
+                        <div class="cat-title">{{ $industry->name }}</div>
+                        <div class="cat-count">{{ $industry->projects_count }}件</div>
+                    </div>
+                    <span class="arrow"></span>
+                </a>
+            @endforeach
         @empty
             <p class="text-gray-400 text-center py-10">現在紹介可能な案件はありません。</p>
         @endforelse

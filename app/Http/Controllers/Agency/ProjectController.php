@@ -59,9 +59,15 @@ class ProjectController extends Controller
                 ->filter(fn (Industry $industry) => $industry->projects_count > 0 || $industry->name === self::PINNED_INDUSTRY_NAME)
                 ->values();
 
+            // 大枠募集（無料相談）と個別求人は小カテゴリーとして別物なので、見出しを分けて表示する
+            $industryGroups = collect([
+                ['label' => '無料相談', 'industries' => $industries->filter(fn (Industry $i) => $i->name === self::PINNED_INDUSTRY_NAME)->values()],
+                ['label' => '個別求人', 'industries' => $industries->reject(fn (Industry $i) => $i->name === self::PINNED_INDUSTRY_NAME)->values()],
+            ])->filter(fn (array $group) => $group['industries']->isNotEmpty())->values();
+
             return view('agency.projects.industries', [
                 'category' => $category,
-                'industries' => $industries,
+                'industryGroups' => $industryGroups,
             ]);
         }
 
