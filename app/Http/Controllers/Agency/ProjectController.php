@@ -29,6 +29,12 @@ class ProjectController extends Controller
         ]);
     }
 
+    /**
+     * 個別求人とは別に作った大枠募集（キャリア相談の無料相談案件）の業種。
+     * 件数で埋もれさせたくないため、業種一覧では常に先頭固定にする。
+     */
+    private const PINNED_INDUSTRY_NAME = '就職・転職・キャリア相談';
+
     private const JOB_SEARCH_FIELDS = [
         'name',
         'job_description',
@@ -47,10 +53,10 @@ class ProjectController extends Controller
         if ($category->has_job_fields && trim((string) $request->query('keyword')) === '') {
             $industries = Industry::query()
                 ->withCount(['projects' => fn ($query) => $query->where('category_id', $category->id)->where('status', ProjectStatus::Published)])
-                ->orderByRaw("CASE WHEN name = 'その他' THEN 1 ELSE 0 END")
+                ->orderByRaw('CASE WHEN name = ? THEN 0 WHEN name = ? THEN 2 ELSE 1 END', [self::PINNED_INDUSTRY_NAME, 'その他'])
                 ->orderByDesc('projects_count')
                 ->get()
-                ->filter(fn (Industry $industry) => $industry->projects_count > 0)
+                ->filter(fn (Industry $industry) => $industry->projects_count > 0 || $industry->name === self::PINNED_INDUSTRY_NAME)
                 ->values();
 
             return view('agency.projects.industries', [
